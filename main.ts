@@ -9,29 +9,55 @@ import {
 	Setting,
 } from "obsidian";
 
-// Remember to rename these classes and interfaces!
-
-interface MyPluginSettings {
-	mySetting: string;
+interface GptPluginSettings {
+	openaiApiKey: string;
+	openaiUrl: string;
 }
 
-const DEFAULT_SETTINGS: MyPluginSettings = {
-	mySetting: "default",
+const DEFAULT_SETTINGS: GptPluginSettings = {
+	openaiApiKey: "",
+	openaiUrl: "https://api.openai.com/v1/engines",
 };
 
-export default class MyPlugin extends Plugin {
-	settings: MyPluginSettings;
+export default class GptPlugin extends Plugin {
+	settings: GptPluginSettings;
 
 	async onload() {
 		await this.loadSettings();
 
+		const getEngines = async () => {
+			const apiUrl = this.settings.openaiUrl;
+			const apiKey = this.settings.openaiApiKey;
+
+			if (!apiKey) {
+				new Notice("Please enter your OpenAI API key in the settings.");
+				return;
+			}
+
+			try {
+				// No need to import fetch; it's globally available in Node.js 17.5+.
+				const response = await fetch(apiUrl, {
+					method: "GET",
+					headers: {
+						Authorization: `Bearer ${apiKey}`,
+					},
+				});
+
+				// Assuming the API returns JSON
+				const data = await response.json();
+				console.log(data);
+			} catch (error) {
+				console.error("Error:", error);
+			}
+		};
+
 		// This creates an icon in the left ribbon.
 		const ribbonIconEl = this.addRibbonIcon(
-			"dice",
+			"bot",
 			"Obsidian GPT Plugin",
 			(evt: MouseEvent) => {
 				// Called when the user clicks the icon.
-				new Notice("This is a notice!");
+				getEngines();
 			}
 		);
 		// Perform additional things with the ribbon
@@ -126,9 +152,9 @@ class SampleModal extends Modal {
 }
 
 class SampleSettingTab extends PluginSettingTab {
-	plugin: MyPlugin;
+	plugin: GptPlugin;
 
-	constructor(app: App, plugin: MyPlugin) {
+	constructor(app: App, plugin: GptPlugin) {
 		super(app, plugin);
 		this.plugin = plugin;
 	}
@@ -139,14 +165,14 @@ class SampleSettingTab extends PluginSettingTab {
 		containerEl.empty();
 
 		new Setting(containerEl)
-			.setName("Setting #1")
-			.setDesc("It's a secret")
+			.setName("Settings")
+			.setDesc("OpenAI API Key")
 			.addText((text) =>
 				text
-					.setPlaceholder("Enter your secret")
-					.setValue(this.plugin.settings.mySetting)
+					.setPlaceholder("Enter your key")
+					.setValue(this.plugin.settings.openaiApiKey)
 					.onChange(async (value) => {
-						this.plugin.settings.mySetting = value;
+						this.plugin.settings.openaiApiKey = value;
 						await this.plugin.saveSettings();
 					})
 			);
