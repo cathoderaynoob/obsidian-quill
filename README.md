@@ -1,98 +1,56 @@
-# Obsidian Obsidian GPT Plugin
+# Obsidian GPT Plugin
 
-This is a Obsidian GPT Plugin for Obsidian (https://obsidian.md).
+This Obsidian plugin brings the power of OpenAI's GPT to your note-taking workflow, allowing you to generate AI-powered content directly within Obsidian. Whether you're looking for a joke in the style of Louis CK or interesting historical facts, this plugin enhances your notes with intelligent and customizable text insertions.
 
-This project uses Typescript to provide type checking and documentation.
-The repo depends on the latest plugin API (obsidian.d.ts) in Typescript Definition format, which contains TSDoc comments describing what it does.
+## Features
 
-**Note:** The Obsidian API is still in early alpha and is subject to change at any time!
+-   **GPT-Powered Content**: Leverage the latest GPT models to generate content tailored to your queries.
+-   **Insert Jokes**: Get jokes in the style of famous comedians inserted directly into your notes.
+-   **On This Date**: Discover and insert fascinating historical facts for any given day.
+-   **Custom GPT Prompts**: Use the plugin to send custom prompts to the GPT API and insert the responses into your notes.
 
-This Obsidian GPT Plugin demonstrates some of the basic functionality the plugin API can do.
+## Installation
 
--   Adds a ribbon icon, which shows a Notice when clicked.
--   Adds a command "Open Sample Modal" which opens a Modal.
--   Adds a plugin setting tab to the settings page.
--   Registers a global click event and output 'click' to the console.
--   Registers a global interval which logs 'setInterval' to the console.
+### From GitHub
 
-## First time developing plugins?
+1. Download the latest release from the GitHub [releases page](https://github.com/your-username/your-repo-name/releases).
+2. In Obsidian, open the settings pane by clicking on the gear icon in the lower-left corner.
+3. Go to `Community Plugins` and disable `Safe Mode`.
+4. Click on `Browse` and then on `Install Plugin`. Choose the downloaded zip file.
+5. After the installation is complete, activate the plugin by toggling it on in the `Community Plugins` tab.
 
-Quick starting guide for new plugin devs:
+### Manual Installation
 
--   Check if [someone already developed a plugin for what you want](https://obsidian.md/plugins)! There might be an existing plugin similar enough that you can partner up with.
--   Make a copy of this repo as a template with the "Use this template" button (login to GitHub if you don't see it).
--   Clone your repo to a local development folder. For convenience, you can place this folder in your `.obsidian/plugins/your-plugin-name` folder.
--   Install NodeJS, then run `npm i` in the command line under your repo folder.
--   Run `npm run dev` to compile your plugin from `main.ts` to `main.js`.
--   Make changes to `main.ts` (or create new `.ts` files). Those changes should be automatically compiled into `main.js`.
--   Reload Obsidian to load the new version of your plugin.
--   Enable plugin in settings window.
--   For updates to the Obsidian API run `npm update` in the command line under your repo folder.
+1. Create a `your-plugin-name` folder inside `.obsidian/plugins` in your vault.
+2. Copy over the `main.js`, `manifest.json`, and `styles.css` (if present) files from the release into the new folder.
+3. Reload Obsidian or restart the app.
+4. Enable the plugin from the `Community Plugins` tab in Obsidian settings, as mentioned above.
 
-## Releasing new releases
+## Usage
 
--   Update your `manifest.json` with your new version number, such as `1.0.1`, and the minimum Obsidian version required for your latest release.
--   Update your `versions.json` file with `"new-plugin-version": "minimum-obsidian-version"` so older versions of Obsidian can download an older version of your plugin that's compatible.
--   Create new GitHub release using your new version number as the "Tag version". Use the exact version number, don't include a prefix `v`. See here for an example: https://github.com/obsidianmd/obsidian-gpt-plugin/releases
--   Upload the files `manifest.json`, `main.js`, `styles.css` as binary attachments. Note: The manifest.json file must be in two places, first the root path of your repository and also in the release.
--   Publish the release.
+-   **Insert a Joke**: Access the Command Palette (`Ctrl+P` or `Cmd+P` on macOS) and search for "Tell me a joke". Select it to generate and insert a joke at the current cursor position in your active note.
+-   **On This Date**: Use the Command Palette and search for "On This Date...". Select it to insert an interesting fact about the current date into your note.
 
-> You can simplify the version bump process by running `npm version patch`, `npm version minor` or `npm version major` after updating `minAppVersion` manually in `manifest.json`.
-> The command will bump version in `manifest.json` and `package.json`, and add the entry for the new version to `versions.json`
+## Configuration
 
-## Adding your plugin to the community plugin list
+After installation, navigate to the plugin settings tab to enter your OpenAI API key and select your preferred GPT model. These settings are crucial for the plugin to function correctly.
 
--   Check https://github.com/obsidianmd/obsidian-releases/blob/master/plugin-review.md
--   Publish an initial version.
--   Make sure you have a `README.md` file in the root of your repo.
--   Make a pull request at https://github.com/obsidianmd/obsidian-releases to add your plugin.
+## Acknowledgments
 
-## How to use
+This plugin utilizes the OpenAI API to generate content. A valid OpenAI API key is required for use.
 
--   Clone this repo.
--   Make sure your NodeJS is at least v16 (`node --version`).
--   `npm i` or `yarn` to install dependencies.
--   `npm run dev` to start compilation in watch mode.
+## Disclaimer
 
-## Manually installing the plugin
+This plugin is not officially affiliated with Obsidian or OpenAI. It is developed and maintained by independent contributors. Use at your own risk.
 
--   Copy over `main.js`, `styles.css`, `manifest.json` to your vault `VaultFolder/.obsidian/plugins/your-plugin-id/`.
+## License
 
-## Improve code quality with eslint (optional)
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
--   [ESLint](https://eslint.org/) is a tool that analyzes your code to quickly find problems. You can run ESLint against your plugin to find common bugs and ways to improve your code.
--   To use eslint with this project, make sure to install eslint from terminal:
-    -   `npm install -g eslint`
--   To use eslint to analyze this project use this command:
-    -   `eslint main.ts`
-    -   eslint will then create a report with suggestions for code improvement by file and line number.
--   If your source code is in a folder, such as `src`, you can use eslint with this command to analyze all files in that folder:
-    -   `eslint .\src\`
+## Contributing
 
-## Funding URL
+Contributions to the plugin are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests to us.
 
-You can include funding URLs where people who use your plugin can financially support it.
+---
 
-The simple way is to set the `fundingUrl` field to your link in your `manifest.json` file:
-
-```json
-{
-	"fundingUrl": "https://buymeacoffee.com"
-}
-```
-
-If you have multiple URLs, you can also do:
-
-```json
-{
-	"fundingUrl": {
-		"Buy Me a Coffee": "https://buymeacoffee.com",
-		"GitHub Sponsor": "https://github.com/sponsors",
-		"Patreon": "https://www.patreon.com/"
-	}
-}
-```
-
-## API Documentation
-
-See https://github.com/obsidianmd/obsidian-api
+Remember to update the placeholders (like `your-username/your-repo-name` and `your-plugin-name`) with your actual GitHub username, repository name, and plugin name. This README serves as a starting point, and as your plugin grows in functionality and complexity, you can expand this document to include more detailed instructions, screenshots, and FAQs.
