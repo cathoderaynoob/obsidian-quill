@@ -14,9 +14,10 @@ const openaiBaseUrl = "https://api.openai.com/v1";
 // Export the default settings
 export const DEFAULT_SETTINGS: GptPluginSettings = {
 	openaiApiKey: "",
-	openaiEnginesUrl: openaiBaseUrl + "/engines",
-	openaiChatUrl: openaiBaseUrl + "/chat/completions",
+	openaiEnginesUrl: `${openaiBaseUrl}/engines`,
+	openaiChatUrl: `${openaiBaseUrl}/chat/completions`,
 	openaiModel: "gpt-3.5-turbo",
+	// openaiModel: "gpt-4",
 };
 
 export class GptSettingsTab extends PluginSettingTab {
