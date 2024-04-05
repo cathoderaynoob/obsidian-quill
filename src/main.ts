@@ -1,4 +1,4 @@
-import { App, Modal, Notice, Plugin } from "obsidian";
+import { App, Editor, Modal, Notice, Plugin } from "obsidian";
 
 import {
 	GptPluginSettings,
@@ -14,19 +14,29 @@ export default class GptPlugin extends Plugin {
 	async onload() {
 		await this.loadSettings();
 
-		// This adds an icon to the ribbon and calls getEngines when clicked.
+		// This adds an icon to the ribbon and calls getEngines when clicked
 		this.addRibbonIcon("bot", "Obsidian GPT Plugin", (evt: MouseEvent) => {
-			// Called when the user clicks the icon.
 			this.getEngines();
 		});
 
-		// This adds a command to the Command Palette that calls getAJoke when executed.
+		// This adds a command to the Command Palette that calls getAJoke when selected
 		this.addCommand({
 			id: "gpt-joke-modal",
-			name: "Make me laugh!",
+			name: "Tell me a joke",
 			callback: async () => {
 				const joke = await this.getAJoke();
 				new GptModal(this.app, joke).open();
+			},
+		});
+
+		//  INSERT TEXT
+		this.addCommand({
+			id: "on-this-date",
+			name: "On This Date...",
+			hotkeys: [{ modifiers: ["Mod", "Shift"], key: "d" }],
+			editorCallback: async (editor: Editor) => {
+				const onThisDateText = await this.onThisDate();
+				editor.replaceRange(onThisDateText, editor.getCursor());
 			},
 		});
 
@@ -42,6 +52,7 @@ export default class GptPlugin extends Plugin {
 		return true;
 	}
 
+	// Engine endpoint
 	async getEngines() {
 		if (!this.hasApiKey()) return;
 
@@ -65,22 +76,12 @@ export default class GptPlugin extends Plugin {
 		}
 	}
 
-	async getAJoke() {
-		if (!this.hasApiKey()) return;
+	// Chat endpoint
+	async getGptChatResponse(payload: GptChatRequestPayload): Promise<string> {
+		if (!this.hasApiKey()) return "No API key found. Please check the settings.";
 
 		const apiKey = this.settings.openaiApiKey;
 		const apiUrl = this.settings.openaiChatUrl;
-		const gptModel = this.settings.openaiModel;
-		const payload = {
-			model: gptModel,
-			messages: [
-				{
-					role: "user",
-					content: "Tell me a joke in the style of George Carlin.",
-				},
-			],
-			temperature: 0.7,
-		};
 
 		try {
 			const response = await fetch(apiUrl, {
@@ -102,7 +103,46 @@ export default class GptPlugin extends Plugin {
 			return data.choices[0].message.content;
 		} catch (error) {
 			console.error("Error:", error);
+			return "An error occurred. Please check the console for more information.";
 		}
+	}
+
+	async onThisDate() {
+		const gptModel = this.settings.openaiModel;
+		const today = new Date().toLocaleDateString("en-US", {
+			month: "long",
+			day: "numeric",
+		});
+
+		const payload: GptChatRequestPayload = {
+			model: gptModel,
+			messages: [
+				{
+					role: "user",
+					content: `Tell me something interesting, significant, or funny
+						from history that happened on ${today}.`,
+				},
+			],
+			temperature: 0.7,
+		};
+
+		return this.getGptChatResponse(payload);
+	}
+
+	async getAJoke() {
+		const gptModel = this.settings.openaiModel;
+		const payload: GptChatRequestPayload = {
+			model: gptModel,
+			messages: [
+				{
+					role: "user",
+					content: "Tell me a joke in the style of Louis CK.",
+				},
+			],
+			temperature: 0.7,
+		};
+
+		return this.getGptChatResponse(payload);
 	}
 
 	onunload() {}
@@ -122,6 +162,15 @@ export default class GptPlugin extends Plugin {
 		this.apiKey = this.settings.openaiApiKey;
 		this.gptModel = this.settings.openaiModel;
 	}
+}
+
+interface GptChatRequestPayload {
+	model: string;
+	messages: {
+		role: "user" | "system"; // Assuming these are the only two roles based on OpenAI's API.
+		content: string;
+	}[];
+	temperature: number;
 }
 
 class GptModal extends Modal {
