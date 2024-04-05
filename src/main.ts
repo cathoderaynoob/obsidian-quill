@@ -76,9 +76,10 @@ export default class GptPlugin extends Plugin {
 		}
 	}
 
-	// Chat endpoint
+	// Generic function to get a response from the GPT chat API based on a payload
 	async getGptChatResponse(payload: GptChatRequestPayload): Promise<string> {
-		if (!this.hasApiKey()) return "No API key found. Please check the settings.";
+		if (!this.hasApiKey())
+			return "No API key found. Please check the settings.";
 
 		const apiKey = this.settings.openaiApiKey;
 		const apiUrl = this.settings.openaiChatUrl;
@@ -107,6 +108,7 @@ export default class GptPlugin extends Plugin {
 		}
 	}
 
+	// Generates payload and gets a response for "On This Date..." feature
 	async onThisDate() {
 		const gptModel = this.settings.openaiModel;
 		const today = new Date().toLocaleDateString("en-US", {
@@ -129,6 +131,7 @@ export default class GptPlugin extends Plugin {
 		return this.getGptChatResponse(payload);
 	}
 
+	// Generates payload and gets a joke response from the GPT chat API
 	async getAJoke() {
 		const gptModel = this.settings.openaiModel;
 		const payload: GptChatRequestPayload = {
@@ -147,6 +150,7 @@ export default class GptPlugin extends Plugin {
 
 	onunload() {}
 
+	// Loads the plugin settings from the local storage
 	async loadSettings() {
 		this.settings = Object.assign(
 			{},
@@ -155,6 +159,7 @@ export default class GptPlugin extends Plugin {
 		);
 	}
 
+	// Saves the current settings to the local storage
 	async saveSettings() {
 		await this.saveData(this.settings);
 
@@ -164,10 +169,11 @@ export default class GptPlugin extends Plugin {
 	}
 }
 
+// Interface to define the structure of the GPT chat request payload
 interface GptChatRequestPayload {
 	model: string;
 	messages: {
-		role: "user" | "system"; // Assuming these are the only two roles based on OpenAI's API.
+		role: "user" | "system";
 		content: string;
 	}[];
 	temperature: number;
