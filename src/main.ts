@@ -5,6 +5,13 @@ import {
 	GptSettingsTab,
 	DEFAULT_SETTINGS,
 } from "@/settings";
+import { ERROR_MESSAGES, ErrorCode } from "./constants";
+
+interface GptChatResponse {
+	success: boolean;
+	message: string;
+	error?: string;
+}
 
 export default class GptPlugin extends Plugin {
 	settings: GptPluginSettings;
@@ -45,16 +52,21 @@ export default class GptPlugin extends Plugin {
 	}
 
 	hasApiKey(): boolean {
-		if (!this.settings.openaiApiKey) {
-			new Notice("Please enter your OpenAI API key in the settings.");
-			return false;
-		}
-		return true;
+		return !!this.settings.openaiApiKey;
+	}
+
+	notifyError(errorCode: ErrorCode): void {
+		const errorMessage =
+			ERROR_MESSAGES[errorCode] || ERROR_MESSAGES.unknown;
+		new Notice(errorMessage);
 	}
 
 	// Engine endpoint
 	async getEngines() {
-		if (!this.hasApiKey()) return;
+		if (!this.hasApiKey()) {
+			this.notifyError("noApiKey");
+			return "";
+		}
 
 		const apiKey = this.settings.openaiApiKey;
 		const apiUrl = this.settings.openaiEnginesUrl;
@@ -73,14 +85,12 @@ export default class GptPlugin extends Plugin {
 			console.table(data.data);
 		} catch (error) {
 			console.error("Error:", error);
+			this.notifyError("unknown");
 		}
 	}
 
 	// Generic function to get a response from the GPT chat API based on a payload
-	async getGptChatResponse(payload: GptChatRequestPayload): Promise<string> {
-		if (!this.hasApiKey())
-			return "No API key found. Please check the settings.";
-
+	async getGptChatResponse(payload: GptChatRequestPayload): Promise<GptChatResponse> {
 		const apiKey = this.settings.openaiApiKey;
 		const apiUrl = this.settings.openaiChatUrl;
 
@@ -95,21 +105,27 @@ export default class GptPlugin extends Plugin {
 			});
 
 			if (!response.ok) {
-				throw new Error(`HTTP error! status: ${response.status}`);
+				return { success: false, message: "", error: `HTTP error status: ${response.status}` };
 			}
 
 			const data = await response.json();
 			console.log(data.choices[0].message.content);
 
-			return data.choices[0].message.content;
+			return { success: true, message: data.choices[0].message.content };
 		} catch (error) {
 			console.error("Error:", error);
-			return "An error occurred. Please check the console for more information.";
+			this.notifyError("unknown");
+			return { success: false, message: "", error: "An unexpected error occurred." };
 		}
 	}
 
 	// Generates payload and gets a response for "On This Date..." feature
 	async onThisDate() {
+		if (!this.hasApiKey()) {
+			this.notifyError("noApiKey");
+			return "";
+		}
+
 		const gptModel = this.settings.openaiModel;
 		const today = new Date().toLocaleDateString("en-US", {
 			month: "long",
@@ -128,11 +144,20 @@ export default class GptPlugin extends Plugin {
 			temperature: 0.7,
 		};
 
-		return this.getGptChatResponse(payload);
+		const response = await this.getGptChatResponse(payload);
+		if (!response.success) {
+			return "";
+		}
+		return response.message;
 	}
 
 	// Generates payload and gets a joke response from the GPT chat API
 	async getAJoke() {
+		if (!this.hasApiKey()) {
+			this.notifyError("noApiKey");
+			return "";
+		}
+
 		const gptModel = this.settings.openaiModel;
 		const payload: GptChatRequestPayload = {
 			model: gptModel,
@@ -145,27 +170,32 @@ export default class GptPlugin extends Plugin {
 			temperature: 0.7,
 		};
 
-		return this.getGptChatResponse(payload);
+		const response = await this.getGptChatResponse(payload);
+		if (!response.success) {
+			return "";
+		}
+		return response.message;
 	}
 
 	onunload() {}
 
-	// Loads the plugin settings from the local storage
+	// Loads the default settings, and then overrides them with any saved settings
 	async loadSettings() {
-		this.settings = Object.assign(
-			{},
-			DEFAULT_SETTINGS,
-			await this.loadData()
-		);
+		const userSettings = await this.loadData();
+		this.settings = {
+			...DEFAULT_SETTINGS,
+			...userSettings,
+		};
 	}
 
 	// Saves the current settings to the local storage
 	async saveSettings() {
 		await this.saveData(this.settings);
 
-		// In case these were updated in the settings
-		this.apiKey = this.settings.openaiApiKey;
-		this.gptModel = this.settings.openaiModel;
+		// // In case these were updated in the settings
+		// I don't think these do anything
+		// this.apiKey = this.settings.openaiApiKey;
+		// this.gptModel = this.settings.openaiModel;
 	}
 }
 
