@@ -1,11 +1,11 @@
-import { App, Editor, Modal, Notice, Plugin } from "obsidian";
-
+import { App, Editor, Modal, Notice, Plugin, WorkspaceLeaf } from "obsidian";
 import {
 	GptPluginSettings,
 	GptSettingsTab,
 	DEFAULT_SETTINGS,
 } from "@/settings";
-import { ERROR_MESSAGES, ErrorCode } from "./constants";
+import { ERROR_MESSAGES, ErrorCode, GPT_VIEW_TYPE } from "@/constants";
+import GptView from "@/view";
 
 interface GptChatResponse {
 	success: boolean;
@@ -18,15 +18,29 @@ export default class GptPlugin extends Plugin {
 	apiKey?: string;
 	gptModel?: string;
 
-	async onload() {
+	async onload(): Promise<void> {
 		await this.loadSettings();
 
-		// This adds an icon to the ribbon and calls getEngines when clicked
+		// This adds a settings tab so the user can configure various aspects of the plugin
+		this.addSettingTab(new GptSettingsTab(this.app, this));
+
+		// Add a view to the app
+		this.registerView(
+			GPT_VIEW_TYPE,
+			(leaf: WorkspaceLeaf) => new GptView(leaf)
+		);
+
+		// Chat with GPT icon
+		this.addRibbonIcon("message-square", "Chat with GPT", (evt: MouseEvent) => {
+			this.activateView();
+		});
+
+		// Get Engines Icon
 		this.addRibbonIcon("bot", "Obsidian GPT Plugin", (evt: MouseEvent) => {
 			this.getEngines();
 		});
 
-		// This adds a command to the Command Palette that calls getAJoke when selected
+		// "Tell me a joke" command
 		this.addCommand({
 			id: "gpt-joke-modal",
 			name: "Tell me a joke",
@@ -36,7 +50,7 @@ export default class GptPlugin extends Plugin {
 			},
 		});
 
-		//  INSERT TEXT
+		//  "On This Date..." command
 		this.addCommand({
 			id: "on-this-date",
 			name: "On This Date...",
@@ -46,9 +60,6 @@ export default class GptPlugin extends Plugin {
 				editor.replaceRange(onThisDateText, editor.getCursor());
 			},
 		});
-
-		// This adds a settings tab so the user can configure various aspects of the plugin
-		this.addSettingTab(new GptSettingsTab(this.app, this));
 	}
 
 	hasApiKey(): boolean {
@@ -56,16 +67,33 @@ export default class GptPlugin extends Plugin {
 	}
 
 	notifyError(errorCode: ErrorCode): void {
-		const errorMessage =
-			ERROR_MESSAGES[errorCode] || ERROR_MESSAGES.unknown;
+		const errorMessage = ERROR_MESSAGES[errorCode] || ERROR_MESSAGES.unknown;
 		new Notice(errorMessage);
 	}
 
+	async activateView(): Promise<void> {
+		const { workspace } = this.app;
+		let leaves = workspace.getLeavesOfType(GPT_VIEW_TYPE);
+
+		if (leaves.length === 0) {
+			const leaf = workspace.getRightLeaf(false);
+			if (leaf !== null) {
+				await leaf.setViewState({ type: GPT_VIEW_TYPE, active: true });
+				leaves = workspace.getLeavesOfType(GPT_VIEW_TYPE);
+			}
+		}
+
+		if (leaves.length > 0) {
+			workspace.revealLeaf(leaves[0]);
+		} else {
+			console.error(ERROR_MESSAGES.viewError);
+		}
+	}
+
 	// Engine endpoint
-	async getEngines() {
+	async getEngines(): Promise<void> {
 		if (!this.hasApiKey()) {
 			this.notifyError("noApiKey");
-			return "";
 		}
 
 		const apiKey = this.settings.openaiApiKey;
@@ -84,13 +112,16 @@ export default class GptPlugin extends Plugin {
 			const data = await response.json();
 			console.table(data.data);
 		} catch (error) {
-			console.error("Error:", error);
 			this.notifyError("unknown");
+			console.error("Error:", error);
 		}
 	}
 
 	// Generic function to get a response from the GPT chat API based on a payload
-	async getGptChatResponse(payload: GptChatRequestPayload): Promise<GptChatResponse> {
+	async getGptChatResponse(
+		payload: GptChatRequestPayload
+	): Promise<GptChatResponse> {
+		
 		const apiKey = this.settings.openaiApiKey;
 		const apiUrl = this.settings.openaiChatUrl;
 
@@ -105,7 +136,11 @@ export default class GptPlugin extends Plugin {
 			});
 
 			if (!response.ok) {
-				return { success: false, message: "", error: `HTTP error status: ${response.status}` };
+				return {
+					success: false,
+					message: "",
+					error: `HTTP error status: ${response.status}`,
+				};
 			}
 
 			const data = await response.json();
@@ -115,12 +150,16 @@ export default class GptPlugin extends Plugin {
 		} catch (error) {
 			console.error("Error:", error);
 			this.notifyError("unknown");
-			return { success: false, message: "", error: "An unexpected error occurred." };
+			return {
+				success: false,
+				message: "",
+				error: "An unexpected error occurred.",
+			};
 		}
 	}
 
 	// Generates payload and gets a response for "On This Date..." feature
-	async onThisDate() {
+	async onThisDate(): Promise<string> {
 		if (!this.hasApiKey()) {
 			this.notifyError("noApiKey");
 			return "";
@@ -152,7 +191,7 @@ export default class GptPlugin extends Plugin {
 	}
 
 	// Generates payload and gets a joke response from the GPT chat API
-	async getAJoke() {
+	async getAJoke(): Promise<string> {
 		if (!this.hasApiKey()) {
 			this.notifyError("noApiKey");
 			return "";
@@ -177,10 +216,12 @@ export default class GptPlugin extends Plugin {
 		return response.message;
 	}
 
-	onunload() {}
+  onunload(): void {
+		this.app.workspace.detachLeavesOfType(GPT_VIEW_TYPE);
+  }
 
 	// Loads the default settings, and then overrides them with any saved settings
-	async loadSettings() {
+	async loadSettings(): Promise<void> {
 		const userSettings = await this.loadData();
 		this.settings = {
 			...DEFAULT_SETTINGS,
@@ -189,13 +230,8 @@ export default class GptPlugin extends Plugin {
 	}
 
 	// Saves the current settings to the local storage
-	async saveSettings() {
+	async saveSettings(): Promise<void> {
 		await this.saveData(this.settings);
-
-		// // In case these were updated in the settings
-		// I don't think these do anything
-		// this.apiKey = this.settings.openaiApiKey;
-		// this.gptModel = this.settings.openaiModel;
 	}
 }
 
