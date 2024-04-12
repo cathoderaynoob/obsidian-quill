@@ -2,6 +2,7 @@ export const ERROR_MESSAGES = {
 	unknown: "An unknown error occurred. Please check the console for more information.",
 	viewError: "Unable to open the GPT chat view. Please try again, or check the console for more information.",
 	noApiKey: "Please enter your OpenAI API key in the Obsidian GPT Plugin settings",
+	noEngines: "No engines found. Please check your OpenAI API key and try again.",
 } as const;
 
 export type ErrorCode = keyof typeof ERROR_MESSAGES;

@@ -6,3 +6,14 @@ available in the app when your plugin is enabled.
 If your plugin does not need CSS, delete this file.
 
 */
+.gpt-view-title {
+	position: sticky;
+	top: 0;
+  left: 0;
+	z-index: 1000; /* Ensures the header is above other content */
+  background: var(--background-primary);
+  opacity: 0.9;
+  padding: 1rem;
+  width: 100%;
+  border-bottom: 1px solid gray;
+}

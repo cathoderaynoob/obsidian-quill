@@ -13,6 +13,12 @@ interface GptChatResponse {
 	error?: string;
 }
 
+interface GptEngines {
+	id: string;
+	ready: boolean;
+	owner: string;
+}
+
 export default class GptPlugin extends Plugin {
 	settings: GptPluginSettings;
 	apiKey?: string;
@@ -30,13 +36,15 @@ export default class GptPlugin extends Plugin {
 			(leaf: WorkspaceLeaf) => new GptView(leaf)
 		);
 
+		// ICONS AND COMMANDS
+
 		// Chat with GPT icon
 		this.addRibbonIcon("message-square", "Chat with GPT", (evt: MouseEvent) => {
 			this.activateView();
 		});
 
 		// Get Engines Icon
-		this.addRibbonIcon("bot", "Obsidian GPT Plugin", (evt: MouseEvent) => {
+		this.addRibbonIcon("bot", "Get GPT Robots", (evt: MouseEvent) => {
 			this.getEngines();
 		});
 
@@ -62,6 +70,7 @@ export default class GptPlugin extends Plugin {
 		});
 	}
 
+	// UTILITIES
 	hasApiKey(): boolean {
 		return !!this.settings.openaiApiKey;
 	}
@@ -71,29 +80,44 @@ export default class GptPlugin extends Plugin {
 		new Notice(errorMessage);
 	}
 
-	async activateView(): Promise<void> {
+	// VIEW
+	async activateView(): Promise<WorkspaceLeaf | null> {
 		const { workspace } = this.app;
-		let leaves = workspace.getLeavesOfType(GPT_VIEW_TYPE);
+		let leaf: WorkspaceLeaf | null =
+			workspace.getLeavesOfType(GPT_VIEW_TYPE)[0];
 
-		if (leaves.length === 0) {
-			const leaf = workspace.getRightLeaf(false);
-			if (leaf !== null) {
-				await leaf.setViewState({ type: GPT_VIEW_TYPE, active: true });
-				leaves = workspace.getLeavesOfType(GPT_VIEW_TYPE);
+		if (!leaf) {
+			leaf = workspace.getRightLeaf(false);
+			if (leaf) {
+				await leaf.setViewState({
+					type: GPT_VIEW_TYPE,
+					active: true,
+				});
 			}
 		}
 
-		if (leaves.length > 0) {
-			workspace.revealLeaf(leaves[0]);
-		} else {
-			console.error(ERROR_MESSAGES.viewError);
+		if (leaf) {
+			workspace.revealLeaf(leaf);
+			return leaf;
 		}
+
+		this.notifyError("viewError");
+		return null;
 	}
 
+	// API CALLS
+
 	// Engine endpoint
-	async getEngines(): Promise<void> {
+	async getEngines(): Promise<string[]> {
 		if (!this.hasApiKey()) {
 			this.notifyError("noApiKey");
+			return [ERROR_MESSAGES.noApiKey];
+		}
+
+		const leaf = await this.activateView();
+		if (!leaf) {
+			console.error(ERROR_MESSAGES.viewError);
+			return [ERROR_MESSAGES.viewError];
 		}
 
 		const apiKey = this.settings.openaiApiKey;
@@ -110,10 +134,18 @@ export default class GptPlugin extends Plugin {
 
 			// Assuming the API returns JSON
 			const data = await response.json();
-			console.table(data.data);
+			const engines: string[] = data.data
+				.map((engine: GptEngines) => engine.id)
+				.sort();
+			console.table(engines);
+			if (leaf.view instanceof GptView) {
+				leaf.view.updateEngines(engines);
+			}
+			return engines;
 		} catch (error) {
-			this.notifyError("unknown");
+			this.notifyError("noEngines");
 			console.error("Error:", error);
+			return [ERROR_MESSAGES.noEngines];
 		}
 	}
 
@@ -121,7 +153,6 @@ export default class GptPlugin extends Plugin {
 	async getGptChatResponse(
 		payload: GptChatRequestPayload
 	): Promise<GptChatResponse> {
-		
 		const apiKey = this.settings.openaiApiKey;
 		const apiUrl = this.settings.openaiChatUrl;
 
@@ -216,9 +247,11 @@ export default class GptPlugin extends Plugin {
 		return response.message;
 	}
 
-  onunload(): void {
+	onunload(): void {
 		this.app.workspace.detachLeavesOfType(GPT_VIEW_TYPE);
-  }
+	}
+
+	// DATA STORAGE
 
 	// Loads the default settings, and then overrides them with any saved settings
 	async loadSettings(): Promise<void> {
@@ -234,6 +267,8 @@ export default class GptPlugin extends Plugin {
 		await this.saveData(this.settings);
 	}
 }
+
+// GPT INTERFACE AND MODAL
 
 // Interface to define the structure of the GPT chat request payload
 interface GptChatRequestPayload {
