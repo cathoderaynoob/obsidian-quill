@@ -1,11 +1,11 @@
-import { App, Editor, Modal, Notice, Plugin } from "obsidian";
-
+import { App, Editor, Modal, Notice, Plugin, WorkspaceLeaf } from "obsidian";
 import {
 	GptPluginSettings,
 	GptSettingsTab,
 	DEFAULT_SETTINGS,
 } from "@/settings";
-import { ERROR_MESSAGES, ErrorCode } from "./constants";
+import { ERROR_MESSAGES, ErrorCode, GPT_VIEW_TYPE } from "@/constants";
+import GptView from "@/view";
 
 interface GptChatResponse {
 	success: boolean;
@@ -13,20 +13,42 @@ interface GptChatResponse {
 	error?: string;
 }
 
+interface GptEngines {
+	id: string;
+	ready: boolean;
+	owner: string;
+}
+
 export default class GptPlugin extends Plugin {
 	settings: GptPluginSettings;
 	apiKey?: string;
 	gptModel?: string;
 
-	async onload() {
+	async onload(): Promise<void> {
 		await this.loadSettings();
 
-		// This adds an icon to the ribbon and calls getEngines when clicked
-		this.addRibbonIcon("bot", "Obsidian GPT Plugin", (evt: MouseEvent) => {
+		// This adds a settings tab so the user can configure various aspects of the plugin
+		this.addSettingTab(new GptSettingsTab(this.app, this));
+
+		// Add a view to the app
+		this.registerView(
+			GPT_VIEW_TYPE,
+			(leaf: WorkspaceLeaf) => new GptView(leaf)
+		);
+
+		// ICONS AND COMMANDS
+
+		// Chat with GPT icon
+		this.addRibbonIcon("message-square", "Chat with GPT", (evt: MouseEvent) => {
+			this.activateView();
+		});
+
+		// Get Engines Icon
+		this.addRibbonIcon("bot", "Get GPT Robots", (evt: MouseEvent) => {
 			this.getEngines();
 		});
 
-		// This adds a command to the Command Palette that calls getAJoke when selected
+		// "Tell me a joke" command
 		this.addCommand({
 			id: "gpt-joke-modal",
 			name: "Tell me a joke",
@@ -36,7 +58,7 @@ export default class GptPlugin extends Plugin {
 			},
 		});
 
-		//  INSERT TEXT
+		//  "On This Date..." command
 		this.addCommand({
 			id: "on-this-date",
 			name: "On This Date...",
@@ -46,26 +68,56 @@ export default class GptPlugin extends Plugin {
 				editor.replaceRange(onThisDateText, editor.getCursor());
 			},
 		});
-
-		// This adds a settings tab so the user can configure various aspects of the plugin
-		this.addSettingTab(new GptSettingsTab(this.app, this));
 	}
 
+	// UTILITIES
 	hasApiKey(): boolean {
 		return !!this.settings.openaiApiKey;
 	}
 
 	notifyError(errorCode: ErrorCode): void {
-		const errorMessage =
-			ERROR_MESSAGES[errorCode] || ERROR_MESSAGES.unknown;
+		const errorMessage = ERROR_MESSAGES[errorCode] || ERROR_MESSAGES.unknown;
 		new Notice(errorMessage);
 	}
 
+	// VIEW
+	async activateView(): Promise<WorkspaceLeaf | null> {
+		const { workspace } = this.app;
+		let leaf: WorkspaceLeaf | null =
+			workspace.getLeavesOfType(GPT_VIEW_TYPE)[0];
+
+		if (!leaf) {
+			leaf = workspace.getRightLeaf(false);
+			if (leaf) {
+				await leaf.setViewState({
+					type: GPT_VIEW_TYPE,
+					active: true,
+				});
+			}
+		}
+
+		if (leaf) {
+			workspace.revealLeaf(leaf);
+			return leaf;
+		}
+
+		this.notifyError("viewError");
+		return null;
+	}
+
+	// API CALLS
+
 	// Engine endpoint
-	async getEngines() {
+	async getEngines(): Promise<string[]> {
 		if (!this.hasApiKey()) {
 			this.notifyError("noApiKey");
-			return "";
+			return [ERROR_MESSAGES.noApiKey];
+		}
+
+		const leaf = await this.activateView();
+		if (!leaf) {
+			console.error(ERROR_MESSAGES.viewError);
+			return [ERROR_MESSAGES.viewError];
 		}
 
 		const apiKey = this.settings.openaiApiKey;
@@ -82,15 +134,25 @@ export default class GptPlugin extends Plugin {
 
 			// Assuming the API returns JSON
 			const data = await response.json();
-			console.table(data.data);
+			const engines: string[] = data.data
+				.map((engine: GptEngines) => engine.id)
+				.sort();
+			console.table(engines);
+			if (leaf.view instanceof GptView) {
+				leaf.view.updateEngines(engines);
+			}
+			return engines;
 		} catch (error) {
+			this.notifyError("noEngines");
 			console.error("Error:", error);
-			this.notifyError("unknown");
+			return [ERROR_MESSAGES.noEngines];
 		}
 	}
 
 	// Generic function to get a response from the GPT chat API based on a payload
-	async getGptChatResponse(payload: GptChatRequestPayload): Promise<GptChatResponse> {
+	async getGptChatResponse(
+		payload: GptChatRequestPayload
+	): Promise<GptChatResponse> {
 		const apiKey = this.settings.openaiApiKey;
 		const apiUrl = this.settings.openaiChatUrl;
 
@@ -105,7 +167,11 @@ export default class GptPlugin extends Plugin {
 			});
 
 			if (!response.ok) {
-				return { success: false, message: "", error: `HTTP error status: ${response.status}` };
+				return {
+					success: false,
+					message: "",
+					error: `HTTP error status: ${response.status}`,
+				};
 			}
 
 			const data = await response.json();
@@ -115,12 +181,16 @@ export default class GptPlugin extends Plugin {
 		} catch (error) {
 			console.error("Error:", error);
 			this.notifyError("unknown");
-			return { success: false, message: "", error: "An unexpected error occurred." };
+			return {
+				success: false,
+				message: "",
+				error: "An unexpected error occurred.",
+			};
 		}
 	}
 
 	// Generates payload and gets a response for "On This Date..." feature
-	async onThisDate() {
+	async onThisDate(): Promise<string> {
 		if (!this.hasApiKey()) {
 			this.notifyError("noApiKey");
 			return "";
@@ -152,7 +222,7 @@ export default class GptPlugin extends Plugin {
 	}
 
 	// Generates payload and gets a joke response from the GPT chat API
-	async getAJoke() {
+	async getAJoke(): Promise<string> {
 		if (!this.hasApiKey()) {
 			this.notifyError("noApiKey");
 			return "";
@@ -177,10 +247,14 @@ export default class GptPlugin extends Plugin {
 		return response.message;
 	}
 
-	onunload() {}
+	onunload(): void {
+		this.app.workspace.detachLeavesOfType(GPT_VIEW_TYPE);
+	}
+
+	// DATA STORAGE
 
 	// Loads the default settings, and then overrides them with any saved settings
-	async loadSettings() {
+	async loadSettings(): Promise<void> {
 		const userSettings = await this.loadData();
 		this.settings = {
 			...DEFAULT_SETTINGS,
@@ -189,15 +263,12 @@ export default class GptPlugin extends Plugin {
 	}
 
 	// Saves the current settings to the local storage
-	async saveSettings() {
+	async saveSettings(): Promise<void> {
 		await this.saveData(this.settings);
-
-		// // In case these were updated in the settings
-		// I don't think these do anything
-		// this.apiKey = this.settings.openaiApiKey;
-		// this.gptModel = this.settings.openaiModel;
 	}
 }
+
+// GPT INTERFACE AND MODAL
 
 // Interface to define the structure of the GPT chat request payload
 interface GptChatRequestPayload {
