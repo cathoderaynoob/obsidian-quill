@@ -152,7 +152,7 @@ export default class GptPlugin extends Plugin {
 				},
 				body: JSON.stringify(payload),
 			});
-			console.log(response);
+
 			if (!response.ok) {
 				return {
 					success: false,
@@ -270,7 +270,7 @@ export default class GptPlugin extends Plugin {
 	}
 
   // Keeping this for now as a reference for standard requests
-  
+
 	// Generates payload and gets a standard response for "On This Date..." feature
 	// async onThisDate(): Promise<string> {
 	// 	if (!this.hasApiKey()) {
