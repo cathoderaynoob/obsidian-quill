@@ -242,7 +242,7 @@ export default class GptPlugin extends Plugin {
 
 	// Generates payload and gets a streaming response for "On This Date..." feature
 	async onThisDate(editor: Editor): Promise<void> {
-		if (!this.hasApiKey) {
+		if (!this.hasApiKey()) {
 			this.notifyError("noApiKey");
 			return;
 		}
@@ -269,6 +269,8 @@ export default class GptPlugin extends Plugin {
 		this.getGptStreamingResponse(payload, editor);
 	}
 
+  // Keeping this for now as a reference for standard requests
+  
 	// Generates payload and gets a standard response for "On This Date..." feature
 	// async onThisDate(): Promise<string> {
 	// 	if (!this.hasApiKey()) {
