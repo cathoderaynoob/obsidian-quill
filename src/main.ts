@@ -7,18 +7,6 @@ import {
 import { ERROR_MESSAGES, ErrorCode, GPT_VIEW_TYPE } from "@/constants";
 import GptView from "@/view";
 
-interface GptChatResponse {
-	success: boolean;
-	message: string;
-	error?: string;
-}
-
-interface GptEngines {
-	id: string;
-	ready: boolean;
-	owner: string;
-}
-
 export default class GptPlugin extends Plugin {
 	settings: GptPluginSettings;
 	apiKey?: string;
@@ -58,14 +46,13 @@ export default class GptPlugin extends Plugin {
 			},
 		});
 
-		//  "On This Date..." command
+		// "On This Date..." command
 		this.addCommand({
 			id: "on-this-date",
 			name: "On This Date...",
 			hotkeys: [{ modifiers: ["Mod", "Shift"], key: "d" }],
 			editorCallback: async (editor: Editor) => {
-				const onThisDateText = await this.onThisDate();
-				editor.replaceRange(onThisDateText, editor.getCursor());
+				await this.onThisDate(editor);
 			},
 		});
 	}
@@ -151,7 +138,7 @@ export default class GptPlugin extends Plugin {
 
 	// Generic function to get a response from the GPT chat API based on a payload
 	async getGptChatResponse(
-		payload: GptChatRequestPayload
+		payload: GptRequestPayload
 	): Promise<GptChatResponse> {
 		const apiKey = this.settings.openaiApiKey;
 		const apiUrl = this.settings.openaiChatUrl;
@@ -165,7 +152,7 @@ export default class GptPlugin extends Plugin {
 				},
 				body: JSON.stringify(payload),
 			});
-
+			console.log(response);
 			if (!response.ok) {
 				return {
 					success: false,
@@ -175,7 +162,6 @@ export default class GptPlugin extends Plugin {
 			}
 
 			const data = await response.json();
-			console.log(data.choices[0].message.content);
 
 			return { success: true, message: data.choices[0].message.content };
 		} catch (error) {
@@ -189,11 +175,76 @@ export default class GptPlugin extends Plugin {
 		}
 	}
 
-	// Generates payload and gets a response for "On This Date..." feature
-	async onThisDate(): Promise<string> {
-		if (!this.hasApiKey()) {
+	async getGptStreamingResponse(
+		payload: GptRequestPayload,
+		editor: Editor
+	): Promise<void> {
+		const apiKey = this.settings.openaiApiKey;
+		const apiUrl = this.settings.openaiChatUrl;
+
+		const requestOptions = {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bearer ${apiKey}`,
+			},
+			body: JSON.stringify(payload),
+		};
+
+		try {
+			const response = await fetch(apiUrl, requestOptions);
+			if (!response.body) {
+				return;
+			}
+
+			const reader = response.body.getReader();
+			const decoder = new TextDecoder();
+			let isReading = true;
+
+			while (isReading) {
+				const { done, value } = await reader.read();
+				if (done) {
+					isReading = false;
+					break;
+				}
+				const chunkText = decoder.decode(value, { stream: true });
+				// Some of this is based on the example from @schnerd's comment here:
+				// https://github.com/openai/openai-node/issues/18#issuecomment-1369996933
+				const lines = chunkText
+					.split("\n")
+					.filter((line) => line.trim() !== "");
+				for (const line of lines) {
+					const message = line.replace(/^data: /, "");
+					if (message === "[DONE]") {
+						break;
+					}
+					try {
+						const parsed = JSON.parse(message);
+						if (parsed.choices[0]?.delta?.content) {
+							editor.replaceRange(parsed.choices[0].delta.content, {
+								line: editor.lineCount(),
+								ch: 0,
+							});
+						}
+					} catch (error) {
+						console.error(
+							"Could not JSON parse stream message",
+							message,
+							error
+						);
+					}
+				}
+			}
+		} catch (error) {
+			console.error("Fetch error:", error);
+		}
+	}
+
+	// Generates payload and gets a streaming response for "On This Date..." feature
+	async onThisDate(editor: Editor): Promise<void> {
+		if (!this.hasApiKey) {
 			this.notifyError("noApiKey");
-			return "";
+			return;
 		}
 
 		const gptModel = this.settings.openaiModel;
@@ -202,24 +253,54 @@ export default class GptPlugin extends Plugin {
 			day: "numeric",
 		});
 
-		const payload: GptChatRequestPayload = {
+		const payload: GptRequestPayload = {
 			model: gptModel,
 			messages: [
 				{
 					role: "user",
-					content: `Tell me something interesting, significant, or funny
+					content: `Tell me something that's interesting, significant, or funny
 						from history that happened on ${today}.`,
 				},
 			],
+			stream: true,
 			temperature: 0.7,
 		};
 
-		const response = await this.getGptChatResponse(payload);
-		if (!response.success) {
-			return "";
-		}
-		return response.message;
+		this.getGptStreamingResponse(payload, editor);
 	}
+
+	// Generates payload and gets a standard response for "On This Date..." feature
+	// async onThisDate(): Promise<string> {
+	// 	if (!this.hasApiKey()) {
+	// 		this.notifyError("noApiKey");
+	// 		return "";
+	// 	}
+
+	// 	const gptModel = this.settings.openaiModel;
+	// 	const today = new Date().toLocaleDateString("en-US", {
+	// 		month: "long",
+	// 		day: "numeric",
+	// 	});
+
+	// 	const payload: GptRequestPayload = {
+	// 		model: gptModel,
+	// 		messages: [
+	// 			{
+	// 				role: "user",
+	// 				content: `Tell me something interesting, significant, or funny
+	// 					from history that happened on ${today}.`,
+	// 			},
+	// 		],
+	// 		stream: true,
+	// 		temperature: 0.7,
+	// 	};
+
+	// 	const response = await this.getGptChatResponse(payload);
+	// 	if (!response.success) {
+	// 		return "";
+	// 	}
+	// 	return response.message;
+	// }
 
 	// Generates payload and gets a joke response from the GPT chat API
 	async getAJoke(): Promise<string> {
@@ -229,7 +310,7 @@ export default class GptPlugin extends Plugin {
 		}
 
 		const gptModel = this.settings.openaiModel;
-		const payload: GptChatRequestPayload = {
+		const payload: GptRequestPayload = {
 			model: gptModel,
 			messages: [
 				{
@@ -268,17 +349,31 @@ export default class GptPlugin extends Plugin {
 	}
 }
 
-// GPT INTERFACE AND MODAL
+// INTERFACES
 
-// Interface to define the structure of the GPT chat request payload
-interface GptChatRequestPayload {
+interface GptEngines {
+	id: string;
+	ready: boolean;
+	owner: string;
+}
+
+interface GptRequestPayload {
 	model: string;
 	messages: {
 		role: "user" | "system";
 		content: string;
 	}[];
+	stream?: boolean;
 	temperature: number;
 }
+
+interface GptChatResponse {
+	success: boolean;
+	message: string;
+	error?: string;
+}
+
+// MODALS
 
 class GptModal extends Modal {
 	gptText: string;
