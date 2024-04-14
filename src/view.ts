@@ -53,6 +53,11 @@ export default class GptView extends ItemView {
 		}
 	}
 
+	displayContent(content: string) {
+		const container = this.containerEl.children[1] as HTMLElement;
+		container.createEl("p", { text: content });
+	}
+
 	async onClose(): Promise<void> {
 		const container = this.containerEl.children[1];
 		container.empty();
