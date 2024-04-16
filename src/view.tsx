@@ -1,5 +1,6 @@
 import { ItemView, Notice, WorkspaceLeaf } from "obsidian";
 import { ERROR_MESSAGES, GPT_VIEW_TYPE } from "@/constants";
+import { h, render } from "preact";
 
 export default class GptView extends ItemView {
 	engines: string[] = [];
@@ -22,19 +23,35 @@ export default class GptView extends ItemView {
 
 	async onOpen(): Promise<void> {
 		const container = this.containerEl.children[1] as HTMLElement;
-		container.createEl("h4", { text: "GPT Chat", cls: "gpt-view-title" });
+		render(
+			<div>
+				<h4 className="gpt-view-title">GPT Chat</h4>
+			</div>,
+			container
+		);
 	}
 
 	renderEngines(container: HTMLElement) {
-		const enginesContainer = container.createEl("div", { attr: {
-			id: "gpt-engines",
-		}})
+		
+
+
+
+
+
+		const enginesContainer = container.createEl("div", {
+			attr: {
+				id: "gpt-engines",
+			},
+		});
 		if (this.engines.length > 0) {
 			const ul = enginesContainer.createEl("ul");
 			this.engines.forEach((engine) => {
 				ul.createEl("li", { text: engine });
 			});
-			const buttonClear: HTMLButtonElement = enginesContainer.createEl("button", { text: "Clear" });
+			const buttonClear: HTMLButtonElement = enginesContainer.createEl(
+				"button",
+				{ text: "Clear" }
+			);
 			buttonClear.addEventListener("click", () => {
 				const elemToRemove = document.getElementById("gpt-engines");
 				if (elemToRemove) {

@@ -1,10 +1,4 @@
-import {
-	Editor,
-	MarkdownView,
-	Notice,
-	Plugin,
-	WorkspaceLeaf,
-} from "obsidian";
+import { Editor, MarkdownView, Notice, Plugin, WorkspaceLeaf } from "obsidian";
 import {
 	GptPluginSettings,
 	GptSettingsTab,
@@ -22,7 +16,8 @@ export default class GptPlugin extends Plugin {
 	async onload(): Promise<void> {
 		await this.loadSettings();
 
-		// This adds a settings tab so the user can configure various aspects of the plugin
+		// This adds a settings tab so the user can configure
+		// various aspects of the plugin
 		this.addSettingTab(new GptSettingsTab(this.app, this));
 
 		// Add a view to the app
@@ -52,14 +47,14 @@ export default class GptPlugin extends Plugin {
 				editor: Editor,
 				view: MarkdownView
 			) => {
-        const selectedText = editor.getSelection();
-        if (selectedText) {
-          if (!checking) {
-            this.sendSelectedWithInstructions(selectedText);
-          }
-          return true;
-        }
-        return false;
+				const selectedText = editor.getSelection();
+				if (selectedText) {
+					if (!checking) {
+						this.sendSelectedWithInstructions(selectedText);
+					}
+					return true;
+				}
+				return false;
 			},
 		});
 
@@ -121,10 +116,10 @@ export default class GptPlugin extends Plugin {
 
 	// API CALLS
 
-  // Sen
-  async sendSelectedWithInstructions(selectedText: string): Promise<void>{
-    new GptGetPromptModal(this.app, selectedText).open(); 
-  }
+	// Sen
+	async sendSelectedWithInstructions(selectedText: string): Promise<void> {
+		new GptGetPromptModal(this.app, selectedText).open();
+	}
 
 	// Engine endpoint
 	async getEngines(): Promise<string[]> {
@@ -272,7 +267,7 @@ export default class GptPlugin extends Plugin {
 		}
 	}
 
-	// Generates payload and gets a streaming response for "On This Date..." feature
+	// Generates payload and gets a streaming response for "On This Date..."
 	async onThisDate(editor: Editor): Promise<void> {
 		if (!this.hasApiKey()) {
 			this.notifyError("noApiKey");
@@ -290,7 +285,8 @@ export default class GptPlugin extends Plugin {
 			messages: [
 				{
 					role: "user",
-					content: `Tell me something positive and happy from history that happened on ${today}.`,
+					content: `Tell me something positive and happy from history
+					  that happened on ${today}.`,
 				},
 			],
 			stream: true,
@@ -405,5 +401,3 @@ interface GptChatResponse {
 	message: string;
 	error?: string;
 }
-
-

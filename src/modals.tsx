@@ -10,17 +10,11 @@ export class GptModal extends Modal {
 	}
 
 	onOpen() {
-    render(
-      <div>
-        {this.gptText}
-      </div>,
-      this.contentEl
-    );
+		render(<div>{this.gptText}</div>, this.contentEl);
 	}
 
 	onClose() {
-		const { contentEl } = this;
-		contentEl.empty();
+		this.contentEl.empty();
 	}
 }
 
@@ -33,16 +27,17 @@ export class GptGetPromptModal extends Modal {
 	}
 
 	onOpen() {
-		const { contentEl } = this;
-
-		contentEl.createEl("h2", {
-			text: "How can I help with your highlighted text?",
-		});
-		contentEl.createEl("textarea", {
-			cls: "prompt-input",
-			placeholder: "Questions? Instructions?",
-		});
-		contentEl.createEl("button", { text: "Submit" });
+		render(
+			<div>
+				<h3>How can I help you with your highlighted text?</h3>
+				<textarea
+					className="prompt-input"
+					placeholder="Questions? Instructions?"
+				/>
+				<button>Submit</button>
+			</div>,
+			this.contentEl
+		);
 	}
 
 	onClose() {
@@ -50,3 +45,4 @@ export class GptGetPromptModal extends Modal {
 		contentEl.empty();
 	}
 }
+	
