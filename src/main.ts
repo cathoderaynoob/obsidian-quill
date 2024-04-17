@@ -1,9 +1,10 @@
-import { App, Editor, Modal, Notice, Plugin, WorkspaceLeaf } from "obsidian";
+import { Editor, MarkdownView, Notice, Plugin, WorkspaceLeaf } from "obsidian";
 import {
 	GptPluginSettings,
 	GptSettingsTab,
 	DEFAULT_SETTINGS,
 } from "@/settings";
+import { GptModal, GptGetPromptModal } from "@/modals";
 import { ERROR_MESSAGES, ErrorCode, GPT_VIEW_TYPE } from "@/constants";
 import GptView from "@/view";
 
@@ -15,7 +16,8 @@ export default class GptPlugin extends Plugin {
 	async onload(): Promise<void> {
 		await this.loadSettings();
 
-		// This adds a settings tab so the user can configure various aspects of the plugin
+		// This adds a settings tab so the user can configure
+		// various aspects of the plugin
 		this.addSettingTab(new GptSettingsTab(this.app, this));
 
 		// Add a view to the app
@@ -34,6 +36,26 @@ export default class GptPlugin extends Plugin {
 		// Get Engines Icon
 		this.addRibbonIcon("bot", "Get GPT Robots", (evt: MouseEvent) => {
 			this.getEngines();
+		});
+
+		// Send selected text with instruction from modal
+		this.addCommand({
+			id: "gpt-select-and-instruct",
+			name: "Send selected text with my prompt",
+			editorCheckCallback: (
+				checking: boolean,
+				editor: Editor,
+				view: MarkdownView
+			) => {
+				const selectedText = editor.getSelection();
+				if (selectedText) {
+					if (!checking) {
+						this.sendSelectedWithInstructions(selectedText);
+					}
+					return true;
+				}
+				return false;
+			},
 		});
 
 		// "Tell me a joke" command
@@ -93,6 +115,11 @@ export default class GptPlugin extends Plugin {
 	}
 
 	// API CALLS
+
+	// Send selected text with instructions from modal
+	async sendSelectedWithInstructions(selectedText: string): Promise<void> {
+		new GptGetPromptModal(this.app, selectedText).open();
+	}
 
 	// Engine endpoint
 	async getEngines(): Promise<string[]> {
@@ -240,7 +267,7 @@ export default class GptPlugin extends Plugin {
 		}
 	}
 
-	// Generates payload and gets a streaming response for "On This Date..." feature
+	// Generates payload and gets a streaming response for "On This Date..."
 	async onThisDate(editor: Editor): Promise<void> {
 		if (!this.hasApiKey()) {
 			this.notifyError("noApiKey");
@@ -258,8 +285,8 @@ export default class GptPlugin extends Plugin {
 			messages: [
 				{
 					role: "user",
-					content: `Tell me something that's interesting, significant, or funny
-						from history that happened on ${today}.`,
+					content: `Tell me something positive and happy from history
+					  that happened on ${today}.`,
 				},
 			],
 			stream: true,
@@ -269,7 +296,7 @@ export default class GptPlugin extends Plugin {
 		this.getGptStreamingResponse(payload, editor);
 	}
 
-  // Keeping this for now as a reference for standard requests
+	// Keeping this for now as a reference for standard requests
 
 	// Generates payload and gets a standard response for "On This Date..." feature
 	// async onThisDate(): Promise<string> {
@@ -373,25 +400,4 @@ interface GptChatResponse {
 	success: boolean;
 	message: string;
 	error?: string;
-}
-
-// MODALS
-
-class GptModal extends Modal {
-	gptText: string;
-
-	constructor(app: App, gptText: string) {
-		super(app);
-		this.gptText = gptText;
-	}
-
-	onOpen() {
-		const { contentEl } = this;
-		contentEl.setText(this.gptText);
-	}
-
-	onClose() {
-		const { contentEl } = this;
-		contentEl.empty();
-	}
 }
