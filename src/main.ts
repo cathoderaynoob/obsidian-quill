@@ -116,7 +116,7 @@ export default class GptPlugin extends Plugin {
 
 	// API CALLS
 
-	// Sen
+	// Send selected text with instructions from modal
 	async sendSelectedWithInstructions(selectedText: string): Promise<void> {
 		new GptGetPromptModal(this.app, selectedText).open();
 	}
