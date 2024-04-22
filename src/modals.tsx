@@ -1,7 +1,8 @@
 import { App, Modal } from "obsidian";
 import { h, render } from "preact";
+import ApiService from "@/apiService";
 
-export class GptModal extends Modal {
+export class GptTextOutputModal extends Modal {
 	gptText: string;
 
 	constructor(app: App, gptText: string) {
@@ -19,22 +20,28 @@ export class GptModal extends Modal {
 }
 
 export class GptGetPromptModal extends Modal {
-	prompt: string;
+	selectedText: string;
+	promptValue: string;
+	apiService: ApiService;
 
-	constructor(app: App, prompt: string) {
+	constructor(app: App, selectedText: string, apiService: ApiService) {
 		super(app);
-		this.prompt = prompt;
+		this.selectedText = selectedText;
+		this.apiService = apiService;
 	}
-
+	
 	onOpen() {
+		this.setTitle("How can I help you with your highlighted text?");
+
 		render(
-			<div>
-				<h3>How can I help you with your highlighted text?</h3>
+			<div id="gpt-prompt-modal">
 				<textarea
-					className="prompt-input"
+					className="gpt-prompt-input"
 					placeholder="Questions? Instructions?"
+					rows={6}
+					onInput={(e: Event) => this.handleInput(e)}
 				/>
-				<button>Submit</button>
+				<button onClick={this.handleSendPrompt}>Send</button>
 			</div>,
 			this.contentEl
 		);
@@ -44,5 +51,19 @@ export class GptGetPromptModal extends Modal {
 		const { contentEl } = this;
 		contentEl.empty();
 	}
+
+	handleInput = (e: Event) => {
+		const target = e.target as HTMLTextAreaElement;
+		this.promptValue = target.value.trim();
+	};
+
+	handleSendPrompt = () => {
+		const promptAndSelectedText =
+			`Prompt:\n\n${this.promptValue}\n` +
+			`___\n\n` +
+			`Selected Text:\n\n${this.selectedText}`;
+		console.log(promptAndSelectedText);
+		this.apiService.sendPromptWithSelectedText(promptAndSelectedText);
+		this.close();
+	};
 }
-	
