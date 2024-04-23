@@ -1,24 +1,25 @@
-import { Editor, MarkdownView, Notice, Plugin, WorkspaceLeaf } from "obsidian";
-import { GPT_VIEW_TYPE, ErrorCode, ERROR_MESSAGES } from "@/constants";
+import { Editor, Notice, Plugin, WorkspaceLeaf } from "obsidian";
+import { ErrorCode, ERROR_MESSAGES, GPT_VIEW_TYPE } from "@/constants";
 import { IPluginServices } from "@/interfaces";
 import {
+	DEFAULT_SETTINGS,
 	GptPluginSettings,
 	GptSettingsTab,
-	DEFAULT_SETTINGS,
 } from "@/settings";
-import { GptTextOutputModal, GptGetPromptModal } from "@/modals";
 import ApiService from "@/apiService";
-import { GptView } from "@/view";
+import { GptFeatures } from "@/features";
+import { GptGetPromptModal } from "@/modals";
+import GptView from "@/view";
 
 export default class GptPlugin extends Plugin implements IPluginServices {
 	settings: GptPluginSettings;
 	apiService: ApiService;
-	apiKey?: string;
-	gptModel?: string;
+	features: GptFeatures;
 
 	async onload(): Promise<void> {
 		await this.loadSettings();
-		this.apiService = new ApiService(this.app, this, this.settings);
+		this.apiService = new ApiService(this, this.settings);
+		this.features = new GptFeatures(this.app, this.apiService, this.settings);
 
 		// This adds a settings tab so the user can configure
 		// various aspects of the plugin
@@ -39,27 +40,7 @@ export default class GptPlugin extends Plugin implements IPluginServices {
 
 		// Get Engines Icon
 		this.addRibbonIcon("bot", "Get GPT Robots", (evt: MouseEvent) => {
-			this.apiService.getEngines();
-		});
-
-		// Send selected text with instruction from modal
-		this.addCommand({
-			id: "gpt-select-and-instruct",
-			name: "Send selected text with my prompt",
-			editorCheckCallback: (
-				checking: boolean,
-				editor: Editor,
-				view: MarkdownView
-			) => {
-				const selectedText = editor.getSelection().trim();
-				if (selectedText) {
-					if (!checking) {
-						new GptGetPromptModal(this.app, selectedText, this.apiService).open();
-					}
-					return true;
-				}
-				return false;
-			},
+			this.features.getEngines();
 		});
 
 		// "Tell me a joke" command
@@ -67,8 +48,7 @@ export default class GptPlugin extends Plugin implements IPluginServices {
 			id: "gpt-joke-modal",
 			name: "Tell me a joke",
 			callback: async () => {
-				const joke = await this.apiService.getAJoke();
-				new GptTextOutputModal(this.app, joke).open();
+				await this.features.executeFeature("tellAJoke");
 			},
 		});
 
@@ -78,13 +58,30 @@ export default class GptPlugin extends Plugin implements IPluginServices {
 			name: "On This Date...",
 			hotkeys: [{ modifiers: ["Mod", "Shift"], key: "d" }],
 			editorCallback: async (editor: Editor) => {
-				await this.apiService.onThisDate(editor);
+				await this.features.executeFeature("onThisDate", "", editor);
+			},
+		});
+
+		// Send selected text with instruction from modal
+		this.addCommand({
+			id: "gpt-select-and-prompt",
+			name: "Send selected text with my prompt",
+			hotkeys: [{ modifiers: ["Mod", "Shift"], key: "s" }],
+			editorCheckCallback: (checking: boolean, editor: Editor) => {
+				const selectedText = editor.getSelection().trim();
+				if (selectedText) {
+					if (!checking) {
+						new GptGetPromptModal(this.app, selectedText, this.features).open();
+					}
+					return true;
+				}
+				return false;
 			},
 		});
 	}
 
 	// VIEW
-	public async activateView(): Promise<WorkspaceLeaf | null> {
+	async activateView(): Promise<WorkspaceLeaf | null> {
 		const { workspace } = this.app;
 		let leaf: WorkspaceLeaf | null =
 			workspace.getLeavesOfType(GPT_VIEW_TYPE)[0];
@@ -114,7 +111,8 @@ export default class GptPlugin extends Plugin implements IPluginServices {
 
 	// DATA STORAGE
 
-	// Loads the default settings, and then overrides them with any saved settings
+	// Loads the default settings, and then overrides them with
+	// any saved settings
 	async loadSettings(): Promise<void> {
 		const userSettings = await this.loadData();
 		this.settings = {
@@ -128,8 +126,11 @@ export default class GptPlugin extends Plugin implements IPluginServices {
 		await this.saveData(this.settings);
 	}
 
-	public notifyError(errorCode: ErrorCode): void {
+	notifyError(errorCode: ErrorCode, consoleMsg?: string): void {
 		const errorMessage = ERROR_MESSAGES[errorCode] || ERROR_MESSAGES.unknown;
 		new Notice(errorMessage);
+		if (consoleMsg) {
+			console.error(consoleMsg);
+		}
 	}
 }

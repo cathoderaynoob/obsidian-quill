@@ -1,35 +1,23 @@
 import { App, Modal } from "obsidian";
 import { h, render } from "preact";
-import ApiService from "@/apiService";
+import { IPluginServices } from "@/interfaces";
+import { GptFeatures } from "@/features";
 
-export class GptTextOutputModal extends Modal {
-	gptText: string;
-
-	constructor(app: App, gptText: string) {
-		super(app);
-		this.gptText = gptText;
-	}
-
-	onOpen() {
-		render(<div>{this.gptText}</div>, this.contentEl);
-	}
-
-	onClose() {
-		this.contentEl.empty();
-	}
-}
-
+// GET PROMPT FROM USER MODAL ==================================================
 export class GptGetPromptModal extends Modal {
 	selectedText: string;
 	promptValue: string;
-	apiService: ApiService;
+	pluginServices: IPluginServices;
+	features: GptFeatures;
 
-	constructor(app: App, selectedText: string, apiService: ApiService) {
+	constructor(app: App, selectedText: string, features: GptFeatures) {
 		super(app);
 		this.selectedText = selectedText;
-		this.apiService = apiService;
+		this.features = features;
+
+		this.pluginServices = features.apiService.pluginServices;
 	}
-	
+
 	onOpen() {
 		this.setTitle("How can I help you with your highlighted text?");
 
@@ -41,7 +29,7 @@ export class GptGetPromptModal extends Modal {
 					rows={6}
 					onInput={(e: Event) => this.handleInput(e)}
 				/>
-				<button onClick={this.handleSendPrompt}>Send</button>
+				<button onClick={this.handleSendSelectedWithPrompt}>Send</button>
 			</div>,
 			this.contentEl
 		);
@@ -57,13 +45,48 @@ export class GptGetPromptModal extends Modal {
 		this.promptValue = target.value.trim();
 	};
 
-	handleSendPrompt = () => {
-		const promptAndSelectedText =
+	handleSendSelectedWithPrompt = async () => {
+		const promptWithSelectedText =
 			`Prompt:\n\n${this.promptValue}\n` +
 			`___\n\n` +
 			`Selected Text:\n\n${this.selectedText}`;
-		console.log(promptAndSelectedText);
-		this.apiService.sendPromptWithSelectedText(promptAndSelectedText);
+		console.log(promptWithSelectedText);
+
+		const leaf = await this.pluginServices.activateView();
+		if (leaf) {
+			try {
+				const container = leaf.view.containerEl.children[1].createEl("div", {
+					cls: "gpt-msg-container",
+				});
+				await this.features.executeFeature(
+					"sendPromptWithSelectedText",
+					promptWithSelectedText,
+					container
+				);
+			} catch (error) {
+				this.pluginServices.notifyError(
+					"Error sending prompt with selected text."
+				);
+			}
+		}
 		this.close();
 	};
+}
+
+// SIMPLE TEXT OUTPUT MODAL ====================================================
+export class GptTextOutputModal extends Modal {
+	gptText: string;
+
+	constructor(app: App, gptText: string) {
+		super(app);
+		this.gptText = gptText;
+	}
+
+	onOpen() {
+		render(<div id="gpt-output-modal">{this.gptText}</div>, this.contentEl);
+	}
+
+	onClose() {
+		this.contentEl.empty();
+	}
 }
