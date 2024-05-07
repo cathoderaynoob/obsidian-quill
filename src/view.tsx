@@ -1,11 +1,11 @@
 import { ItemView, Notice, WorkspaceLeaf } from "obsidian";
-import { ERROR_MESSAGES, GPT_VIEW_TYPE } from "@/constants";
 import { h, Fragment, render } from "preact";
-import ApiService from "./apiService";
+import { ERROR_MESSAGES, GPT_VIEW_TYPE } from "@/constants";
+import { IPluginServices } from "@/interfaces";
 
-export class GptView extends ItemView {
+export default class GptView extends ItemView {
+	pluginServices: IPluginServices;
 	engines: string[] = [];
-	apiService: ApiService;
 
 	constructor(leaf: WorkspaceLeaf) {
 		super(leaf);
@@ -33,9 +33,9 @@ export class GptView extends ItemView {
 		);
 	}
 
-	renderSelectedTextResponse(selectedTextResponse: string, container: HTMLElement) {
-		if (selectedTextResponse.length > 0) {
-			container.innerText += selectedTextResponse;
+	renderChatResponse(text: string, container: HTMLElement) {
+		if (text.length > 0) {
+			container.innerText += text;
 		}
 	}
 

@@ -18,6 +18,10 @@ If your plugin does not need CSS, delete this file.
   border-bottom: 1px solid var(--color-base-30);
 }
 
+#gpt-output-modal {
+  user-select: text;
+}
+
 #gpt-prompt-modal {
   display: flex;
   flex-direction: column;
