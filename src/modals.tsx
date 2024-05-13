@@ -21,13 +21,21 @@ export class GptGetPromptModal extends Modal {
 	onOpen() {
 		this.setTitle("How can I help you with your highlighted text?");
 
+		const handleKeyPress = (e: KeyboardEvent) => {
+			if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+				e.preventDefault();
+				this.handleSendSelectedWithPrompt();
+			}
+		};
+
 		render(
 			<div id="gpt-prompt-modal">
 				<textarea
 					className="gpt-prompt-input"
-					placeholder="Questions? Instructions?"
+					placeholder="Cmd-Return to send"
 					rows={6}
 					onInput={(e: Event) => this.handleInput(e)}
+					onKeyDown={(e: KeyboardEvent) => handleKeyPress(e)}
 				/>
 				<button onClick={this.handleSendSelectedWithPrompt}>Send</button>
 			</div>,
