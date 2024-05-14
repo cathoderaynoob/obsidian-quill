@@ -1,5 +1,5 @@
 import { App, Modal } from "obsidian";
-import { h, render } from "preact";
+import { Root, createRoot } from "react-dom/client";
 import { IPluginServices } from "@/interfaces";
 import { GptFeatures } from "@/features";
 
@@ -9,6 +9,7 @@ export class GptGetPromptModal extends Modal {
 	promptValue: string;
 	pluginServices: IPluginServices;
 	features: GptFeatures;
+	private root: Root | null = null;
 
 	constructor(app: App, selectedText: string, features: GptFeatures) {
 		super(app);
@@ -21,37 +22,41 @@ export class GptGetPromptModal extends Modal {
 	onOpen() {
 		this.setTitle("How can I help you with your highlighted text?");
 
-		const handleKeyPress = (e: KeyboardEvent) => {
+		const handleKeyPress = (e: React.KeyboardEvent) => {
 			if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
 				e.preventDefault();
 				this.handleSendSelectedWithPrompt();
 			}
 		};
 
-		render(
+		const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+			const target = e.target as HTMLTextAreaElement;
+			this.promptValue = target.value.trim();
+		};
+
+		const root = createRoot(this.contentEl);
+
+		root.render(
 			<div id="gpt-prompt-modal">
 				<textarea
 					className="gpt-prompt-input"
 					placeholder="Cmd-Return to send"
 					rows={6}
-					onInput={(e: Event) => this.handleInput(e)}
-					onKeyDown={(e: KeyboardEvent) => handleKeyPress(e)}
+					onInput={handleInput}
+					onKeyDown={handleKeyPress}
 				/>
 				<button onClick={this.handleSendSelectedWithPrompt}>Send</button>
-			</div>,
-			this.contentEl
+			</div>
 		);
 	}
 
 	onClose() {
+		if (this.root) {
+			this.root.unmount();
+		}
 		const { contentEl } = this;
 		contentEl.empty();
 	}
-
-	handleInput = (e: Event) => {
-		const target = e.target as HTMLTextAreaElement;
-		this.promptValue = target.value.trim();
-	};
 
 	handleSendSelectedWithPrompt = async () => {
 		const promptWithSelectedText =
@@ -59,6 +64,8 @@ export class GptGetPromptModal extends Modal {
 			`___\n\n` +
 			`Selected Text:\n\n${this.selectedText}`;
 		console.log(promptWithSelectedText);
+		
+		this.close();
 
 		const leaf = await this.pluginServices.activateView();
 		if (leaf) {
@@ -77,13 +84,13 @@ export class GptGetPromptModal extends Modal {
 				);
 			}
 		}
-		this.close();
 	};
 }
 
 // SIMPLE TEXT OUTPUT MODAL ====================================================
 export class GptTextOutputModal extends Modal {
 	gptText: string;
+	root: Root | null = null;
 
 	constructor(app: App, gptText: string) {
 		super(app);
@@ -91,7 +98,8 @@ export class GptTextOutputModal extends Modal {
 	}
 
 	onOpen() {
-		render(<div id="gpt-output-modal">{this.gptText}</div>, this.contentEl);
+		const root = createRoot(this.contentEl);
+		root.render(<div id="gpt-output-modal">{this.gptText}</div>);
 	}
 
 	onClose() {
