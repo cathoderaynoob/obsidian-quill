@@ -1,11 +1,12 @@
 import { ItemView, Notice, WorkspaceLeaf } from "obsidian";
-import { h, Fragment, render } from "preact";
+import { Root, createRoot } from "react-dom/client";
 import { ERROR_MESSAGES, GPT_VIEW_TYPE } from "@/constants";
 import { IPluginServices } from "@/interfaces";
 
 export default class GptView extends ItemView {
 	pluginServices: IPluginServices;
 	engines: string[] = [];
+	private root: Root | null = null;
 
 	constructor(leaf: WorkspaceLeaf) {
 		super(leaf);
@@ -24,12 +25,11 @@ export default class GptView extends ItemView {
 	}
 
 	async onOpen(): Promise<void> {
-		const root = this.containerEl.children[1] as HTMLElement;
-		render(
+		const root = createRoot(this.containerEl.children[1]);
+		root.render(
 			<>
 				<h4 className="gpt-view-title">GPT Chat</h4>
-			</>,
-			root
+			</>
 		);
 	}
 
@@ -41,6 +41,7 @@ export default class GptView extends ItemView {
 
 	renderEngines(container: HTMLElement) {
 		const enginesContainer = container.createEl("div");
+		const root = createRoot(enginesContainer);
 		const engines = this.engines;
 		const clearEngines = () => {
 			const elem = document.getElementById("gpt-engines");
@@ -49,8 +50,8 @@ export default class GptView extends ItemView {
 			}
 		};
 
-		render(
-			engines.length > 0 ? (
+		if (engines.length > 0) {
+			root.render(
 				<div id="gpt-engines">
 					<ul>
 						{engines.map((engine) => (
@@ -59,11 +60,10 @@ export default class GptView extends ItemView {
 					</ul>
 					<button onClick={clearEngines}>Clear</button>
 				</div>
-			) : (
-				new Notice(ERROR_MESSAGES.noEngines)
-			),
-			enginesContainer
-		);
+			);
+		} else {
+			new Notice(ERROR_MESSAGES.noEngines);
+		}
 	}
 
 	updateEngines(engines: string[]) {
@@ -79,6 +79,9 @@ export default class GptView extends ItemView {
 	}
 
 	async onClose(): Promise<void> {
+		if (this.root) {
+			this.root.unmount();
+		}
 		const container = this.containerEl.children[1];
 		container.empty();
 	}
