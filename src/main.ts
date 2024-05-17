@@ -71,7 +71,20 @@ export default class GptPlugin extends Plugin implements IPluginServices {
 				const selectedText = editor.getSelection().trim();
 				if (selectedText) {
 					if (!checking) {
-						new GptGetPromptModal(this.app, selectedText, this.features).open();
+						this.activateView();
+						const modal = new GptGetPromptModal(
+							this.app,
+							selectedText,
+							async (prompt) => {
+								// Now I have the selected text and prompt
+								await this.features.executeFeature(
+									"sendPromptWithSelectedText",
+									prompt,
+								);
+							}
+						);
+
+						modal.open();
 					}
 					return true;
 				}
@@ -81,7 +94,7 @@ export default class GptPlugin extends Plugin implements IPluginServices {
 	}
 
 	// VIEW
-	async activateView(): Promise<WorkspaceLeaf | null> {
+	async activateView(): Promise<GptView | null> {
 		const { workspace } = this.app;
 		let leaf: WorkspaceLeaf | null =
 			workspace.getLeavesOfType(GPT_VIEW_TYPE)[0];
@@ -98,7 +111,7 @@ export default class GptPlugin extends Plugin implements IPluginServices {
 
 		if (leaf) {
 			workspace.revealLeaf(leaf);
-			return leaf;
+			return leaf ? (leaf.view as GptView) : null;
 		}
 
 		this.notifyError("viewError");

@@ -1,10 +1,11 @@
-import { Editor, WorkspaceLeaf } from "obsidian";
+import { Editor } from "obsidian";
 import { GptTextOutputModal } from "@/modals";
+import GptView from "@/view";
 
-export type ContainerType = HTMLElement | Editor | GptTextOutputModal | WorkspaceLeaf
+export type ContainerType = HTMLElement | Editor | GptTextOutputModal | GptView;
 
 export interface IPluginServices {
-	activateView(): Promise<WorkspaceLeaf | null>;
+	activateView(): Promise<GptView | null>;
 	notifyError(errorCode: string, consoleMsg?: string): void;
 }
 
@@ -41,7 +42,11 @@ export interface OpenAIAPIResponse {
 export interface FeatureProperties {
 	id: string;
 	buildPrompt: (inputText?: string) => string;
-	processResponse: (response: string, container?: ContainerType) => void;
+	processResponse: (
+		response: string,
+		container?: ContainerType,
+		gptView?: GptView
+	) => void;
 	model?: string;
 	temperature?: number;
 	stream?: boolean;

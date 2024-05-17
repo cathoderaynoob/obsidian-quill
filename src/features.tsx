@@ -1,4 +1,5 @@
 import { App, Editor } from "obsidian";
+import emitter from "@/customEmitter";
 import { ERROR_MESSAGES } from "@/constants";
 import {
 	ContainerType,
@@ -16,7 +17,7 @@ export class GptFeatures {
 	apiService: ApiService;
 	settings: GptPluginSettings;
 	pluginServices: IPluginServices;
-	featureRegistry: Record<string, FeatureProperties>;
+	private featureRegistry: Record<string, FeatureProperties>;
 
 	constructor(app: App, apiService: ApiService, settings: GptPluginSettings) {
 		this.app = app;
@@ -30,7 +31,9 @@ export class GptFeatures {
 			// TELL A JOKE
 			tellAJoke: {
 				id: "tellAJoke",
-				buildPrompt: () => "Tell me a joke in the style of Anthony Jeselnik.",
+				buildPrompt: () =>
+					"Tell me a joke (and only the joke) in the style of " +
+					"Anthony Jeselnik.",
 				processResponse: (response) => {
 					if (response.length)
 						new GptTextOutputModal(this.app, response).open();
@@ -47,7 +50,9 @@ export class GptFeatures {
 					});
 					return (
 						`Tell me one thing from history in one paragraph that's ` +
-						`interesting, significant, or funny that happened on ${today}.`
+						`interesting, significant, or funny that happened on ${today}. ` +
+						`Bold and italicize text in markdown format in a visually ` +
+						`pleasing way. At the end, provide: \n\n___\n`
 					);
 				},
 				processResponse: (response, container: Editor) => {
@@ -61,18 +66,22 @@ export class GptFeatures {
 			// SEND SELECTED TEXT WITH PROMPT
 			sendPromptWithSelectedText: {
 				id: "sendPromptWithSelectedText",
-				buildPrompt: (inputText: string) => inputText,
-				processResponse: (response, container: HTMLElement) => {
-					if (response.length > 0) {
-						container.innerText += response;
-					}
+				buildPrompt: (inputText: string) => {
+					return (
+						`${inputText}\n\n` +
+						`Formatting Instructions:\n\nStyle your response in ` +
+						`markdown format where it will improve readability and impact. ` +
+						`Use sparingly.`
+					);
+				},
+				processResponse: (responseText: string) => {
+					emitter.emit("updateResponse", responseText);
 				},
 				stream: true,
 			},
 		};
 	}
 
-	// EXECUTE FEATURE ===========================================================
 	async executeFeature(
 		featureId: string,
 		inputText?: string,
@@ -83,7 +92,6 @@ export class GptFeatures {
 			this.pluginServices.notifyError("Feature not found");
 			return;
 		}
-
 		const prompt = feature.buildPrompt(inputText);
 		const payload: GptRequestPayload = {
 			model: feature.model ? feature.model : this.settings.openaiModel,
@@ -92,11 +100,21 @@ export class GptFeatures {
 			temperature: feature.temperature ? feature.temperature : 0.7,
 		};
 
+		let gptView: GptView | null = null;
+		if (container instanceof HTMLElement) {
+			gptView = await this.pluginServices.activateView();
+			if (!gptView) {
+				this.pluginServices.notifyError("viewError");
+				return;
+			}
+		}
+
 		if (payload.stream) {
 			await this.apiService.getStreamingChatResponse(
 				payload,
 				feature.processResponse,
-				container
+				container,
+				gptView ? gptView : undefined
 			);
 		} else {
 			await this.apiService.getStandardChatResponse(
@@ -109,8 +127,8 @@ export class GptFeatures {
 
 	// GET ENGINES ===============================================================
 	async getEngines(): Promise<void> {
-		const leaf = await this.pluginServices.activateView();
-		if (!leaf) {
+		const leafView = await this.pluginServices.activateView();
+		if (!leafView) {
 			console.error(ERROR_MESSAGES.viewError);
 			this.pluginServices.notifyError("viewError");
 			return;
@@ -118,8 +136,8 @@ export class GptFeatures {
 
 		const engines = await this.apiService.getEnginesResponse();
 
-		if (leaf.view instanceof GptView) {
-			leaf.view.updateEngines(engines);
+		if (leafView instanceof GptView) {
+			leafView.updateEngines(engines);
 		}
 	}
 }
