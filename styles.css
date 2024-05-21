@@ -1,52 +1,46 @@
-/*
-
-This CSS file will be included with your plugin, and
-available in the app when your plugin is enabled.
-
-If your plugin does not need CSS, delete this file.
-
-*/
+/* View */
 .gpt-view-title {
 	position: sticky;
 	top: 0;
-  left: 0;
+	left: 0;
 	z-index: 1000; /* Ensures the header is above other content */
-  background: var(--background-primary);
-  opacity: 0.9;
-  padding: 1rem;
-  width: 100%;
-  border-bottom: 1px solid var(--color-base-30);
+	background: var(--background-primary);
+	opacity: 0.9;
+	padding: 1rem;
+	width: 100%;
+	border-bottom: 1px solid var(--color-base-30);
+}
+.gpt-messages {
+	padding: 1rem;
+}
+.gpt-message {
+	display: flex;
+	flex-direction: column;
+	padding: 1rem 0;
+	border-bottom: 1px solid var(--color-base-50);
+	user-select: text;
+	-webkit-user-select: text;
 }
 
+/* Modals */
 #gpt-output-modal {
-  user-select: text;
+	padding: 0.5rem;
+	user-select: text;
 }
-
 #gpt-prompt-modal {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	align-items: center;
+	width: 100%;
 }
-
 #gpt-prompt-modal > button {
-  margin-left: auto;
-  margin-top: var(--size-4-4);
+	margin-left: auto;
+	margin-top: var(--size-4-4);
 }
-
 .gpt-prompt-input {
-  width: 100%;
-  flex-grow: 1;
-  min-height: 6em;
-  overflow: auto;
-}
-
-.gpt-msg-container {
-  display: flex;
-  flex-direction: column;
-  padding: 1rem 0;
-  border-bottom: 1px solid var(--color-base-50);
-  user-select: text;
-  -webkit-user-select: text;
+	width: 100%;
+	flex-grow: 1;
+	min-height: 6em;
+	overflow: auto;
 }

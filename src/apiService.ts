@@ -6,6 +6,7 @@ import {
 	IPluginServices,
 } from "@/interfaces";
 import { GptPluginSettings } from "@/settings";
+import GptView from "@/view";
 
 export default class ApiService {
 	pluginServices: IPluginServices;
@@ -18,8 +19,13 @@ export default class ApiService {
 
 	async getStreamingChatResponse(
 		payload: GptRequestPayload,
-		callback?: (text: string, container?: ContainerType) => void,
-		container?: ContainerType
+		callback: (
+			text: string,
+			container?: ContainerType,
+			gptView?: GptView
+		) => void,
+		container?: ContainerType,
+		gptView?: GptView
 	): Promise<string> {
 		const apiUrl = this.settings.openaiChatUrl;
 
@@ -58,16 +64,16 @@ export default class ApiService {
 						const parsed = JSON.parse(message);
 						const streamingContent = parsed.choices[0]?.delta?.content;
 						if (streamingContent) {
-							if (!callback) {
-								return streamingContent.toString();
-							}
+							// CALLBACK
+							// callback(streamingContent);
 							callback(
-								streamingContent.toString(),
-								container ? container : undefined
+								streamingContent,
+								container ? container : undefined,
+								gptView ? gptView : undefined
 							);
 						}
 					} catch (error) {
-						this.pluginServices.notifyError("unknown", "JSON parse error.");
+						this.pluginServices.notifyError("unknown", error);
 						return "";
 					}
 				}
@@ -102,6 +108,7 @@ export default class ApiService {
 					if (!callback) {
 						return standardContent.toString();
 					}
+					// CALLBACK
 					callback(
 						standardContent.toString(),
 						container ? container : undefined
