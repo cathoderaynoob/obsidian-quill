@@ -49,15 +49,16 @@ export class GptFeatures {
 						day: "numeric",
 					});
 					return (
-						`Tell me one thing from history in one paragraph that's ` +
-						`interesting, significant, or funny that happened on ${today}. ` +
-						`Bold and italicize text in markdown format in a visually ` +
-						`pleasing way. At the end, provide: \n\n___\n`
+						"Tell me one thing from history in one paragraph that's " +
+						"interesting, significant, or funny that happened on " +
+						today +
+						". Bold and italicize text in markdown format in a visually " +
+						"pleasing way. Append the response with exactly `\n\n___\n\n`."
 					);
 				},
-				processResponse: (response, container: Editor) => {
+				processResponse: async (response, container: Editor) => {
 					if (response.length) {
-						this.apiService.renderToEditor(response, container);
+						await this.apiService.renderToEditor(response, container);
 					}
 				},
 				stream: true,

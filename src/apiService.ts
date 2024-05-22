@@ -166,25 +166,35 @@ export default class ApiService {
 		};
 	}
 
-	renderToEditor(text: string, editor: Editor): void {
-		let lineNum = editor.getCursor().line;
-		let charNum = editor.getLine(lineNum).length;
+	async renderToEditor(text: string, editor: Editor): Promise<void> {
+		return new Promise((resolve) => {
+			console.log(text);
+			let { line, ch } = editor.getCursor();
+			// Without a leading space, the markdown rendering timing
+			// causes issues with the cursor position
+			let addSpace = false;
+			const nextChar = editor.getLine(line)[ch];
+			if (nextChar && nextChar !== " ") {
+				text += " ";
+				addSpace = true;
+			}
 
-		editor.replaceRange(text, {
-			line: lineNum,
-			ch: charNum,
-		});
+			editor.replaceRange(text, { line, ch });
 
-		const numReturns: number = [...text.matchAll(/\n/g)].length;
-		if (numReturns) {
-			lineNum += numReturns;
-			charNum = 0;
-		} else {
-			charNum += text.length;
-		}
-		editor.setCursor({
-			line: lineNum,
-			ch: charNum,
+			const numNewLines: number = [...text.matchAll(/\n/g)].length;
+			if (numNewLines) {
+				line += numNewLines;
+				ch = 0;
+			} else {
+				ch += text.length;
+				if (addSpace) {
+					ch -= 1;
+				}
+			}
+
+			editor.setCursor({ line, ch });
+
+			resolve();
 		});
 	}
 }
