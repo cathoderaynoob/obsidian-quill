@@ -64,6 +64,18 @@ export class GptFeatures {
 				stream: true,
 			},
 
+			// NEW PROMPT
+			newPrompt: {
+				id: "newPrompt",
+				buildPrompt: (inputText: string) => {
+					return inputText;
+				},
+				processResponse: (responseText: string) => {
+					emitter.emit("updateMessage", responseText);
+				},
+				stream: true,
+			},
+
 			// SEND SELECTED TEXT WITH PROMPT
 			sendPromptWithSelectedText: {
 				id: "sendPromptWithSelectedText",
