@@ -1,19 +1,20 @@
 import { App, Modal } from "obsidian";
 import { Root, createRoot } from "react-dom/client";
+import PromptModalContent from "@/PromptModalContent";
 
 // =============================================================================
 // GET PROMPT FROM USER MODAL ==================================================
 // =============================================================================
-export class GptGetPromptModal extends Modal {
-	private selectedText: string;
-	private promptValue: string;
-	private onSend: (promptWithSelectedText: string) => void;
+export class GptPromptModal extends Modal {
 	private modalRoot: Root | null = null;
+	private promptValue: string;
+	private selectedText?: string;
+	private onSend: (promptWithSelectedText: string) => void;
 
 	constructor(
 		app: App,
-		selectedText: string,
-		onSend: (promptWithSelectedText: string) => void
+		onSend: (promptWithSelectedText: string) => void,
+		selectedText?: string
 	) {
 		super(app);
 		this.selectedText = selectedText;
@@ -21,7 +22,11 @@ export class GptGetPromptModal extends Modal {
 	}
 
 	onOpen() {
-		this.setTitle("How can I help you with your highlighted text?");
+		this.setTitle(
+			this.selectedText
+				? "How can I help you with your highlighted text?"
+				: "How can I help?"
+		);
 
 		const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
 			const target = e.target as HTMLTextAreaElement;
@@ -37,26 +42,22 @@ export class GptGetPromptModal extends Modal {
 		};
 
 		const handleSend = () => {
-			const promptWithSelectedText =
-				`User Prompt:\n\n${this.promptValue}\n\n` +
-				`User Selected Text:\n\n${this.selectedText}`;
+			let prompt = `User Prompt:\n\n${this.promptValue}`;
+			if (this.selectedText) {
+				prompt += `\n\nUser Selected Text:\n\n${this.selectedText}`;
+			}
 			this.close();
-			this.onSend(promptWithSelectedText);
+			this.onSend(prompt);
 		};
 
 		this.modalRoot = createRoot(this.contentEl);
 
 		this.modalRoot.render(
-			<div id="gpt-prompt-modal">
-				<textarea
-					className="gpt-prompt-input"
-					placeholder="Cmd-Return to send"
-					rows={6}
-					onInput={handleInput}
-					onKeyDown={handleKeyPress}
-				/>
-				<button onClick={handleSend}>Send</button>
-			</div>
+			<PromptModalContent
+				handleInput={handleInput}
+				handleKeyPress={handleKeyPress}
+				handleSend={handleSend}
+			/>
 		);
 	}
 

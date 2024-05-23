@@ -7,7 +7,7 @@ import {
 	GptSettingsTab,
 } from "@/settings";
 import { GptFeatures } from "@/features";
-import { GptGetPromptModal } from "@/modals";
+import { GptPromptModal } from "@/modals";
 import ApiService from "@/apiService";
 import GptView from "@/view";
 
@@ -62,6 +62,18 @@ export default class GptPlugin extends Plugin implements IPluginServices {
 			},
 		});
 
+		// Open modal to get prompt
+		this.addCommand({
+			id: "gpt-new-prompt",
+			name: "New prompt",
+			callback: () => {
+				this.activateView();
+				new GptPromptModal(this.app, async (prompt) => {
+					await this.features.executeFeature("newPrompt", prompt);
+				}).open();
+			},
+		});
+
 		// Send selected text with instruction from modal
 		this.addCommand({
 			id: "gpt-select-and-prompt",
@@ -72,16 +84,16 @@ export default class GptPlugin extends Plugin implements IPluginServices {
 				if (selectedText) {
 					if (!checking) {
 						this.activateView();
-						const modal = new GptGetPromptModal(
+						const modal = new GptPromptModal(
 							this.app,
-							selectedText,
 							async (prompt) => {
 								// Now I have the selected text and prompt
 								await this.features.executeFeature(
 									"sendPromptWithSelectedText",
-									prompt,
+									prompt
 								);
-							}
+							},
+							selectedText
 						);
 
 						modal.open();

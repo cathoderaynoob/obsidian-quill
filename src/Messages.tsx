@@ -45,13 +45,3 @@ const Messages: React.FC = () => {
 
 export default Messages;
 
-// Message properties could be:
-// id: number
-// role: string
-// type: string
-// content: string
-// model: string
-// actions: string
-// status: string
-// error: string
-//
