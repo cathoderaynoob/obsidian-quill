@@ -6,9 +6,9 @@ import {
 	GptPluginSettings,
 	GptSettingsTab,
 } from "@/settings";
-import ApiService from "@/apiService";
 import { GptFeatures } from "@/features";
 import { GptGetPromptModal } from "@/modals";
+import ApiService from "@/apiService";
 import GptView from "@/view";
 
 export default class GptPlugin extends Plugin implements IPluginServices {

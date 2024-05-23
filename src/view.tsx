@@ -1,5 +1,5 @@
-import { StrictMode } from "react";
 import { ItemView, WorkspaceLeaf } from "obsidian";
+import { StrictMode } from "react";
 import { Root, createRoot } from "react-dom/client";
 import { GPT_VIEW_TYPE } from "@/constants";
 import { IPluginServices } from "@/interfaces";
@@ -38,7 +38,6 @@ export default class GptView extends ItemView {
 
 	async onOpen(): Promise<void> {
 		const root = createRoot(this.containerEl.children[1]);
-
 		this.root = root;
 
 		root.render(

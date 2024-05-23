@@ -6,9 +6,13 @@ interface MessageProps {
 
 const Message: React.FC<MessageProps> = ({ message }) => {
 	return (
-		<div className="gpt-message">
-			<ReactMarkdown>{message}</ReactMarkdown>
-		</div>
+		<>
+			{message ? (
+				<div className="gpt-message">
+					<ReactMarkdown>{message}</ReactMarkdown>
+				</div>
+			) : null}
+		</>
 	);
 };
 

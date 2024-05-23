@@ -16,7 +16,7 @@
 .gpt-message {
 	display: flex;
 	flex-direction: column;
-	padding: 1rem 0;
+	padding: 0 0 1rem 0;
 	border-bottom: 1px solid var(--color-base-50);
 	user-select: text;
 	-webkit-user-select: text;
