@@ -6,6 +6,7 @@ import {
 	IPluginServices,
 } from "@/interfaces";
 import { GptPluginSettings } from "@/settings";
+import emitter from "@/customEmitter";
 import GptView from "@/view";
 
 export default class ApiService {
@@ -33,6 +34,9 @@ export default class ApiService {
 		if (!requestOptions) return "";
 
 		try {
+			// Add a new <Message /> component to the list of messages
+			emitter.emit("newMessage");
+
 			const response = await fetch(apiUrl, requestOptions);
 			if (!response.body) {
 				this.pluginServices.notifyError("unknown", "No response body.");
@@ -65,7 +69,6 @@ export default class ApiService {
 						const streamingContent = parsed.choices[0]?.delta?.content;
 						if (streamingContent) {
 							// CALLBACK
-							// callback(streamingContent);
 							callback(
 								streamingContent,
 								container ? container : undefined,

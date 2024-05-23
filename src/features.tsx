@@ -1,5 +1,4 @@
 import { App, Editor } from "obsidian";
-import emitter from "@/customEmitter";
 import { ERROR_MESSAGES } from "@/constants";
 import {
 	ContainerType,
@@ -7,10 +6,11 @@ import {
 	IPluginServices,
 	FeatureProperties,
 } from "@/interfaces";
-import ApiService from "@/apiService";
 import { GptPluginSettings } from "@/settings";
-import GptView from "@/view";
 import { GptTextOutputModal } from "@/modals";
+import emitter from "@/customEmitter";
+import ApiService from "@/apiService";
+import GptView from "@/view";
 
 export class GptFeatures {
 	app: App;
@@ -76,7 +76,8 @@ export class GptFeatures {
 					);
 				},
 				processResponse: (responseText: string) => {
-					emitter.emit("updateResponse", responseText);
+					// console.log(responseText);
+					emitter.emit("updateMessage", responseText);
 				},
 				stream: true,
 			},
