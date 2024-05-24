@@ -2,9 +2,7 @@ import { App, Modal } from "obsidian";
 import { Root, createRoot } from "react-dom/client";
 import PromptModalContent from "@/PromptModalContent";
 
-// =============================================================================
 // GET PROMPT FROM USER MODAL ==================================================
-// =============================================================================
 export class GptPromptModal extends Modal {
 	private modalRoot: Root | null = null;
 	private promptValue: string;
@@ -42,10 +40,11 @@ export class GptPromptModal extends Modal {
 		};
 
 		const handleSend = () => {
-			let prompt = `User Prompt:\n\n${this.promptValue}`;
+			let prompt = "";
 			if (this.selectedText) {
-				prompt += `\n\nUser Selected Text:\n\n${this.selectedText}`;
+				prompt += `${this.selectedText}\n___\n`;
 			}
+			prompt += this.promptValue;
 			this.close();
 			this.onSend(prompt);
 		};
@@ -68,9 +67,7 @@ export class GptPromptModal extends Modal {
 	}
 }
 
-// =============================================================================
 // SIMPLE TEXT OUTPUT MODAL ====================================================
-// =============================================================================
 export class GptTextOutputModal extends Modal {
 	gptText: string;
 	modalRoot: Root | null = null;

@@ -1,16 +1,28 @@
 import { App, Editor } from "obsidian";
-import { ERROR_MESSAGES } from "@/constants";
 import {
 	ContainerType,
 	GptRequestPayload,
 	IPluginServices,
-	FeatureProperties,
 } from "@/interfaces";
 import { GptPluginSettings } from "@/settings";
 import { GptTextOutputModal } from "@/modals";
 import emitter from "@/customEmitter";
 import ApiService from "@/apiService";
 import GptView from "@/view";
+
+export interface FeatureProperties {
+	id: string;
+	buildPrompt: (inputText?: string) => string;
+	processResponse: (
+		response: string,
+		container?: ContainerType,
+		gptView?: GptView
+	) => void;
+	model?: string;
+	temperature?: number;
+	stream?: boolean;
+	container?: ContainerType;
+}
 
 export class GptFeatures {
 	app: App;
@@ -52,8 +64,10 @@ export class GptFeatures {
 						"Tell me one thing from history in one paragraph that's " +
 						"interesting, significant, or funny that happened on " +
 						today +
-						". Bold and italicize text in markdown format in a visually " +
-						"pleasing way. Append the response with exactly `\n\n___\n\n`."
+						". Always start with `On **<MMMM D, YYYY>**,`. Use bold and italicized text " +
+						"in markdown format in a visually pleasing way. Append the response " +
+						"with 2 newline chars, 3 underscores, and 2 more newline chars, " +
+						"i.e. `\n\n___\n\n`."
 					);
 				},
 				processResponse: async (response, container: Editor) => {
@@ -80,21 +94,20 @@ export class GptFeatures {
 			sendPromptWithSelectedText: {
 				id: "sendPromptWithSelectedText",
 				buildPrompt: (inputText: string) => {
-					return (
-						`${inputText}\n\n` +
-						`Formatting Instructions:\n\nStyle your response in ` +
-						`markdown format where it will improve readability and impact. ` +
-						`Use sparingly.`
-					);
+					return `${inputText}`;
 				},
 				processResponse: (responseText: string) => {
-					// console.log(responseText);
 					emitter.emit("updateMessage", responseText);
 				},
 				stream: true,
 			},
 		};
 	}
+
+	//\n\n` +
+	// `Formatting Instructions:\n\nStyle your response in ` +
+	// `markdown format where it will improve readability and impact. ` +
+	// `Use sparingly.`
 
 	async executeFeature(
 		featureId: string,
@@ -123,6 +136,18 @@ export class GptFeatures {
 			}
 		}
 
+		// Wrap emitter.emit in a promise
+		const emitEvent = (event: string, data: string): Promise<void> => {
+			return new Promise<void>((resolve) => {
+				emitter.emit(event, data);
+				resolve();
+			});
+		};
+
+		// Add prompt to the GPT Chat View
+		await emitEvent("newMessage", "user");
+		await emitEvent("updateMessage", prompt);
+
 		if (payload.stream) {
 			await this.apiService.getStreamingChatResponse(
 				payload,
@@ -143,7 +168,6 @@ export class GptFeatures {
 	async getEngines(): Promise<void> {
 		const leafView = await this.pluginServices.activateView();
 		if (!leafView) {
-			console.error(ERROR_MESSAGES.viewError);
 			this.pluginServices.notifyError("viewError");
 			return;
 		}

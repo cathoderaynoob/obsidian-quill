@@ -28,10 +28,10 @@ export default class GptPlugin extends Plugin implements IPluginServices {
 		// Add a view to the app
 		this.registerView(
 			GPT_VIEW_TYPE,
-			(leaf: WorkspaceLeaf) => new GptView(leaf)
+			(leaf: WorkspaceLeaf) => new GptView(leaf, this.apiService, this.settings)
 		);
 
-		// ICONS AND COMMANDS
+		// RIBBON AND COMMANDS
 
 		// Chat with GPT icon
 		this.addRibbonIcon("message-square", "Chat with GPT", (evt: MouseEvent) => {
@@ -135,7 +135,6 @@ export default class GptPlugin extends Plugin implements IPluginServices {
 	}
 
 	// DATA STORAGE
-
 	// Loads the default settings, and then overrides them with
 	// any saved settings
 	async loadSettings(): Promise<void> {
@@ -151,6 +150,7 @@ export default class GptPlugin extends Plugin implements IPluginServices {
 		await this.saveData(this.settings);
 	}
 
+	// MISCELLANEOUS
 	notifyError(errorCode: ErrorCode, consoleMsg?: string): void {
 		const errorMessage = ERROR_MESSAGES[errorCode] || ERROR_MESSAGES.unknown;
 		new Notice(errorMessage);
