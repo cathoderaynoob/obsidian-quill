@@ -9,9 +9,9 @@ import ApiService from "@/apiService";
 import Messages from "@/Messages";
 
 export default class GptView extends ItemView {
-	private apiService: ApiService;
-	private settings: GptPluginSettings;
-	private pluginServices: IPluginServices;
+	apiService: ApiService;
+	settings: GptPluginSettings;
+	pluginServices: IPluginServices;
 	root: Root | null = null;
 	message: string;
 	responseStream: string;
@@ -19,9 +19,16 @@ export default class GptView extends ItemView {
 
 	static instance: GptView;
 
-	constructor(leaf: WorkspaceLeaf) {
+	constructor(
+		leaf: WorkspaceLeaf,
+		apiService: ApiService,
+		settings: GptPluginSettings
+	) {
 		super(leaf);
 		GptView.instance = this;
+		this.apiService = apiService;
+		this.settings = settings;
+		this.pluginServices = apiService.pluginServices;
 	}
 
 	getViewType(): string {
@@ -37,6 +44,7 @@ export default class GptView extends ItemView {
 	}
 
 	async onOpen(): Promise<void> {
+		console.clear();
 		const root = createRoot(this.containerEl.children[1]);
 		this.root = root;
 

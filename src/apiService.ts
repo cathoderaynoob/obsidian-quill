@@ -35,7 +35,7 @@ export default class ApiService {
 
 		try {
 			// Add a new <Message /> component to the list of messages
-			emitter.emit("newMessage");
+			emitter.emit("newMessage", "system");
 
 			const response = await fetch(apiUrl, requestOptions);
 			if (!response.body) {
@@ -171,7 +171,6 @@ export default class ApiService {
 
 	async renderToEditor(text: string, editor: Editor): Promise<void> {
 		return new Promise((resolve) => {
-			console.log(text);
 			let { line, ch } = editor.getCursor();
 			// Without a leading space, the markdown rendering timing
 			// causes issues with the cursor position

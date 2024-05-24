@@ -24,31 +24,3 @@ export interface GptRequestPayload {
 	stream?: boolean;
 	temperature: number;
 }
-
-export interface GptChatResponse {
-	success: boolean;
-	message: string;
-	error?: string;
-}
-
-export interface OpenAIAPIResponse {
-	body: ReadableStream<Uint8Array> | null;
-	ok: boolean;
-	status: number;
-	statusText: string;
-	url: string;
-}
-
-export interface FeatureProperties {
-	id: string;
-	buildPrompt: (inputText?: string) => string;
-	processResponse: (
-		response: string,
-		container?: ContainerType,
-		gptView?: GptView
-	) => void;
-	model?: string;
-	temperature?: number;
-	stream?: boolean;
-	container?: ContainerType;
-}
