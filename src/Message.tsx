@@ -6,6 +6,7 @@ const Message: React.FC<MessageType> = ({
 	role,
 	message,
 	model,
+	selectedText,
 	error,
 	// actions,
 	// status,
@@ -14,12 +15,17 @@ const Message: React.FC<MessageType> = ({
 		<>
 			{message ? (
 				<div className={`gpt-message gpt-message-${role}`}>
+					{selectedText && (
+						<div className="gpt-message-selectedtext">
+							<ReactMarkdown>{selectedText}</ReactMarkdown>
+						</div>
+					)}
 					{error ? (
 						<div className="gpt-message-error">{error}</div>
 					) : (
 						<ReactMarkdown>{message}</ReactMarkdown>
 					)}
-					{model && role === "system" && (
+					{role === "system" && (
 						<div className="gpt-message-model">{model}</div>
 					)}
 					{/* {actions && actions.length > 0 && (

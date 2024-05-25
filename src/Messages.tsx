@@ -7,7 +7,8 @@ export interface MessageType {
 	id: string;
 	role: string;
 	message: string;
-	model?: string;
+	model: string;
+	selectedText?: string;
 	error?: string;
 	// actions?: string[];
 	// status?: string;
@@ -25,15 +26,14 @@ const Messages: React.FC = () => {
 	useEffect(() => {
 		// Adds a new message. When a new message prompt is initiated,
 		// a new message is added to the messages array.
-		const handleNewMessage = (role: string) => {
-			console.log(role);
+		const handleNewMessage = (role: string, selectedText: string) => {
 			const newMessage: MessageType = {
 				id: generateUniqueId(),
 				role: role,
 				message: "",
 				model: settings.openaiModel,
+				selectedText: selectedText,
 			};
-			console.log(newMessage.id);
 			latestMessageRef.current = newMessage;
 			setMessages((prevMessages) => [...prevMessages, newMessage]);
 		};

@@ -81,24 +81,18 @@ export class GptFeatures {
 			// NEW PROMPT
 			newPrompt: {
 				id: "newPrompt",
-				buildPrompt: (inputText: string) => {
-					return inputText;
-				},
-				processResponse: (responseText: string) => {
-					emitter.emit("updateMessage", responseText);
-				},
+				buildPrompt: (inputText: string) => inputText,
+				processResponse: (responseText: string) =>
+					emitter.emit("updateMessage", responseText),
 				stream: true,
 			},
 
 			// SEND SELECTED TEXT WITH PROMPT
 			sendPromptWithSelectedText: {
 				id: "sendPromptWithSelectedText",
-				buildPrompt: (inputText: string) => {
-					return `${inputText}`;
-				},
-				processResponse: (responseText: string) => {
-					emitter.emit("updateMessage", responseText);
-				},
+				buildPrompt: (inputText: string) => inputText,
+				processResponse: (responseText: string) =>
+					emitter.emit("updateMessage", responseText),
 				stream: true,
 			},
 		};
@@ -112,6 +106,7 @@ export class GptFeatures {
 	async executeFeature(
 		featureId: string,
 		inputText?: string,
+		selectedText?: string,
 		container?: ContainerType
 	): Promise<void> {
 		const feature = this.featureRegistry[featureId];
@@ -119,7 +114,11 @@ export class GptFeatures {
 			this.pluginServices.notifyError("Feature not found");
 			return;
 		}
-		const prompt = feature.buildPrompt(inputText);
+		let prompt = feature.buildPrompt(inputText);
+		if (selectedText) {
+			// prepend prompt with selected text
+			prompt = `${selectedText}\n\n${prompt}`;
+		}
 		const payload: GptRequestPayload = {
 			model: feature.model ? feature.model : this.settings.openaiModel,
 			messages: [{ role: "user", content: prompt }],
@@ -137,16 +136,21 @@ export class GptFeatures {
 		}
 
 		// Wrap emitter.emit in a promise
-		const emitEvent = (event: string, data: string): Promise<void> => {
+		const emitEvent = (
+			event: string,
+			role: string,
+			selectedText?: string
+		): Promise<void> => {
 			return new Promise<void>((resolve) => {
-				emitter.emit(event, data);
+				emitter.emit(event, role, selectedText);
 				resolve();
 			});
 		};
 
 		// Add prompt to the GPT Chat View
-		await emitEvent("newMessage", "user");
-		await emitEvent("updateMessage", prompt);
+		await emitEvent("newMessage", "user", selectedText);
+		if (inputText) await emitEvent("updateMessage", inputText);
+		// await emitEvent("updateMessage", inputText);
 
 		if (payload.stream) {
 			await this.apiService.getStreamingChatResponse(
