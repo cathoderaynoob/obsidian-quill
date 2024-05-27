@@ -6,9 +6,10 @@
 	z-index: 1000; /* Ensures the header is above other content */
 	background: var(--background-primary);
 	opacity: 0.9;
-	padding: 1rem;
+	margin-block-start: 0;
+	padding: 0.4rem 1rem;
 	width: 100%;
-	border-bottom: 1px solid var(--color-base-30);
+	font-weight: 200;
 }
 .gpt-messages {
 	padding: .5rem .5rem 5rem;
@@ -22,11 +23,20 @@
 	-webkit-user-select: text;
 }
 .gpt-message-user {
-	/* margin-bottom: 1rem; */
+	margin-top: 1rem;
 }
 .gpt-message-system {
 	background: var(--background-primary);
 	opacity: 0.9;
+}
+.gpt-message-selectedtext {
+	color: var(--color-base-40);
+	border-left: 3px solid var(--color-base-30);
+	padding: .25rem 0 .25rem 1rem;
+	margin: .25rem auto .5rem;
+}
+.gpt-message-selectedtext > p {
+	margin: 0 auto;
 }
 .gpt-message-model {
 	color: var(--color-base-40);

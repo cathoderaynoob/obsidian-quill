@@ -40,13 +40,8 @@ export class GptPromptModal extends Modal {
 		};
 
 		const handleSend = () => {
-			let prompt = "";
-			if (this.selectedText) {
-				prompt += `${this.selectedText}\n___\n`;
-			}
-			prompt += this.promptValue;
 			this.close();
-			this.onSend(prompt);
+			this.onSend(this.promptValue);
 		};
 
 		this.modalRoot = createRoot(this.contentEl);

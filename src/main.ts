@@ -58,7 +58,7 @@ export default class GptPlugin extends Plugin implements IPluginServices {
 			name: "On This Date...",
 			hotkeys: [{ modifiers: ["Mod", "Shift"], key: "d" }],
 			editorCallback: async (editor: Editor) => {
-				await this.features.executeFeature("onThisDate", "", editor);
+				await this.features.executeFeature("onThisDate", "", "", editor);
 			},
 		});
 
@@ -86,11 +86,12 @@ export default class GptPlugin extends Plugin implements IPluginServices {
 						this.activateView();
 						const modal = new GptPromptModal(
 							this.app,
-							async (prompt) => {
+							async (inputText) => {
 								// Now I have the selected text and prompt
 								await this.features.executeFeature(
 									"sendPromptWithSelectedText",
-									prompt
+									inputText,
+									selectedText
 								);
 							},
 							selectedText
