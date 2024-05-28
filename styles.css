@@ -22,6 +22,14 @@
 	user-select: text;
 	-webkit-user-select: text;
 }
+.gpt-message pre {
+	padding: 0.5rem;
+	overflow: scroll;
+	background: var(--background-secondary);
+	font-size: small;
+	border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
 .gpt-message-user {
 	margin-top: 1rem;
 }
@@ -31,7 +39,7 @@
 }
 
 .gpt-message-selectedtext {
-	color: var(--color-base-40);
+	/* color: var(--color-base-40); */
 	border-left: 3px solid var(--color-base-30);
 	padding: 0.25rem 0 0.25rem 1rem;
 	margin: 0.25rem auto 0.5rem;
@@ -40,15 +48,18 @@
 /* Start WDS technique */
 /* https://youtu.be/OhCzEjXvY9A?si=AKxDg-pzGHF5VAeK&t=214 */
 .gpt-message-selectedtext-content {
+	opacity: 0.4;
 	display: block;
 	--max-lines: 5;
 	line-height: var(--line-height-tight);
 	max-height: calc(var(--max-lines) * 1em * var(--line-height-tight));
+	max-height: 5em;
 	overflow: hidden;
 	position: relative;
 	mask-image: linear-gradient(to top, transparent, black 2rem);
 	-webkit-mask-image: linear-gradient(to top, transparent, black 2rem);
 	cursor: pointer;
+	transition: opacity 0.15s ease;
 }
 .gpt-message-selectedtext-content > *:first-child {
 	margin: 0 auto;
@@ -58,6 +69,7 @@
 	display: none;
 }
 .gpt-message-selectedtext-content:has(+ .gpt-expand-selectedtext:checked) {
+	opacity: 0.8;
 	max-height: none;
 	mask-image: none;
 	-webkit-mask-image: none;

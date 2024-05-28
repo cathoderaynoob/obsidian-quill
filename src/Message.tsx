@@ -11,6 +11,7 @@ const Message: React.FC<MessageType> = ({
 	// actions,
 	// status,
 }) => {
+	if (role === "user") message = "**&raquo;** " + message;
 	return (
 		<>
 			{message ? (
