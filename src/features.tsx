@@ -1,4 +1,5 @@
 import { App, Editor } from "obsidian";
+import { PROMPTS } from "@/constants";
 import {
 	ContainerType,
 	GptRequestPayload,
@@ -10,7 +11,7 @@ import emitter from "@/customEmitter";
 import ApiService from "@/apiService";
 import GptView from "@/view";
 
-export interface FeatureProperties {
+interface FeatureProperties {
 	id: string;
 	buildPrompt: (inputText?: string) => string;
 	processResponse: (
@@ -43,9 +44,7 @@ export class GptFeatures {
 			// TELL A JOKE
 			tellAJoke: {
 				id: "tellAJoke",
-				buildPrompt: () =>
-					"Tell me a joke (and only the joke) in the style of " +
-					"Anthony Jeselnik.",
+				buildPrompt: () => PROMPTS.tellAJoke.content,
 				processResponse: (response) => {
 					if (response.length)
 						new GptTextOutputModal(this.app, response).open();
@@ -60,15 +59,7 @@ export class GptFeatures {
 						month: "long",
 						day: "numeric",
 					});
-					return (
-						"Tell me one thing from history in one paragraph that's " +
-						"interesting, significant, or funny that happened on " +
-						today +
-						". Always start with `On **<MMMM D, YYYY>**,`. Use bold and italicized text " +
-						"in markdown format in a visually pleasing way. Append the response " +
-						"with 2 newline chars, 3 underscores, and 2 more newline chars, " +
-						"i.e. `\n\n___\n\n`."
-					);
+					return `${today}: ` + PROMPTS.onThisDate.content;
 				},
 				processResponse: async (response, container: Editor) => {
 					if (response.length) {
@@ -98,11 +89,6 @@ export class GptFeatures {
 		};
 	}
 
-	//\n\n` +
-	// `Formatting Instructions:\n\nStyle your response in ` +
-	// `markdown format where it will improve readability and impact. ` +
-	// `Use sparingly.`
-
 	async executeFeature(
 		featureId: string,
 		inputText?: string,
@@ -111,7 +97,7 @@ export class GptFeatures {
 	): Promise<void> {
 		const feature = this.featureRegistry[featureId];
 		if (!feature) {
-			this.pluginServices.notifyError("Feature not found");
+			this.pluginServices.notifyError("noFeature");
 			return;
 		}
 		let prompt = feature.buildPrompt(inputText);
@@ -136,6 +122,7 @@ export class GptFeatures {
 		}
 
 		// Wrap emitter.emit in a promise
+		// Resolves issue with race condition
 		const emitEvent = (
 			event: string,
 			role: string,

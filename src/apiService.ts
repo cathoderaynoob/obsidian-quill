@@ -35,7 +35,7 @@ export default class ApiService {
 
 		try {
 			// Add a new <Message /> component to the list of messages
-			emitter.emit("newMessage", "system");
+			emitter.emit("newMessage", "assistant");
 
 			const response = await fetch(apiUrl, requestOptions);
 			if (!response.body) {
@@ -67,6 +67,7 @@ export default class ApiService {
 					try {
 						const parsed = JSON.parse(message);
 						const streamingContent = parsed.choices[0]?.delta?.content;
+						console.log(parsed.choices[0]?.delta?.role);
 						if (streamingContent) {
 							// CALLBACK
 							callback(

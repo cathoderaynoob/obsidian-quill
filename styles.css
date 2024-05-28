@@ -9,7 +9,7 @@
 	margin-block-start: 0;
 	padding: 0.4rem 1rem;
 	width: 100%;
-	font-weight: 200;
+	font-weight: 400;
 }
 .gpt-messages {
 	padding: 0.5rem 0.5rem 5rem;
@@ -33,7 +33,7 @@
 .gpt-message-user {
 	margin-top: 1rem;
 }
-.gpt-message-system {
+.gpt-message-assistant {
 	background: var(--background-primary);
 	opacity: 0.9;
 }
