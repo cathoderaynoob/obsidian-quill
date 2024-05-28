@@ -35,26 +35,29 @@
 	border-left: 3px solid var(--color-base-30);
 	padding: 0.25rem 0 0.25rem 1rem;
 	margin: 0.25rem auto 0.5rem;
+}
 
-	/* Start WDS technique */
-	/* https://youtu.be/OhCzEjXvY9A?si=AKxDg-pzGHF5VAeK&t=214 */
+/* Start WDS technique */
+/* https://youtu.be/OhCzEjXvY9A?si=AKxDg-pzGHF5VAeK&t=214 */
+.gpt-message-selectedtext-content {
+	display: block;
 	--max-lines: 5;
 	line-height: var(--line-height-tight);
 	max-height: calc(var(--max-lines) * 1em * var(--line-height-tight));
 	overflow: hidden;
 	position: relative;
-	mask-image: linear-gradient(to top, transparent, black 1.5rem);
-	-webkit-mask-image: linear-gradient(to top, transparent, black 1.5rem);
+	mask-image: linear-gradient(to top, transparent, black 2rem);
+	-webkit-mask-image: linear-gradient(to top, transparent, black 2rem);
 	cursor: pointer;
 }
-.gpt-message-selectedtext > *:first-child {
+.gpt-message-selectedtext-content > *:first-child {
 	margin: 0 auto;
 	margin-block-start: 0;
 }
-.expand-selectedtext {
+.gpt-expand-selectedtext {
 	display: none;
 }
-.gpt-message-selectedtext:has(+ .expand-selectedtext:checked) {
+.gpt-message-selectedtext-content:has(+ .gpt-expand-selectedtext:checked) {
 	max-height: none;
 	mask-image: none;
 	-webkit-mask-image: none;
