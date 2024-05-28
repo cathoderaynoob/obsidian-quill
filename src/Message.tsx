@@ -16,9 +16,12 @@ const Message: React.FC<MessageType> = ({
 			{message ? (
 				<div className={`gpt-message gpt-message-${role}`}>
 					{selectedText && (
-						<div className="gpt-message-selectedtext">
-							<ReactMarkdown>{selectedText}</ReactMarkdown>
-						</div>
+						<>
+							<label className="gpt-message-selectedtext" htmlFor={id}>
+								<ReactMarkdown>{selectedText}</ReactMarkdown>
+							</label>
+							<input type="checkbox" id={id} className="expand-selectedtext" />
+						</>
 					)}
 					{error ? (
 						<div className="gpt-message-error">{error}</div>
