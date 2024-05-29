@@ -1,7 +1,7 @@
 import { ItemView, WorkspaceLeaf } from "obsidian";
 import { StrictMode } from "react";
 import { Root, createRoot } from "react-dom/client";
-import { GPT_VIEW_TYPE } from "@/constants";
+import { GPT_VIEW_TYPE, APP_ICON } from "@/constants";
 import { IPluginServices } from "@/interfaces";
 import { GptPluginSettings } from "@/settings";
 import { PluginContext } from "@/PluginContext";
@@ -36,7 +36,7 @@ export default class GptView extends ItemView {
 	}
 
 	getIcon(): string {
-		return "message-square";
+		return APP_ICON;
 	}
 
 	getDisplayText(): string {
@@ -70,7 +70,10 @@ export default class GptView extends ItemView {
 		}
 	}
 
-	// Engine stuff that needs to be refactored
+	// ========================================================================
+	// Engine stuff that needs to be refactored and moved to a separate file
+	// ========================================================================
+
 	renderEngines(container: HTMLElement) {
 		const enginesContainer = container.createEl("div");
 		const root = createRoot(enginesContainer);

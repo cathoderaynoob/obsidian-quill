@@ -1,5 +1,5 @@
 import { Editor, Notice, Plugin, WorkspaceLeaf } from "obsidian";
-import { ErrorCode, ERROR_MESSAGES, GPT_VIEW_TYPE } from "@/constants";
+import { ErrorCode, APP_ICON, ERROR_MESSAGES, GPT_VIEW_TYPE } from "@/constants";
 import { IPluginServices } from "@/interfaces";
 import {
 	DEFAULT_SETTINGS,
@@ -34,13 +34,15 @@ export default class GptPlugin extends Plugin implements IPluginServices {
 		// RIBBON AND COMMANDS
 
 		// Chat with GPT icon
-		this.addRibbonIcon("message-square", "Chat with GPT", (evt: MouseEvent) => {
+		this.addRibbonIcon(APP_ICON, "Chat with GPT", (evt: MouseEvent) => {
 			this.activateView();
 		});
 
 		// Get Engines Icon
-		this.addRibbonIcon("bot", "Get GPT Robots", (evt: MouseEvent) => {
-			this.features.getEngines();
+		this.addCommand({
+			id: "get-engines",
+			name: "Get Models",
+			callback: () => this.features.getEngines()
 		});
 
 		// "Tell me a joke" command

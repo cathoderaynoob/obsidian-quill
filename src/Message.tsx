@@ -11,6 +11,7 @@ const Message: React.FC<MessageType> = ({
 	// actions,
 	// status,
 }) => {
+	if (message && role === "user") message = "**&raquo;** " + message;
 	return (
 		<>
 			{message ? (
@@ -32,7 +33,7 @@ const Message: React.FC<MessageType> = ({
 					) : (
 						<ReactMarkdown>{message}</ReactMarkdown>
 					)}
-					{role === "system" && (
+					{role === "assistant" && (
 						<div className="gpt-message-model">{model}</div>
 					)}
 					{/* {actions && actions.length > 0 && (

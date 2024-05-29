@@ -18,7 +18,7 @@ export interface GptEngines {
 export interface GptRequestPayload {
 	model: string;
 	messages: {
-		role: "user" | "system";
+		role: "system" | "user" | "assistant";
 		content: string;
 	}[];
 	stream?: boolean;
