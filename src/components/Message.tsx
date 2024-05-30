@@ -4,7 +4,7 @@ import { MessageType } from "./Messages";
 const Message: React.FC<MessageType> = ({
 	id,
 	role,
-	message,
+	content: message,
 	model,
 	selectedText,
 	error,

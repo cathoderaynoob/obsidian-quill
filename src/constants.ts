@@ -15,7 +15,7 @@ export type ErrorCode = keyof typeof ERROR_MESSAGES;
 export const GPT_VIEW_TYPE = "chat-view";
 
 export const APP_ICON = "bird";
-// messages-square
+// Used to be messages-square
 
 export const PROMPTS = {
 	systemInitial: {
@@ -35,8 +35,10 @@ export const PROMPTS = {
 		content:
 			"Tell me one thing from history in one paragraph that happened on this date, " +
 			"interesting, significant, or funny. Start with `On **<MMMM D, YYYY>**,`. " +
-      "Append the response with 2 newline chars, 3 underscores, and 2 more newline " +
-      "chars, i.e. `\n\n___\n\n`.",
+      "Italicize important or prominent persons, places, events, etc. This response " +
+			"is going into a note, so to create a separation from other text, append the " +
+			"response with 2 newline chars, 3 underscores, and 2 more newline chars, " +
+			"i.e. `\n\n___\n\n`.",
 	},
 	tellAJoke: {
 		role: "user",

@@ -1,12 +1,17 @@
 import React, { useEffect, useRef, useState } from "react";
-import { usePluginContext } from "@/PluginContext";
-import Message from "@/Message";
+import { usePluginContext } from "@/components/PluginContext";
 import emitter from "@/customEmitter";
+import Message from "@/components/Message";
 
+export type Role = "system" | "user" | "assistant";
+export interface PayloadMessagesType {
+	role: Role;
+	content: string;
+}
 export interface MessageType {
 	id: string;
-	role: string;
-	message: string;
+	role: Role;
+	content: string;
 	model: string;
 	selectedText?: string;
 	error?: string;
@@ -19,31 +24,39 @@ const generateUniqueId = () => {
 };
 
 const Messages: React.FC = () => {
-	const { pluginServices, apiService, settings } = usePluginContext();
+	const { settings } = usePluginContext();
 	const [messages, setMessages] = useState<MessageType[]>([]);
+	// `useRef` maintains a reference to the most recent message object
+	// across re-renders, so that the latest message can be updated with
+	// streaming content from the API.
 	const latestMessageRef = useRef<MessageType | null>(null);
 
 	useEffect(() => {
 		// Adds a new message. When a new message prompt is initiated,
 		// a new message is added to the messages array.
-		const handleNewMessage = (role: string, selectedText: string) => {
+		const handleNewMessage = (
+			role: Role,
+			selectedText: string
+		) => {
 			const newMessage: MessageType = {
 				id: generateUniqueId(),
 				role: role,
-				message: "",
+				content: "",
 				model: settings.openaiModel,
 				selectedText: selectedText,
 			};
 			latestMessageRef.current = newMessage;
-			setMessages((prevMessages) => [...prevMessages, newMessage]);
+			setMessages((prevMessages) => {
+				const updatedMessages = [...prevMessages, newMessage];
+				return updatedMessages;
+			});
 		};
 		emitter.on("newMessage", handleNewMessage);
 
 		// Update the most recent message with streaming content from the API.
 		const handleUpdateMessage = (response: string) => {
-			console.log(response);
 			if (latestMessageRef.current) {
-				latestMessageRef.current.message += response;
+				latestMessageRef.current.content += response;
 				setMessages((prevMessages) => {
 					const updatedMessages = [...prevMessages];
 					updatedMessages[updatedMessages.length - 1] = {
@@ -51,21 +64,37 @@ const Messages: React.FC = () => {
 					};
 					return updatedMessages;
 				});
-				return;
 			}
-			setMessages((prevMessages) => {
-				const updatedMessages = [...prevMessages];
-				updatedMessages[updatedMessages.length - 1].message += response;
-				return updatedMessages;
-			});
 		};
 		emitter.on("updateMessage", handleUpdateMessage);
+
+		// Add message after API response
+		const handleAddMessage = (
+			role: Role,
+			content: "string"
+		) => {
+			if (latestMessageRef.current) {
+				latestMessageRef.current.role = role;
+				latestMessageRef.current.content = content;
+				console.log(latestMessageRef.current);
+				setMessages((prevMessages) => {
+					const updatedMessages = [...prevMessages];
+					updatedMessages[updatedMessages.length - 1] = {
+						...(latestMessageRef.current as MessageType),
+					};
+					console.log(updatedMessages);
+					return updatedMessages;
+				});
+			}
+		};
+		emitter.on("addMessage", handleAddMessage);
 
 		return () => {
 			emitter.off("newMessage", handleNewMessage);
 			emitter.off("updateMessage", handleUpdateMessage);
+			emitter.off("addMessage", handleAddMessage);
 		};
-	}, [pluginServices, apiService, settings]);
+	}, [settings]);
 
 	return (
 		<div className="gpt-messages">

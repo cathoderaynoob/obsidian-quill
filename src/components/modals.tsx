@@ -1,6 +1,6 @@
 import { App, Modal } from "obsidian";
 import { Root, createRoot } from "react-dom/client";
-import PromptModalContent from "@/PromptModalContent";
+import PromptModalContent from "@/components/PromptModalContent";
 
 // GET PROMPT FROM USER MODAL ==================================================
 export class GptPromptModal extends Modal {
