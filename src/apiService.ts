@@ -1,4 +1,4 @@
-import { Editor } from "obsidian";
+import OpenAI from "openai";
 import {
 	ContainerType,
 	GptEngines,
@@ -7,17 +7,32 @@ import {
 } from "@/interfaces";
 import { GptPluginSettings } from "@/settings";
 import emitter from "@/customEmitter";
-import GptView from "@/view";
+import GptView from "@/components/view";
 
 export default class ApiService {
 	pluginServices: IPluginServices;
 	settings: GptPluginSettings;
+	openai: OpenAI;
 
 	constructor(pluginServices: IPluginServices, settings: GptPluginSettings) {
 		this.pluginServices = pluginServices;
 		this.settings = settings;
+		// Note: I'm not sure it's possible with an Obsidian plugin to get around
+		// setting dangerouslyAllowBrowser: true
+		this.openai = new OpenAI({
+			apiKey: this.settings.openaiApiKey,
+			dangerouslyAllowBrowser: true,
+		});
 	}
 
+	// This method is used to get a response from the OpenAI API.
+	// It also:
+	// (1) Adds a new <Message /> component to the list of messages.
+	// (2) Adds a new message to the list of messages.
+	// (3) Updates the most recent message with streaming content from the API.
+	// (4) Adds a message after the API response.
+	// (5) Renders the response to the editor.
+	// (6) Returns the response from the API.
 	async getStreamingChatResponse(
 		payload: GptRequestPayload,
 		callback: (
@@ -27,107 +42,69 @@ export default class ApiService {
 		) => void,
 		container?: ContainerType,
 		gptView?: GptView
-	): Promise<string> {
-		const apiUrl = this.settings.openaiChatUrl;
-
-		const requestOptions = this.setupRequestOptions("POST", payload);
-		if (!requestOptions) return "";
+	): Promise<void> {
+		// Add a new <Message /> component to the list of messages
+		emitter.emit("newMessage", "assistant");
 
 		try {
-			// Add a new <Message /> component to the list of messages
-			emitter.emit("newMessage", "assistant");
-
-			const response = await fetch(apiUrl, requestOptions);
-			if (!response.body) {
-				this.pluginServices.notifyError("unknown", "No response body.");
-				return "";
-			}
-			const reader = response.body.getReader();
-			const decoder = new TextDecoder();
-			let isReading = true;
-
-			while (isReading) {
-				const { done, value } = await reader.read();
-				if (done) {
-					isReading = false;
-					break;
-				}
-				const chunkText = decoder.decode(value, { stream: true });
-				// Some of this is based on the example from @schnerd's comment here:
-				// https://github.com/openai/openai-node/issues/18#issuecomment-1369996933
-				const jsonLines = chunkText
-					.split("\n")
-					.filter((line) => line.trim() !== "");
-				for (const jsonLine of jsonLines) {
-					const message = jsonLine.replace(/^data: /, "");
-					if (message === "[DONE]") {
-						break;
-					}
-
-					try {
-						const parsed = JSON.parse(message);
-						const streamingContent = parsed.choices[0]?.delta?.content;
-						console.log(parsed.choices[0]?.delta?.role);
-						if (streamingContent) {
-							// CALLBACK
-							callback(
-								streamingContent,
-								container ? container : undefined,
-								gptView ? gptView : undefined
-							);
-						}
-					} catch (error) {
-						this.pluginServices.notifyError("unknown", error);
-						return "";
-					}
-				}
+			const streamingContent = await this.openai.chat.completions.create({
+				model: payload.model,
+				messages: payload.messages,
+				stream: true,
+				temperature: payload.temperature,
+			});
+			for await (const chunk of streamingContent) {
+				// More can be done with this:
+				// https://platform.openai.com/docs/api-reference/chat/create
+				const content = chunk.choices[0]?.delta?.content;
+				if (content)
+					callback(
+						content,
+						container ? container : undefined,
+						gptView ? gptView : undefined
+					);
 			}
 		} catch (error) {
-			this.pluginServices.notifyError("unknown", `Fetch error: ${error}`);
+			this.pluginServices.notifyError("unknown", error);
+			return;
 		}
-		return "";
+		return;
 	}
 
+	// TODO: Update to OpenAI method
 	async getStandardChatResponse(
 		payload: GptRequestPayload,
-		callback?: (text: string, container?: ContainerType) => void,
-		container?: ContainerType
-	): Promise<string> {
-		const apiUrl = this.settings.openaiChatUrl;
-
-		const requestOptions = this.setupRequestOptions("POST", payload);
-		if (!requestOptions) return "";
+		callback: (
+			text: string,
+			container?: ContainerType,
+			gptView?: GptView
+		) => void,
+		container?: ContainerType,
+		gptView?: GptView
+	): Promise<void> {
+		// Add a new <Message /> component to the list of messages
+		emitter.emit("newMessage", "assistant");
 
 		try {
-			const response = await fetch(apiUrl, requestOptions);
-			if (!response.ok) {
-				this.pluginServices.notifyError(
-					"unknown",
-					`HTTP error status: ${response.status}`
+			const completion = await this.openai.chat.completions.create({
+				model: payload.model,
+				messages: payload.messages,
+				temperature: payload.temperature,
+			});
+			// More can be done with this:
+			// https://platform.openai.com/docs/api-reference/chat/create
+			if (completion.choices[0]?.message?.content) {
+				callback(
+					completion.choices[0]?.message?.content,
+					container ? container : undefined,
+					gptView ? gptView : undefined
 				);
-			} else {
-				const data = await response.json();
-				const standardContent = data.choices[0].message.content;
-				if (standardContent) {
-					if (!callback) {
-						return standardContent.toString();
-					}
-					// CALLBACK
-					callback(
-						standardContent.toString(),
-						container ? container : undefined
-					);
-				} else {
-					this.pluginServices.notifyError(
-						"unknown",
-						"No content in response data."
-					);
-				}
 			}
 		} catch (error) {
-			this.pluginServices.notifyError("unknown", `Fetch error: ${error}`);
+			this.pluginServices.notifyError("unknown", error);
+			return;
 		}
-		return "";
+		return;
 	}
 
 	async getEnginesResponse(): Promise<string[]> {
@@ -153,8 +130,9 @@ export default class ApiService {
 		return !!this.settings.openaiApiKey;
 	}
 
+	// Move to a different file with other related methods(?)
 	private setupRequestOptions(
-		method: string,
+		method: "GET" | "POST",
 		payload?: GptRequestPayload
 	): RequestInit | null {
 		if (!this.hasApiKey()) {
@@ -168,36 +146,5 @@ export default class ApiService {
 			},
 			body: payload ? JSON.stringify(payload) : undefined,
 		};
-	}
-
-	async renderToEditor(text: string, editor: Editor): Promise<void> {
-		return new Promise((resolve) => {
-			let { line, ch } = editor.getCursor();
-			// Without a leading space, the markdown rendering timing
-			// causes issues with the cursor position
-			let addSpace = false;
-			const nextChar = editor.getLine(line)[ch];
-			if (nextChar && nextChar !== " ") {
-				text += " ";
-				addSpace = true;
-			}
-
-			editor.replaceRange(text, { line, ch });
-
-			const numNewLines: number = [...text.matchAll(/\n/g)].length;
-			if (numNewLines) {
-				line += numNewLines;
-				ch = 0;
-			} else {
-				ch += text.length;
-				if (addSpace) {
-					ch -= 1;
-				}
-			}
-
-			editor.setCursor({ line, ch });
-
-			resolve();
-		});
 	}
 }

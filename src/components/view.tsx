@@ -1,34 +1,28 @@
 import { ItemView, WorkspaceLeaf } from "obsidian";
-import { StrictMode } from "react";
 import { Root, createRoot } from "react-dom/client";
 import { GPT_VIEW_TYPE, APP_ICON } from "@/constants";
-import { IPluginServices } from "@/interfaces";
+import PluginContextProvider from "@/components/PluginContext";
+import Messages from "@/components/Messages";
 import { GptPluginSettings } from "@/settings";
-import { PluginContext } from "@/PluginContext";
-import ApiService from "@/apiService";
-import Messages from "@/Messages";
+import { IPluginServices } from "@/interfaces";
 
 export default class GptView extends ItemView {
-	apiService: ApiService;
+	root: Root | null = null;
+	engines: string[] = [];
 	settings: GptPluginSettings;
 	pluginServices: IPluginServices;
-	root: Root | null = null;
-	message: string;
-	responseStream: string;
-	engines: string[] = [];
 
 	static instance: GptView;
 
 	constructor(
 		leaf: WorkspaceLeaf,
-		apiService: ApiService,
-		settings: GptPluginSettings
+		settings: GptPluginSettings,
+		pluginServices: IPluginServices
 	) {
 		super(leaf);
-		GptView.instance = this;
-		this.apiService = apiService;
 		this.settings = settings;
-		this.pluginServices = apiService.pluginServices;
+		this.pluginServices = pluginServices;
+		GptView.instance = this;
 	}
 
 	getViewType(): string {
@@ -44,23 +38,17 @@ export default class GptView extends ItemView {
 	}
 
 	async onOpen(): Promise<void> {
-		console.clear();
 		const root = createRoot(this.containerEl.children[1]);
 		this.root = root;
 
 		root.render(
-			<PluginContext.Provider
-				value={{
-					pluginServices: this.pluginServices,
-					apiService: this.apiService,
-					settings: this.settings,
-				}}
+			<PluginContextProvider
+				settings={this.settings}
+				pluginServices={this.pluginServices}
 			>
-				<StrictMode>
-					<h4 className="gpt-view-title">GPT Chat</h4>
-					<Messages />
-				</StrictMode>
-			</PluginContext.Provider>
+				<h4 className="gpt-view-title">GPT Chat</h4>
+				<Messages />
+			</PluginContextProvider>
 		);
 	}
 

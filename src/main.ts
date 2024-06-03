@@ -1,15 +1,20 @@
 import { Editor, Notice, Plugin, WorkspaceLeaf } from "obsidian";
-import { ErrorCode, APP_ICON, ERROR_MESSAGES, GPT_VIEW_TYPE } from "@/constants";
+import {
+	ErrorCode,
+	APP_ICON,
+	ERROR_MESSAGES,
+	GPT_VIEW_TYPE,
+} from "@/constants";
 import { IPluginServices } from "@/interfaces";
 import {
 	DEFAULT_SETTINGS,
 	GptPluginSettings,
 	GptSettingsTab,
 } from "@/settings";
-import { GptFeatures } from "@/features";
-import { GptPromptModal } from "@/modals";
+import { GptFeatures } from "@/components/features";
+import { GptPromptModal } from "@/components/modals";
 import ApiService from "@/apiService";
-import GptView from "@/view";
+import GptView from "@/components/view";
 
 export default class GptPlugin extends Plugin implements IPluginServices {
 	settings: GptPluginSettings;
@@ -17,6 +22,7 @@ export default class GptPlugin extends Plugin implements IPluginServices {
 	features: GptFeatures;
 
 	async onload(): Promise<void> {
+		console.info("\n=============== PLUGIN RELOAD ===============\n\n");
 		await this.loadSettings();
 		this.apiService = new ApiService(this, this.settings);
 		this.features = new GptFeatures(this.app, this.apiService, this.settings);
@@ -28,21 +34,21 @@ export default class GptPlugin extends Plugin implements IPluginServices {
 		// Add a view to the app
 		this.registerView(
 			GPT_VIEW_TYPE,
-			(leaf: WorkspaceLeaf) => new GptView(leaf, this.apiService, this.settings)
+			(leaf: WorkspaceLeaf) => new GptView(leaf, this.settings, this)
 		);
 
 		// RIBBON AND COMMANDS
 
 		// Chat with GPT icon
 		this.addRibbonIcon(APP_ICON, "Chat with GPT", (evt: MouseEvent) => {
-			this.activateView();
+			this.toggleView();
 		});
 
 		// Get Engines Icon
 		this.addCommand({
 			id: "get-engines",
 			name: "Get Models",
-			callback: () => this.features.getEngines()
+			callback: () => this.features.getEngines(),
 		});
 
 		// "Tell me a joke" command
@@ -50,7 +56,7 @@ export default class GptPlugin extends Plugin implements IPluginServices {
 			id: "gpt-joke-modal",
 			name: "Tell me a joke",
 			callback: async () => {
-				await this.features.executeFeature("tellAJoke");
+				await this.features.executeFeature({ id: "tellAJoke" });
 			},
 		});
 
@@ -60,7 +66,10 @@ export default class GptPlugin extends Plugin implements IPluginServices {
 			name: "On This Date...",
 			hotkeys: [{ modifiers: ["Mod", "Shift"], key: "d" }],
 			editorCallback: async (editor: Editor) => {
-				await this.features.executeFeature("onThisDate", "", "", editor);
+				await this.features.executeFeature({
+					id: "onThisDate",
+					container: editor,
+				});
 			},
 		});
 
@@ -69,9 +78,12 @@ export default class GptPlugin extends Plugin implements IPluginServices {
 			id: "gpt-new-prompt",
 			name: "New prompt",
 			callback: () => {
-				this.activateView();
-				new GptPromptModal(this.app, async (prompt) => {
-					await this.features.executeFeature("newPrompt", prompt);
+				this.toggleView();
+				new GptPromptModal(this.app, async (userEntry) => {
+					await this.features.executeFeature({
+						id: "newPrompt",
+						inputText: userEntry,
+					});
 				}).open();
 			},
 		});
@@ -85,16 +97,16 @@ export default class GptPlugin extends Plugin implements IPluginServices {
 				const selectedText = editor.getSelection().trim();
 				if (selectedText) {
 					if (!checking) {
-						this.activateView();
+						this.toggleView();
 						const modal = new GptPromptModal(
 							this.app,
-							async (inputText) => {
+							async (userEntry) => {
 								// Now I have the selected text and prompt
-								await this.features.executeFeature(
-									"sendPromptWithSelectedText",
-									inputText,
-									selectedText
-								);
+								await this.features.executeFeature({
+									id: "sendPromptWithSelectedText",
+									inputText: userEntry,
+									selectedText: selectedText,
+								});
 							},
 							selectedText
 						);
@@ -109,7 +121,9 @@ export default class GptPlugin extends Plugin implements IPluginServices {
 	}
 
 	// VIEW
-	async activateView(): Promise<GptView | null> {
+	viewIsActive = false;
+
+	async toggleView(): Promise<GptView | null> {
 		const { workspace } = this.app;
 		let leaf: WorkspaceLeaf | null =
 			workspace.getLeavesOfType(GPT_VIEW_TYPE)[0];
@@ -123,10 +137,20 @@ export default class GptPlugin extends Plugin implements IPluginServices {
 				});
 			}
 		}
-
 		if (leaf) {
-			workspace.revealLeaf(leaf);
 			return leaf ? (leaf.view as GptView) : null;
+			// console.log(this.viewIsActive);
+			// if (!this.viewIsActive) {
+			// 	workspace.revealLeaf(leaf);
+			// 	if (leaf.view) {
+			// 		this.viewIsActive = true;
+			// 		return leaf.view as GptView;
+			// 	}
+			// } else {
+			// 	workspace.detachLeavesOfType(GPT_VIEW_TYPE);
+			// 	this.viewIsActive = false;
+			// 	return null;
+			// }
 		}
 
 		this.notifyError("viewError");

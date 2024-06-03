@@ -7,6 +7,7 @@ export interface GptPluginSettings {
 	openaiEnginesUrl: string;
 	openaiChatUrl: string;
 	openaiModel: string;
+	openaiTemperature: number;
 }
 
 const openaiBaseUrl = "https://api.openai.com/v1";
@@ -17,7 +18,7 @@ export const DEFAULT_SETTINGS: GptPluginSettings = {
 	openaiEnginesUrl: `${openaiBaseUrl}/engines`,
 	openaiChatUrl: `${openaiBaseUrl}/chat/completions`,
 	openaiModel: "gpt-3.5-turbo",
-	// openaiModel: "gpt-4",
+	openaiTemperature: 0.7,
 };
 
 export class GptSettingsTab extends PluginSettingTab {
