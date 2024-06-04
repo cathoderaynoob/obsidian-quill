@@ -4,15 +4,18 @@ class PayloadMessages {
 	payloadMessages: PayloadMessagesType[];
 
 	constructor() {
-		this.payloadMessages = this.payloadMessages || [];
+		this.payloadMessages = [];
 	}
 
 	getPayloadMessages(): PayloadMessagesType[] {
 		return this.payloadMessages;
 	}
 
+	getLatestPayloadMessage(): PayloadMessagesType {
+		return this.payloadMessages[this.payloadMessages.length - 1];
+	}
+
 	addMessage(message: PayloadMessagesType): PayloadMessagesType[] {
-		// console.log(message);
 		this.payloadMessages.push(message);
 		return this.payloadMessages;
 	}

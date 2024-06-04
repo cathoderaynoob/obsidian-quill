@@ -27,8 +27,7 @@ export class GptPromptModal extends Modal {
 		);
 
 		const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-			const target = e.target as HTMLTextAreaElement;
-			this.promptValue = target.value.trim();
+			this.promptValue = e.target.value.trim();
 		};
 
 		const handleKeyPress = (e: React.KeyboardEvent) => {
