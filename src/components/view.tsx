@@ -1,4 +1,4 @@
-import { ItemView, WorkspaceLeaf } from "obsidian";
+import { ItemView, setIcon, WorkspaceLeaf } from "obsidian";
 import { Root, createRoot } from "react-dom/client";
 import { GPT_VIEW_TYPE, APP_ICON } from "@/constants";
 import PluginContextProvider from "@/components/PluginContext";
@@ -41,15 +41,20 @@ export default class GptView extends ItemView {
 		const root = createRoot(this.containerEl.children[1]);
 		this.root = root;
 
-		root.render(
+		await root.render(
 			<PluginContextProvider
 				settings={this.settings}
 				pluginServices={this.pluginServices}
 			>
-				<h4 className="gpt-view-title">GPT Chat</h4>
+				<div className="gpt-view-title"></div>
 				<Messages />
 			</PluginContextProvider>
 		);
+
+		const titleBarElem = this.contentEl.getElementsByClassName(
+			"gpt-view-title"
+		)[0] as HTMLElement;
+		setIcon(titleBarElem, "bird");
 	}
 
 	async onClose(): Promise<void> {
