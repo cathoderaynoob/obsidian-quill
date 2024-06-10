@@ -1,48 +1,133 @@
-/*
-
-This CSS file will be included with your plugin, and
-available in the app when your plugin is enabled.
-
-If your plugin does not need CSS, delete this file.
-
-*/
+/* View */
 .gpt-view-title {
-	position: sticky;
+	position: absolute;
 	top: 0;
-  left: 0;
+	left: 0;
 	z-index: 1000; /* Ensures the header is above other content */
-  background: var(--background-primary);
-  opacity: 0.9;
-  padding: 1rem;
-  width: 100%;
-  border-bottom: 1px solid var(--color-base-30);
+	background: var(--background-primary);
+	opacity: 0.88;
+	margin-block-start: 0;
+	padding: 0.33rem 1rem 0.5rem;
+	width: 100%;
+	font-weight: 400;
+}
+.gpt-messages {
+	padding: 1rem 0.5rem 5rem;
+	font-size: small;
+}
+.gpt-message {
+	display: flex;
+	flex-direction: column;
+	padding: 0.25rem 1.5rem 1rem;
+	border-radius: 1rem;
+	user-select: text;
+	-webkit-user-select: text;
+}
+.gpt-message p {
+	position: relative;
+	margin-bottom: auto;
+	/* Respect line breaks */
+	white-space: pre-wrap;
+}
+.gpt-message pre {
+	overflow: scroll;
+	background: var(--background-secondary);
+	font-size: smaller;
+	margin-top: 1.25rem;
+	border: 1px solid rgba(255, 255, 255, 0.2);
+	border-radius: 0.5rem;
+}
+.gpt-message code[class*="language-"],
+.gpt-message code {
+	white-space: pre;
+	color: var(--em-color);
+}
+.gpt-message-user {
+	margin-top: 0.5rem;
+}
+.gpt-message-user > p:first-of-type::before {
+	/* margin-right: 0.33rem; */
+	position: absolute;
+	content: "» ";
+	font-weight: bold;
+	font-size: larger;
+	color: var(--strong-color);
+	margin-left: -1rem;
+	/* margin-top: -0.15rem; */
+	line-height: 0.9;
+}
+.gpt-message-assistant {
+	margin-top: 0.33rem;
+	border: 1px solid var(--background-modifier-border);
+	background: var(--background-primary);
+	opacity: 0.9;
 }
 
+.gpt-message-selectedtext {
+	border-left: 3px solid var(--background-modifier-border);
+	padding: 0.25rem 0 0.25rem 1rem;
+	margin-top: 0.75rem;
+	margin-bottom: 0.5rem;
+}
+
+/* Start WDS technique */
+/* https://youtu.be/OhCzEjXvY9A?si=AKxDg-pzGHF5VAeK&t=214 */
+.gpt-message-selectedtext-content {
+	opacity: 0.4;
+	display: block;
+	--max-lines: 5;
+	line-height: var(--line-height-tight);
+	/* max-height: calc(var(--max-lines) * 1em * var(--line-height-tight)); */
+	max-height: 5rem;
+	overflow: hidden;
+	position: relative;
+	mask-image: linear-gradient(to top, transparent, black 2rem);
+	-webkit-mask-image: linear-gradient(to top, transparent, black 2rem);
+	cursor: pointer;
+	transition: opacity 0.15s ease;
+}
+.gpt-message-selectedtext-content > *:first-child {
+	margin: 0 auto;
+	margin-block-start: 0;
+}
+.gpt-expand-selectedtext {
+	display: none;
+}
+.gpt-message-selectedtext-content:has(+ .gpt-expand-selectedtext:checked) {
+	opacity: 0.8;
+	max-height: none;
+	mask-image: none;
+	-webkit-mask-image: none;
+	/* cursor: auto; */ /* Not sure about this. Has trade offs. */
+}
+/* End WDS technique */
+
+/* Model */
+.gpt-message-model {
+	color: var(--color-base-40);
+	font-size: smaller;
+	text-align: right;
+}
+
+/* Modals */
+#gpt-output-modal {
+	padding: 0.5rem;
+	user-select: text;
+}
 #gpt-prompt-modal {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	align-items: center;
+	width: 100%;
 }
-
 #gpt-prompt-modal > button {
-  margin-left: auto;
-  margin-top: var(--size-4-4);
+	margin-left: auto;
+	margin-top: var(--size-4-4);
 }
-
 .gpt-prompt-input {
-  width: 100%;
-  flex-grow: 1;
-  min-height: 6em;
-  overflow: auto;
-}
-
-.gpt-msg-container {
-  display: flex;
-  flex-direction: column;
-  padding: 1rem 0;
-  border-bottom: 1px solid var(--color-base-50);
-  user-select: text;
-  -webkit-user-select: text;
+	width: 100%;
+	flex-grow: 1;
+	min-height: 6em;
+	overflow: auto;
 }

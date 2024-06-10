@@ -1,24 +1,31 @@
-import { Editor, MarkdownView, Notice, Plugin, WorkspaceLeaf } from "obsidian";
-import { GPT_VIEW_TYPE, ErrorCode, ERROR_MESSAGES } from "@/constants";
+import { Editor, Notice, Plugin, WorkspaceLeaf } from "obsidian";
+import {
+	ErrorCode,
+	APP_ICON,
+	ERROR_MESSAGES,
+	GPT_VIEW_TYPE,
+} from "@/constants";
 import { IPluginServices } from "@/interfaces";
 import {
+	DEFAULT_SETTINGS,
 	GptPluginSettings,
 	GptSettingsTab,
-	DEFAULT_SETTINGS,
 } from "@/settings";
-import { GptTextOutputModal, GptGetPromptModal } from "@/modals";
+import { GptFeatures } from "@/components/features";
+import { GptPromptModal } from "@/components/modals";
 import ApiService from "@/apiService";
-import { GptView } from "@/view";
+import GptView from "@/components/view";
 
 export default class GptPlugin extends Plugin implements IPluginServices {
 	settings: GptPluginSettings;
 	apiService: ApiService;
-	apiKey?: string;
-	gptModel?: string;
+	features: GptFeatures;
 
 	async onload(): Promise<void> {
+		console.clear();
 		await this.loadSettings();
-		this.apiService = new ApiService(this.app, this, this.settings);
+		this.apiService = new ApiService(this, this.settings);
+		this.features = new GptFeatures(this.app, this.apiService, this.settings);
 
 		// This adds a settings tab so the user can configure
 		// various aspects of the plugin
@@ -27,39 +34,21 @@ export default class GptPlugin extends Plugin implements IPluginServices {
 		// Add a view to the app
 		this.registerView(
 			GPT_VIEW_TYPE,
-			(leaf: WorkspaceLeaf) => new GptView(leaf)
+			(leaf: WorkspaceLeaf) => new GptView(leaf, this.settings, this)
 		);
 
-		// ICONS AND COMMANDS
+		// RIBBON AND COMMANDS
 
 		// Chat with GPT icon
-		this.addRibbonIcon("message-square", "Chat with GPT", (evt: MouseEvent) => {
-			this.activateView();
+		this.addRibbonIcon(APP_ICON, "Chat with GPT", (evt: MouseEvent) => {
+			this.toggleView();
 		});
 
 		// Get Engines Icon
-		this.addRibbonIcon("bot", "Get GPT Robots", (evt: MouseEvent) => {
-			this.apiService.getEngines();
-		});
-
-		// Send selected text with instruction from modal
 		this.addCommand({
-			id: "gpt-select-and-instruct",
-			name: "Send selected text with my prompt",
-			editorCheckCallback: (
-				checking: boolean,
-				editor: Editor,
-				view: MarkdownView
-			) => {
-				const selectedText = editor.getSelection().trim();
-				if (selectedText) {
-					if (!checking) {
-						new GptGetPromptModal(this.app, selectedText, this.apiService).open();
-					}
-					return true;
-				}
-				return false;
-			},
+			id: "get-engines",
+			name: "Get Models",
+			callback: () => this.features.getEngines(),
 		});
 
 		// "Tell me a joke" command
@@ -67,8 +56,7 @@ export default class GptPlugin extends Plugin implements IPluginServices {
 			id: "gpt-joke-modal",
 			name: "Tell me a joke",
 			callback: async () => {
-				const joke = await this.apiService.getAJoke();
-				new GptTextOutputModal(this.app, joke).open();
+				await this.features.executeFeature({ id: "tellAJoke" });
 			},
 		});
 
@@ -76,15 +64,80 @@ export default class GptPlugin extends Plugin implements IPluginServices {
 		this.addCommand({
 			id: "on-this-date",
 			name: "On This Date...",
-			hotkeys: [{ modifiers: ["Mod", "Shift"], key: "d" }],
 			editorCallback: async (editor: Editor) => {
-				await this.apiService.onThisDate(editor);
+				await this.features.executeFeature({
+					id: "onThisDate",
+					targetEditor: editor,
+				});
+			},
+		});
+
+		// "Define..." command
+		this.addCommand({
+			id: "define",
+			name: "Define...",
+			editorCallback: async (editor: Editor) => {
+				this.toggleView();
+				new GptPromptModal(this.app, async (userEntry) => {
+					await this.features.executeFeature({
+						id: "define",
+						inputText: userEntry,
+						targetEditor: editor,
+					});
+				}).open();
+			},
+		});
+
+		// Open modal to get prompt
+		this.addCommand({
+			id: "gpt-new-prompt",
+			name: "New prompt",
+			callback: async () => {
+				this.toggleView();
+				new GptPromptModal(this.app, async (userEntry) => {
+					await this.features.executeFeature({
+						id: "newPrompt",
+						inputText: userEntry,
+					});
+				}).open();
+			},
+		});
+
+		// Send selected text with instruction from modal
+		this.addCommand({
+			id: "gpt-select-and-prompt",
+			name: "Send selected text with my prompt",
+			editorCheckCallback: (checking: boolean, editor: Editor) => {
+				const selectedText = editor.getSelection().trim();
+				if (selectedText) {
+					if (!checking) {
+						this.toggleView();
+						const modal = new GptPromptModal(
+							this.app,
+							async (userEntry) => {
+								// Now I have the selected text and prompt
+								await this.features.executeFeature({
+									id: "sendPromptWithSelectedText",
+									inputText: userEntry,
+									selectedText: selectedText,
+								});
+							},
+							selectedText
+						);
+
+						modal.open();
+					}
+					return true;
+				}
+				return false;
 			},
 		});
 	}
 
 	// VIEW
-	public async activateView(): Promise<WorkspaceLeaf | null> {
+	viewIsActive = false;
+
+	async toggleView(): Promise<GptView | null> {
 		const { workspace } = this.app;
 		let leaf: WorkspaceLeaf | null =
 			workspace.getLeavesOfType(GPT_VIEW_TYPE)[0];
@@ -98,10 +151,8 @@ export default class GptPlugin extends Plugin implements IPluginServices {
 				});
 			}
 		}
-
 		if (leaf) {
-			workspace.revealLeaf(leaf);
-			return leaf;
+			return leaf ? (leaf.view as GptView) : null;
 		}
 
 		this.notifyError("viewError");
@@ -113,8 +164,8 @@ export default class GptPlugin extends Plugin implements IPluginServices {
 	}
 
 	// DATA STORAGE
-
-	// Loads the default settings, and then overrides them with any saved settings
+	// Loads the default settings, and then overrides them with
+	// any saved settings
 	async loadSettings(): Promise<void> {
 		const userSettings = await this.loadData();
 		this.settings = {
@@ -128,8 +179,12 @@ export default class GptPlugin extends Plugin implements IPluginServices {
 		await this.saveData(this.settings);
 	}
 
-	public notifyError(errorCode: ErrorCode): void {
+	// MISCELLANEOUS
+	notifyError(errorCode: ErrorCode, consoleMsg?: string): void {
 		const errorMessage = ERROR_MESSAGES[errorCode] || ERROR_MESSAGES.unknown;
 		new Notice(errorMessage);
+		if (consoleMsg) {
+			console.error(consoleMsg);
+		}
 	}
 }

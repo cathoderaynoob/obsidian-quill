@@ -26,12 +26,12 @@
 		"@typescript-eslint/ban-ts-comment": "off",
 		"no-prototype-builtins": "off",
 		"@typescript-eslint/no-empty-function": "off",
-		"react/react-in-jsx-scope": "off"
+		"react/react-in-jsx-scope": "off",
+		"react/prop-types": "off"
 	},
 	"settings": {
 		"react": {
-			"pragma": "h",
-			"version": "17.0"
+			"version": "detect"
 		}
 	}
 }

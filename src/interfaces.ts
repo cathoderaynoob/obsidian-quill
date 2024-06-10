@@ -1,8 +1,9 @@
-import { WorkspaceLeaf } from "obsidian";
+import { PayloadMessagesType } from "@/components/Messages";
+import GptView from "@/components/view";
 
 export interface IPluginServices {
-  activateView(): Promise<WorkspaceLeaf | null>;
-  notifyError(errorCode: string): void;
+	toggleView(): Promise<GptView | null>;
+	notifyError(errorCode: string, consoleMsg?: string): void;
 }
 
 export interface GptEngines {
@@ -13,16 +14,6 @@ export interface GptEngines {
 
 export interface GptRequestPayload {
 	model: string;
-	messages: {
-		role: "user" | "system";
-		content: string;
-	}[];
-	stream?: boolean;
+	messages: PayloadMessagesType[];
 	temperature: number;
-}
-
-export interface GptChatResponse {
-	success: boolean;
-	message: string;
-	error?: string;
 }
