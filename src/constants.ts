@@ -40,9 +40,17 @@ export const PROMPTS = {
 			"response with 2 newline chars, 3 underscores, and 2 more newline chars, " +
 			"i.e. `\n\n___\n\n`.",
 	},
+	define: {
+		role: "user",
+		content: '<= Define this term in the following format:\n' +
+			'**<term>** `<Pronunciation in International Phonetic Alphabet (IPA)>`\n' +
+			'<Definition, or if more than one, enumerated definitions>\n' +
+			'- *Example*: "<Use the term in a sentence>"',
+	},
 	tellAJoke: {
 		role: "user",
 		content:
 			"Tell me a joke (and only the joke) in the style of Anthony Jeselnik.",
 	},
 };
+

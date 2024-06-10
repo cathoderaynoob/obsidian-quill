@@ -1,51 +1,31 @@
+import { Editor } from "obsidian";
 import OpenAI from "openai";
-import {
-	ContainerType,
-	GptEngines,
-	GptRequestPayload,
-	IPluginServices,
-} from "@/interfaces";
+import { GptEngines, GptRequestPayload, IPluginServices } from "@/interfaces";
 import { GptPluginSettings } from "@/settings";
-import emitter from "@/customEmitter";
-import GptView from "@/components/view";
+import PayloadMessages from "@/PayloadMessages";
 
 export default class ApiService {
 	pluginServices: IPluginServices;
 	settings: GptPluginSettings;
 	openai: OpenAI;
+	payloadMessages: PayloadMessages;
 
 	constructor(pluginServices: IPluginServices, settings: GptPluginSettings) {
 		this.pluginServices = pluginServices;
 		this.settings = settings;
-		// Note: I'm not sure it's possible with an Obsidian plugin to get around
-		// setting dangerouslyAllowBrowser: true
 		this.openai = new OpenAI({
 			apiKey: this.settings.openaiApiKey,
 			dangerouslyAllowBrowser: true,
 		});
+		this.payloadMessages = new PayloadMessages();
 	}
 
-	// This method is used to get a response from the OpenAI API.
-	// It also:
-	// (1) Adds a new <Message /> component to the list of messages.
-	// (2) Adds a new message to the list of messages.
-	// (3) Updates the most recent message with streaming content from the API.
-	// (4) Adds a message after the API response.
-	// (5) Renders the response to the editor.
-	// (6) Returns the response from the API.
 	async getStreamingChatResponse(
 		payload: GptRequestPayload,
-		callback: (
-			text: string,
-			container?: ContainerType,
-			gptView?: GptView
-		) => void,
-		container?: ContainerType,
-		gptView?: GptView
+		callback: (text: string, targetEditor?: Editor) => void,
+		targetEditor?: Editor
 	): Promise<void> {
-		// Add a new <Message /> component to the list of messages
-		emitter.emit("newMessage", "assistant");
-
+		let completedMessage = "";
 		try {
 			const streamingContent = await this.openai.chat.completions.create({
 				model: payload.model,
@@ -57,34 +37,25 @@ export default class ApiService {
 				// More can be done with this:
 				// https://platform.openai.com/docs/api-reference/chat/create
 				const content = chunk.choices[0]?.delta?.content;
-				if (content)
-					callback(
-						content,
-						container ? container : undefined,
-						gptView ? gptView : undefined
-					);
+				if (content) callback(content, targetEditor || undefined);
+				completedMessage += content;
 			}
 		} catch (error) {
 			this.pluginServices.notifyError("unknown", error);
 			return;
 		}
+		this.payloadMessages.addMessage({
+			role: "assistant",
+			content: completedMessage,
+		});
 		return;
 	}
 
-	// TODO: Update to OpenAI method
 	async getStandardChatResponse(
 		payload: GptRequestPayload,
-		callback: (
-			text: string,
-			container?: ContainerType,
-			gptView?: GptView
-		) => void,
-		container?: ContainerType,
-		gptView?: GptView
+		callback: (text: string, targetEditor?: Editor) => void,
+		targetEditor?: Editor
 	): Promise<void> {
-		// Add a new <Message /> component to the list of messages
-		emitter.emit("newMessage", "assistant");
-
 		try {
 			const completion = await this.openai.chat.completions.create({
 				model: payload.model,
@@ -96,8 +67,7 @@ export default class ApiService {
 			if (completion.choices[0]?.message?.content) {
 				callback(
 					completion.choices[0]?.message?.content,
-					container ? container : undefined,
-					gptView ? gptView : undefined
+					targetEditor || undefined
 				);
 			}
 		} catch (error) {

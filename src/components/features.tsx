@@ -2,30 +2,23 @@ import { App, Editor } from "obsidian";
 import { renderToEditor } from "@/editorUtils";
 import { PROMPTS } from "@/constants";
 import { buildPrompt } from "@/promptBuilder";
-import {
-	ContainerType,
-	GptRequestPayload,
-	IPluginServices,
-} from "@/interfaces";
+import { GptRequestPayload, IPluginServices } from "@/interfaces";
 import { GptPluginSettings } from "@/settings";
 import { GptTextOutputModal } from "@/components/modals";
 import emitter from "@/customEmitter";
 import ApiService from "@/apiService";
 import GptView from "@/components/view";
 import PayloadMessages from "@/PayloadMessages";
+import { PayloadMessagesType } from "@/components/Messages";
 
 interface FeatureProperties {
 	id: string;
 	prompt: (inputText?: string) => string;
-	processResponse: (
-		response: string,
-		container?: ContainerType,
-		gptView?: GptView
-	) => void;
+	processResponse: (response: string, targetEditor?: Editor) => void;
 	model?: string;
 	temperature?: number;
 	stream?: boolean;
-	container?: ContainerType;
+	targetContainer?: "view" | "modal";
 }
 
 interface ExecutionOptions {
@@ -33,7 +26,7 @@ interface ExecutionOptions {
 	inputText?: string;
 	selectedText?: string;
 	formattingGuidance?: string;
-	container?: ContainerType;
+	targetEditor?: Editor;
 }
 
 export class GptFeatures {
@@ -50,7 +43,7 @@ export class GptFeatures {
 		this.app = app;
 		this.apiService = apiService;
 		this.settings = settings;
-		this.payloadMessages = new PayloadMessages();
+		this.payloadMessages = apiService.payloadMessages;
 		this.pluginServices = apiService.pluginServices;
 		this.renderToEditor = renderToEditor;
 		this.buildPrompt = buildPrompt;
@@ -77,9 +70,23 @@ export class GptFeatures {
 					});
 					return `${today}: ` + PROMPTS.onThisDate.content;
 				},
-				processResponse: async (response, container: Editor) => {
+				processResponse: async (response, editor: Editor) => {
 					if (response.length) {
-						await this.renderToEditor(response, container);
+						await this.renderToEditor(response, editor);
+					}
+				},
+				stream: true,
+			},
+
+			// Define...
+			define: {
+				id: "define",
+				prompt: (inputText: string) => {
+					return `${inputText}: ` + PROMPTS.define.content;
+				},
+				processResponse: async (response, editor: Editor) => {
+					if (response.length) {
+						await this.renderToEditor(response, editor);
 					}
 				},
 				stream: true,
@@ -92,6 +99,7 @@ export class GptFeatures {
 				processResponse: (responseText: string) =>
 					emitter.emit("updateMessage", responseText),
 				stream: true,
+				targetContainer: "view",
 			},
 
 			// SEND SELECTED TEXT WITH PROMPT
@@ -101,6 +109,7 @@ export class GptFeatures {
 				processResponse: (responseText: string) =>
 					emitter.emit("updateMessage", responseText),
 				stream: true,
+				targetContainer: "view",
 			},
 		};
 	}
@@ -111,7 +120,7 @@ export class GptFeatures {
 		inputText,
 		selectedText,
 		formattingGuidance,
-		container,
+		targetEditor,
 	}: ExecutionOptions): Promise<void> {
 		// Get feature properties
 		const feature = this.featureRegistry[id];
@@ -126,59 +135,62 @@ export class GptFeatures {
 			formattingGuidance: formattingGuidance || undefined,
 		});
 
-		// Payload
-		const payloadMessages = this.payloadMessages.addMessage({
+		let payloadMessages: PayloadMessagesType[] = [];
+		const newPayloadMessage: PayloadMessagesType = {
 			role: "user",
 			content: payloadPrompt,
-		});
+		};
+		if (feature.targetContainer === "view") {
+			// Wrap emitter.emit in a promise
+			// Resolves issue with race condition
+			const emitEvent = (
+				event: string,
+				role: string,
+				selectedText?: string
+			): Promise<void> => {
+				return new Promise<void>((resolve) => {
+					emitter.emit(event, role, selectedText);
+					resolve();
+				});
+			};
+
+			await emitEvent("newMessage", "user", selectedText);
+			if (inputText) await emitEvent("updateMessage", inputText);
+
+			// Add message(s) to the payload
+			await this.pluginServices.toggleView();
+			if (!this.payloadMessages.getPayloadMessages().length) {
+				payloadMessages = this.payloadMessages.addMessage(
+					PROMPTS.systemInitial as PayloadMessagesType
+				);
+			}
+			payloadMessages = this.payloadMessages.addMessage(newPayloadMessage);
+
+			// Add a new <Message /> component to the list of messages
+			// for the assistant's response
+			await emitEvent("newMessage", "assistant");
+		} else {
+			payloadMessages = [newPayloadMessage];
+		}
+
 		const payload: GptRequestPayload = {
 			model: feature.model || this.settings.openaiModel,
 			messages: payloadMessages,
 			temperature: feature.temperature || this.settings.openaiTemperature,
 		};
 
-		// Activate view
-		let gptView: GptView | null = null;
-		if (container instanceof HTMLElement) {
-			gptView = await this.pluginServices.toggleView();
-			if (!gptView) {
-				this.pluginServices.notifyError("viewError");
-				return;
-			}
-		}
-
-		// This should be moved to a separate file (Messages? New file?)
-		// Wrap emitter.emit in a promise
-		// Resolves issue with race condition
-		const emitEvent = (
-			event: string,
-			role: string,
-			selectedText?: string
-		): Promise<void> => {
-			return new Promise<void>((resolve) => {
-				emitter.emit(event, role, selectedText);
-				resolve();
-			});
-		};
-
-		// Add prompt to the GPT Chat view
-		await emitEvent("newMessage", "user", selectedText);
-		if (inputText) await emitEvent("updateMessage", inputText);
-
 		// Send prompt
-		// Not sure if gptView is necessary?
 		if (feature.stream) {
 			await this.apiService.getStreamingChatResponse(
 				payload,
 				feature.processResponse,
-				container,
-				gptView ? gptView : undefined
+				targetEditor
 			);
 		} else {
 			await this.apiService.getStandardChatResponse(
 				payload,
 				feature.processResponse,
-				container
+				targetEditor
 			);
 		}
 	}

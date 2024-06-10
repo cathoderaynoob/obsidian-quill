@@ -22,7 +22,7 @@ export default class GptPlugin extends Plugin implements IPluginServices {
 	features: GptFeatures;
 
 	async onload(): Promise<void> {
-		console.info("\n=============== PLUGIN RELOAD ===============\n\n");
+		console.clear();
 		await this.loadSettings();
 		this.apiService = new ApiService(this, this.settings);
 		this.features = new GptFeatures(this.app, this.apiService, this.settings);
@@ -64,12 +64,27 @@ export default class GptPlugin extends Plugin implements IPluginServices {
 		this.addCommand({
 			id: "on-this-date",
 			name: "On This Date...",
-			hotkeys: [{ modifiers: ["Mod", "Shift"], key: "d" }],
 			editorCallback: async (editor: Editor) => {
 				await this.features.executeFeature({
 					id: "onThisDate",
-					container: editor,
+					targetEditor: editor,
 				});
+			},
+		});
+
+		// "Define..." command
+		this.addCommand({
+			id: "define",
+			name: "Define...",
+			editorCallback: async (editor: Editor) => {
+				this.toggleView();
+				new GptPromptModal(this.app, async (userEntry) => {
+					await this.features.executeFeature({
+						id: "define",
+						inputText: userEntry,
+						targetEditor: editor,
+					});
+				}).open();
 			},
 		});
 
@@ -77,7 +92,7 @@ export default class GptPlugin extends Plugin implements IPluginServices {
 		this.addCommand({
 			id: "gpt-new-prompt",
 			name: "New prompt",
-			callback: () => {
+			callback: async () => {
 				this.toggleView();
 				new GptPromptModal(this.app, async (userEntry) => {
 					await this.features.executeFeature({
@@ -92,7 +107,6 @@ export default class GptPlugin extends Plugin implements IPluginServices {
 		this.addCommand({
 			id: "gpt-select-and-prompt",
 			name: "Send selected text with my prompt",
-			hotkeys: [{ modifiers: ["Mod", "Shift"], key: "s" }],
 			editorCheckCallback: (checking: boolean, editor: Editor) => {
 				const selectedText = editor.getSelection().trim();
 				if (selectedText) {
@@ -139,18 +153,6 @@ export default class GptPlugin extends Plugin implements IPluginServices {
 		}
 		if (leaf) {
 			return leaf ? (leaf.view as GptView) : null;
-			// console.log(this.viewIsActive);
-			// if (!this.viewIsActive) {
-			// 	workspace.revealLeaf(leaf);
-			// 	if (leaf.view) {
-			// 		this.viewIsActive = true;
-			// 		return leaf.view as GptView;
-			// 	}
-			// } else {
-			// 	workspace.detachLeavesOfType(GPT_VIEW_TYPE);
-			// 	this.viewIsActive = false;
-			// 	return null;
-			// }
 		}
 
 		this.notifyError("viewError");
