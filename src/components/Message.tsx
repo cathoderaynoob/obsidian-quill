@@ -1,5 +1,8 @@
-import ReactMarkdown from "react-markdown";
+import { useEffect } from "react";
 import { MessageType } from "./Messages";
+import { usePluginContext } from "@/components/PluginContext";
+import emitter from "@/customEmitter";
+import ReactMarkdown from "react-markdown";
 
 const Message: React.FC<MessageType> = ({
 	id,
@@ -11,6 +14,22 @@ const Message: React.FC<MessageType> = ({
 	// actions,
 	// status,
 }) => {
+	const { apiService } = usePluginContext();
+
+	// Event listener for the escape key
+	useEffect(() => {
+		const handleEscapePress = (event: KeyboardEvent) => {
+			if (event.key === "Escape") {
+				apiService.cancelStream();
+			}
+		};
+		emitter.on("keydown", handleEscapePress);
+
+		return () => {
+			emitter.off("keydown", handleEscapePress); // Clean up
+		};
+	}, [apiService]);
+
 	return (
 		<>
 			{message ? (

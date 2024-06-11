@@ -20,11 +20,11 @@ export class GptPromptModal extends Modal {
 	}
 
 	onOpen() {
-		this.setTitle(
-			this.selectedText
-				? "How can I help you with your highlighted text?"
-				: "How can I help?"
-		);
+		// this.setTitle(
+		// 	this.selectedText
+		// 		? "How can I help you with your highlighted text?"
+		// 		: "How can I help?"
+		// );
 
 		const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
 			this.promptValue = e.target.value.trim();

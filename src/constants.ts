@@ -12,10 +12,9 @@ export const ERROR_MESSAGES = {
 
 export type ErrorCode = keyof typeof ERROR_MESSAGES;
 
-export const GPT_VIEW_TYPE = "chat-view";
+export const GPT_VIEW_TYPE = "gpt-chat-view";
 
 export const APP_ICON = "bird";
-// Used to be messages-square
 
 export const PROMPTS = {
 	systemInitial: {
@@ -43,8 +42,8 @@ export const PROMPTS = {
 	define: {
 		role: "user",
 		content: '<= Define this term in the following format:\n' +
-			'**<term>** `<Pronunciation in International Phonetic Alphabet (IPA)>`\n' +
-			'<Definition, or if more than one, enumerated definitions>\n' +
+			'###### <term> `<Pronunciation in International Phonetic Alphabet (IPA)>`\n\n' +
+			'<Definition, or *only if more than one*, enumerated definitions>\n\n' +
 			'- *Example*: "<Use the term in a sentence>"',
 	},
 	tellAJoke: {

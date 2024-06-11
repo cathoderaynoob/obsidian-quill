@@ -5,11 +5,10 @@ import { buildPrompt } from "@/promptBuilder";
 import { GptRequestPayload, IPluginServices } from "@/interfaces";
 import { GptPluginSettings } from "@/settings";
 import { GptTextOutputModal } from "@/components/modals";
+import { PayloadMessagesType } from "@/components/Messages";
 import emitter from "@/customEmitter";
 import ApiService from "@/apiService";
-import GptView from "@/components/view";
 import PayloadMessages from "@/PayloadMessages";
-import { PayloadMessagesType } from "@/components/Messages";
 
 interface FeatureProperties {
 	id: string;
@@ -43,6 +42,7 @@ export class GptFeatures {
 		this.app = app;
 		this.apiService = apiService;
 		this.settings = settings;
+
 		this.payloadMessages = apiService.payloadMessages;
 		this.pluginServices = apiService.pluginServices;
 		this.renderToEditor = renderToEditor;
@@ -134,12 +134,13 @@ export class GptFeatures {
 			selectedText: selectedText || undefined,
 			formattingGuidance: formattingGuidance || undefined,
 		});
-
 		let payloadMessages: PayloadMessagesType[] = [];
 		const newPayloadMessage: PayloadMessagesType = {
 			role: "user",
 			content: payloadPrompt,
 		};
+
+		// Target is chat view
 		if (feature.targetContainer === "view") {
 			// Wrap emitter.emit in a promise
 			// Resolves issue with race condition
@@ -192,21 +193,6 @@ export class GptFeatures {
 				feature.processResponse,
 				targetEditor
 			);
-		}
-	}
-
-	// GET ENGINES ===============================================================
-	async getEngines(): Promise<void> {
-		const leafView = await this.pluginServices.toggleView();
-		if (!leafView) {
-			this.pluginServices.notifyError("viewError");
-			return;
-		}
-
-		const engines = await this.apiService.getEnginesResponse();
-
-		if (leafView instanceof GptView) {
-			leafView.updateEngines(engines);
 		}
 	}
 }

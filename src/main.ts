@@ -34,7 +34,8 @@ export default class GptPlugin extends Plugin implements IPluginServices {
 		// Add a view to the app
 		this.registerView(
 			GPT_VIEW_TYPE,
-			(leaf: WorkspaceLeaf) => new GptView(leaf, this.settings, this)
+			(leaf: WorkspaceLeaf) =>
+				new GptView(leaf, this.settings, this.apiService, this)
 		);
 
 		// RIBBON AND COMMANDS
@@ -42,13 +43,6 @@ export default class GptPlugin extends Plugin implements IPluginServices {
 		// Chat with GPT icon
 		this.addRibbonIcon(APP_ICON, "Chat with GPT", (evt: MouseEvent) => {
 			this.toggleView();
-		});
-
-		// Get Engines Icon
-		this.addCommand({
-			id: "get-engines",
-			name: "Get Models",
-			callback: () => this.features.getEngines(),
 		});
 
 		// "Tell me a joke" command
@@ -135,28 +129,30 @@ export default class GptPlugin extends Plugin implements IPluginServices {
 	}
 
 	// VIEW
+	// TODO: Add activate and deactivate, and then use them in the toggleView method
 	viewIsActive = false;
 
-	async toggleView(): Promise<GptView | null> {
+	async toggleView(): Promise<void> {
 		const { workspace } = this.app;
 		let leaf: WorkspaceLeaf | null =
 			workspace.getLeavesOfType(GPT_VIEW_TYPE)[0];
 
 		if (!leaf) {
 			leaf = workspace.getRightLeaf(false);
-			if (leaf) {
-				await leaf.setViewState({
-					type: GPT_VIEW_TYPE,
-					active: true,
-				});
-			}
-		}
-		if (leaf) {
-			return leaf ? (leaf.view as GptView) : null;
 		}
 
-		this.notifyError("viewError");
-		return null;
+		if (leaf) {
+			await leaf.setViewState({
+				type: GPT_VIEW_TYPE,
+				active: true,
+			});
+			const chatViewContainer = leaf.view.containerEl
+				.children[1] as HTMLElement;
+			chatViewContainer.tabIndex = 0;
+			chatViewContainer.focus();
+		} else {
+			this.notifyError("viewError");
+		}
 	}
 
 	onunload(): void {

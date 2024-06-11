@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePluginContext } from "@/components/PluginContext";
 import emitter from "@/customEmitter";
 import Message from "@/components/Message";
@@ -76,30 +76,8 @@ const Messages: React.FC = () => {
 		};
 	}, []);
 
-	useEffect(() => {
-		// Add message after API response
-		const handleAddMessage = (role: Role, content: "string") => {
-			if (latestMessageRef.current) {
-				latestMessageRef.current.role = role;
-				latestMessageRef.current.content = content;
-				setMessages((prevMessages) => {
-					const updatedMessages = [...prevMessages];
-					updatedMessages[updatedMessages.length - 1] = {
-						...(latestMessageRef.current as MessageType),
-					};
-					return updatedMessages;
-				});
-			}
-		};
-		emitter.on("addMessage", handleAddMessage);
-
-		return () => {
-			emitter.off("addMessage", handleAddMessage);
-		};
-	}, []);
-
 	return (
-		<div className="gpt-messages">
+		<div id="gpt-messages">
 			{messages.map((message) => (
 				<Message key={message.id} {...message} />
 			))}

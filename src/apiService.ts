@@ -1,6 +1,6 @@
 import { Editor } from "obsidian";
 import OpenAI from "openai";
-import { GptEngines, GptRequestPayload, IPluginServices } from "@/interfaces";
+import { GptRequestPayload, IPluginServices } from "@/interfaces";
 import { GptPluginSettings } from "@/settings";
 import PayloadMessages from "@/PayloadMessages";
 
@@ -9,6 +9,8 @@ export default class ApiService {
 	settings: GptPluginSettings;
 	openai: OpenAI;
 	payloadMessages: PayloadMessages;
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	streamingContent: any | null = null;
 
 	constructor(pluginServices: IPluginServices, settings: GptPluginSettings) {
 		this.pluginServices = pluginServices;
@@ -20,6 +22,11 @@ export default class ApiService {
 		this.payloadMessages = new PayloadMessages();
 	}
 
+	hasApiKey(): boolean {
+		return !!this.settings.openaiApiKey;
+	}
+
+	// CHAT =====================================================================
 	async getStreamingChatResponse(
 		payload: GptRequestPayload,
 		callback: (text: string, targetEditor?: Editor) => void,
@@ -27,17 +34,19 @@ export default class ApiService {
 	): Promise<void> {
 		let completedMessage = "";
 		try {
-			const streamingContent = await this.openai.chat.completions.create({
+			this.streamingContent = await this.openai.chat.completions.create({
 				model: payload.model,
 				messages: payload.messages,
 				stream: true,
 				temperature: payload.temperature,
 			});
-			for await (const chunk of streamingContent) {
+
+			for await (const chunk of this.streamingContent) {
 				// More can be done with this:
 				// https://platform.openai.com/docs/api-reference/chat/create
 				const content = chunk.choices[0]?.delta?.content;
-				if (content) callback(content, targetEditor || undefined);
+				if (typeof content === "string")
+					callback(content, targetEditor || undefined);
 				completedMessage += content;
 			}
 		} catch (error) {
@@ -49,6 +58,11 @@ export default class ApiService {
 			content: completedMessage,
 		});
 		return;
+	}
+
+	cancelStream() {
+		this.streamingContent?.controller?.abort();
+		this.streamingContent = null;
 	}
 
 	async getStandardChatResponse(
@@ -75,46 +89,5 @@ export default class ApiService {
 			return;
 		}
 		return;
-	}
-
-	async getEnginesResponse(): Promise<string[]> {
-		const apiUrl = this.settings.openaiEnginesUrl;
-
-		try {
-			const requestOptions = this.setupRequestOptions("GET");
-			if (!requestOptions) return [];
-
-			const response = await fetch(apiUrl, requestOptions);
-			const data = await response.json();
-			const engines: string[] = data.data
-				.map((engine: GptEngines) => engine.id)
-				.sort();
-			return engines;
-		} catch (error) {
-			this.pluginServices.notifyError("unknown");
-			return [];
-		}
-	}
-
-	hasApiKey(): boolean {
-		return !!this.settings.openaiApiKey;
-	}
-
-	// Move to a different file with other related methods(?)
-	private setupRequestOptions(
-		method: "GET" | "POST",
-		payload?: GptRequestPayload
-	): RequestInit | null {
-		if (!this.hasApiKey()) {
-			this.pluginServices.notifyError("noApiKey");
-		}
-		return {
-			method: method,
-			headers: {
-				"Content-Type": "application/json",
-				Authorization: `Bearer ${this.settings.openaiApiKey}`,
-			},
-			body: payload ? JSON.stringify(payload) : undefined,
-		};
 	}
 }
