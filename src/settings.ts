@@ -5,7 +5,6 @@ import GptPlugin from "@/main";
 export interface GptPluginSettings {
 	openaiApiKey: string;
 	openaiEnginesUrl: string;
-	openaiChatUrl: string;
 	openaiModel: string;
 	openaiTemperature: number;
 }
@@ -16,7 +15,6 @@ const openaiBaseUrl = "https://api.openai.com/v1";
 export const DEFAULT_SETTINGS: GptPluginSettings = {
 	openaiApiKey: "",
 	openaiEnginesUrl: `${openaiBaseUrl}/engines`,
-	openaiChatUrl: `${openaiBaseUrl}/chat/completions`,
 	openaiModel: "gpt-3.5-turbo",
 	openaiTemperature: 0.7,
 };

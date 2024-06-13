@@ -1,8 +1,7 @@
 import { PayloadMessagesType } from "@/components/Messages";
-import GptView from "@/components/view";
 
 export interface IPluginServices {
-	toggleView(): Promise<GptView | null>;
+	toggleView(): Promise<void>;
 	notifyError(errorCode: string, consoleMsg?: string): void;
 }
 

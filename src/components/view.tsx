@@ -1,15 +1,17 @@
 import { ItemView, setIcon, WorkspaceLeaf } from "obsidian";
 import { Root, createRoot } from "react-dom/client";
 import { GPT_VIEW_TYPE, APP_ICON } from "@/constants";
-import PluginContextProvider from "@/components/PluginContext";
-import Messages from "@/components/Messages";
 import { GptPluginSettings } from "@/settings";
 import { IPluginServices } from "@/interfaces";
+import ApiService from "@/apiService";
+import Messages from "@/components/Messages";
+import PluginContextProvider from "@/components/PluginContext";
+import emitter from "@/customEmitter";
 
 export default class GptView extends ItemView {
 	root: Root | null = null;
-	engines: string[] = [];
 	settings: GptPluginSettings;
+	apiService: ApiService;
 	pluginServices: IPluginServices;
 
 	static instance: GptView;
@@ -17,11 +19,13 @@ export default class GptView extends ItemView {
 	constructor(
 		leaf: WorkspaceLeaf,
 		settings: GptPluginSettings,
-		pluginServices: IPluginServices
+		apiService: ApiService,
+		pluginServices: IPluginServices,
 	) {
 		super(leaf);
 		this.settings = settings;
 		this.pluginServices = pluginServices;
+		this.apiService = apiService;
 		GptView.instance = this;
 	}
 
@@ -38,66 +42,44 @@ export default class GptView extends ItemView {
 	}
 
 	async onOpen(): Promise<void> {
-		const root = createRoot(this.containerEl.children[1]);
+		const chatViewContainer = this.containerEl.children[1] as HTMLElement;
+		const handleKeyDown = (event: KeyboardEvent) => {
+			emitter.emit('keydown', event);
+		};
+		chatViewContainer.addEventListener('keydown', handleKeyDown);
+		chatViewContainer.tabIndex = 0;
+		chatViewContainer.focus();
+
+		const root = createRoot(chatViewContainer);
 		this.root = root;
 
-		await root.render(
+		root.render(
 			<PluginContextProvider
 				settings={this.settings}
 				pluginServices={this.pluginServices}
+				apiService={this.apiService}
 			>
-				<div className="gpt-view-title"></div>
 				<Messages />
 			</PluginContextProvider>
 		);
 
-		const titleBarElem = this.contentEl.getElementsByClassName(
-			"gpt-view-title"
-		)[0] as HTMLElement;
-		setIcon(titleBarElem, "bird");
+		// Create view title bar with icon.
+		// setTimout ensures that the content element is rendered before
+		// the title bar element is created.
+		setTimeout(() => {
+			this.contentEl.createEl(
+				"div",
+				{ cls: "gpt-view-title" },
+				(titleBarElem) => {
+					setIcon(titleBarElem, "bird");
+				}
+			);
+		}, 0);
 	}
 
 	async onClose(): Promise<void> {
 		if (this.root) {
 			this.root.unmount();
-		}
-	}
-
-	// ========================================================================
-	// Engine stuff that needs to be refactored and moved to a separate file
-	// ========================================================================
-
-	renderEngines(container: HTMLElement) {
-		const enginesContainer = container.createEl("div");
-		const root = createRoot(enginesContainer);
-		const engines = this.engines;
-		const clearEngines = () => {
-			const elem = document.getElementById("gpt-engines");
-			if (elem) {
-				elem.remove();
-			}
-		};
-
-		if (engines.length > 0) {
-			root.render(
-				<div id="gpt-engines">
-					<ul>
-						{engines.map((engine) => (
-							<li key={engine}>{engine}</li>
-						))}
-					</ul>
-					<button onClick={clearEngines}>Clear</button>
-				</div>
-			);
-		} else {
-			this.pluginServices.notifyError("noEngines");
-		}
-	}
-
-	updateEngines(engines: string[]) {
-		this.engines = engines;
-		if (this.containerEl.children.length > 1) {
-			this.renderEngines(this.containerEl.children[1] as HTMLElement);
 		}
 	}
 }
