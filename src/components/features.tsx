@@ -160,11 +160,19 @@ export class GptFeatures {
 
 			// Add message(s) to the payload
 			await this.pluginServices.toggleView();
+			// If first message, include `system` role message
 			if (!this.payloadMessages.getPayloadMessages().length) {
-				payloadMessages = this.payloadMessages.addMessage(
-					PROMPTS.systemInitial as PayloadMessagesType
-				);
-			}
+				const today = new Date().toLocaleDateString("en-US", {
+					month: "long",
+					day: "numeric",
+					year: "numeric",
+				});
+				const systemMsg: PayloadMessagesType = {
+					role: "system",
+					content: `Today is ${today}. ${PROMPTS.systemInitial.content}`,
+				};
+				payloadMessages = this.payloadMessages.addMessage(systemMsg);
+			} 
 			payloadMessages = this.payloadMessages.addMessage(newPayloadMessage);
 
 			// Add a new <Message /> component to the list of messages

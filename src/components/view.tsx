@@ -20,7 +20,7 @@ export default class GptView extends ItemView {
 		leaf: WorkspaceLeaf,
 		settings: GptPluginSettings,
 		apiService: ApiService,
-		pluginServices: IPluginServices,
+		pluginServices: IPluginServices
 	) {
 		super(leaf);
 		this.settings = settings;
@@ -44,9 +44,9 @@ export default class GptView extends ItemView {
 	async onOpen(): Promise<void> {
 		const chatViewContainer = this.containerEl.children[1] as HTMLElement;
 		const handleKeyDown = (event: KeyboardEvent) => {
-			emitter.emit('keydown', event);
+			emitter.emit("keydown", event);
 		};
-		chatViewContainer.addEventListener('keydown', handleKeyDown);
+		chatViewContainer.addEventListener("keydown", handleKeyDown);
 		chatViewContainer.tabIndex = 0;
 		chatViewContainer.focus();
 
@@ -59,6 +59,7 @@ export default class GptView extends ItemView {
 				pluginServices={this.pluginServices}
 				apiService={this.apiService}
 			>
+				<div id="gpt-view-title" />
 				<Messages />
 			</PluginContextProvider>
 		);
@@ -67,13 +68,8 @@ export default class GptView extends ItemView {
 		// setTimout ensures that the content element is rendered before
 		// the title bar element is created.
 		setTimeout(() => {
-			this.contentEl.createEl(
-				"div",
-				{ cls: "gpt-view-title" },
-				(titleBarElem) => {
-					setIcon(titleBarElem, "bird");
-				}
-			);
+			const titleBar = document.getElementById("gpt-view-title") as HTMLElement;
+			setIcon(titleBar, APP_ICON);
 		}, 0);
 	}
 

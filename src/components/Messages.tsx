@@ -24,8 +24,9 @@ const generateUniqueId = () => {
 };
 
 const Messages: React.FC = () => {
-	const { settings } = usePluginContext();
+	const { settings, apiService } = usePluginContext();
 	const [messages, setMessages] = useState<MessageType[]>([]);
+	const [currentIndex, setCurrentIndex] = useState(0);
 	// `useRef` maintains a reference to the most recent message object
 	// across re-renders, so that the latest message can be updated with
 	// streaming content from the API.
@@ -76,11 +77,72 @@ const Messages: React.FC = () => {
 		};
 	}, []);
 
+	const scrollToMessage = (index: number, isLast?: boolean) => {
+		const messageElement = document.querySelector(
+			`[data-id="message-${index}"]`
+		);
+		if (messageElement) {
+			if (isLast) {
+				messageElement.parentElement?.scrollBy({
+					top: 20,
+					behavior: "smooth",
+				});
+			} else {
+				messageElement.scrollIntoView({
+					behavior: "smooth",
+					block: "start",
+				});
+			}
+		}
+	};
+
+	// Event listener for the escape key
+	useEffect(() => {
+		const handleMessagesKeypress = (event: KeyboardEvent) => {
+			console.log(event.key, event.altKey);
+			if (event.key === "Escape") {
+				apiService.cancelStream();
+			}
+			// Scroll down to next message
+			if (event.key === "j") {
+				event.preventDefault();
+				setCurrentIndex((prevIndex) => {
+					// 1. If prevIndex is at the last message...
+					const isLast = prevIndex === messages.length - 1;
+					if (isLast) {
+						// 2. then (a) don't set new index, and scroll to block: end
+						scrollToMessage(prevIndex, isLast);
+						return prevIndex;
+					}
+					// 3. Else (a) set new index and scroll to start of next message
+					const newIndex = Math.min(prevIndex + 1, messages.length - 1);
+					scrollToMessage(newIndex);
+					return newIndex;
+				});
+			}
+			// Scroll up to previous message
+			if (event.key === "k") {
+				event.preventDefault();
+				setCurrentIndex((prevIndex) => {
+					const newIndex = Math.max(prevIndex - 1, 0);
+					scrollToMessage(newIndex);
+					return newIndex;
+				});
+			}
+		};
+		emitter.on("keydown", handleMessagesKeypress);
+
+		return () => {
+			emitter.off("keydown", handleMessagesKeypress); // Clean up
+		};
+	}, [apiService, messages.length]);
+
 	return (
 		<div id="gpt-messages">
-			{messages.map((message) => (
-				<Message key={message.id} {...message} />
+			{messages.map((message, index) => (
+				<Message key={message.id} {...message} dataId={`message-${index}`} />
 			))}
+			<div style={{ height: "90vh" }}></div>
 		</div>
 	);
 };
