@@ -45,6 +45,15 @@ export default class GptPlugin extends Plugin implements IPluginServices {
 			this.toggleView();
 		});
 
+		// Open chat view command
+		this.addCommand({
+			id: "gpt-open",
+			name: "Open chat",
+			callback: () => {
+				this.toggleView();
+			},
+		});
+
 		// "Tell me a joke" command
 		this.addCommand({
 			id: "gpt-joke-modal",
