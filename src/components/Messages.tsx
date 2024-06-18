@@ -99,7 +99,6 @@ const Messages: React.FC = () => {
 	// Event listener for the escape key
 	useEffect(() => {
 		const handleMessagesKeypress = (event: KeyboardEvent) => {
-			console.log(event.key, event.altKey);
 			if (event.key === "Escape") {
 				apiService.cancelStream();
 			}

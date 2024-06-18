@@ -31,7 +31,7 @@ export default class ApiService {
 		payload: GptRequestPayload,
 		callback: (text: string, targetEditor?: Editor) => void,
 		targetEditor?: Editor
-	): Promise<void> {
+	): Promise<string> {
 		let completedMessage = "";
 		try {
 			this.streamingContent = await this.openai.chat.completions.create({
@@ -51,13 +51,9 @@ export default class ApiService {
 			}
 		} catch (error) {
 			this.pluginServices.notifyError("unknown", error);
-			return;
+			return "";
 		}
-		this.payloadMessages.addMessage({
-			role: "assistant",
-			content: completedMessage,
-		});
-		return;
+		return completedMessage;
 	}
 
 	cancelStream() {

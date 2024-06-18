@@ -67,6 +67,7 @@ export class GptFeatures {
 					const today = new Date().toLocaleDateString("en-US", {
 						month: "long",
 						day: "numeric",
+						year: "numeric",
 					});
 					return `${today}: ` + PROMPTS.onThisDate.content;
 				},
@@ -82,7 +83,7 @@ export class GptFeatures {
 			define: {
 				id: "define",
 				prompt: (inputText: string) => {
-					return `${inputText}: ` + PROMPTS.define.content;
+					return `${inputText} ${PROMPTS.define.content}`;
 				},
 				processResponse: async (response, editor: Editor) => {
 					if (response.length) {
@@ -154,14 +155,13 @@ export class GptFeatures {
 					resolve();
 				});
 			};
-
 			await emitEvent("newMessage", "user", selectedText);
 			if (inputText) await emitEvent("updateMessage", inputText);
 
 			// Add message(s) to the payload
 			await this.pluginServices.toggleView();
 			// If first message, include `system` role message
-			if (!this.payloadMessages.getPayloadMessages().length) {
+			if (this.payloadMessages.getPayloadMessages().length === 0) {
 				const today = new Date().toLocaleDateString("en-US", {
 					month: "long",
 					day: "numeric",
@@ -190,11 +190,17 @@ export class GptFeatures {
 
 		// Send prompt
 		if (feature.stream) {
-			await this.apiService.getStreamingChatResponse(
+			const completedResponse = await this.apiService.getStreamingChatResponse(
 				payload,
 				feature.processResponse,
 				targetEditor
 			);
+			if (feature.targetContainer === "view") {
+				this.payloadMessages.addMessage({
+					role: "assistant",
+					content: completedResponse,
+				});
+			}
 		} else {
 			await this.apiService.getStandardChatResponse(
 				payload,
