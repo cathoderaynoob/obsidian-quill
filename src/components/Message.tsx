@@ -1,4 +1,4 @@
-import { MessageType } from "./Messages";
+import { MessageType } from "@/components/Messages";
 import ReactMarkdown from "react-markdown";
 
 interface MessageProps extends MessageType {
@@ -19,6 +19,7 @@ const Message: React.FC<MessageProps> = ({
 		<>
 			{message ? (
 				<div className={`gpt-message gpt-message-${role}`} data-id={dataId}>
+					{role === "user" && <p className="gpt-message-user-icon"></p>}
 					<div className="gpt-message-content">
 						{error ? (
 							<div className="gpt-message-error">{error}</div>

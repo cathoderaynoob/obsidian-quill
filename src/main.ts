@@ -1,31 +1,37 @@
 import { Editor, Notice, Plugin, WorkspaceLeaf } from "obsidian";
 import {
 	ErrorCode,
-	APP_ICON,
+	APP_PROPS,
 	ERROR_MESSAGES,
 	GPT_VIEW_TYPE,
 } from "@/constants";
-import { IPluginServices } from "@/interfaces";
 import {
 	DEFAULT_SETTINGS,
 	GptPluginSettings,
 	GptSettingsTab,
 } from "@/settings";
-import { GptFeatures } from "@/components/features";
 import { GptPromptModal } from "@/components/modals";
-import ApiService from "@/apiService";
+import { IPluginServices } from "@/interfaces";
+import ApiService from "@/ApiService";
+import Features from "@/Features";
 import GptView from "@/components/view";
 
 export default class GptPlugin extends Plugin implements IPluginServices {
 	settings: GptPluginSettings;
 	apiService: ApiService;
-	features: GptFeatures;
+	features: Features;
+	pluginServices: IPluginServices;
 
 	async onload(): Promise<void> {
-		console.clear();
+		console.clear(); // TODO: Remove this line before publishing
 		await this.loadSettings();
 		this.apiService = new ApiService(this, this.settings);
-		this.features = new GptFeatures(this.app, this.apiService, this.settings);
+		this.features = new Features(this.app, this.apiService, this.settings);
+		this.pluginServices = {
+			toggleView: this.toggleView.bind(this),
+			notifyError: this.notifyError.bind(this),
+			getViewElem: this.getViewElem.bind(this),
+		};
 
 		// This adds a settings tab so the user can configure
 		// various aspects of the plugin
@@ -34,16 +40,19 @@ export default class GptPlugin extends Plugin implements IPluginServices {
 		// Add a view to the app
 		this.registerView(
 			GPT_VIEW_TYPE,
-			(leaf: WorkspaceLeaf) =>
-				new GptView(leaf, this.settings, this.apiService, this)
+			(leaf: WorkspaceLeaf) => new GptView(leaf, this)
 		);
 
 		// RIBBON AND COMMANDS
 
 		// Chat with GPT icon
-		this.addRibbonIcon(APP_ICON, "Chat with GPT", (evt: MouseEvent) => {
-			this.toggleView();
-		});
+		this.addRibbonIcon(
+			APP_PROPS.appIcon,
+			APP_PROPS.appName,
+			(evt: MouseEvent) => {
+				this.toggleView();
+			}
+		);
 
 		// Open chat view command
 		this.addCommand({
@@ -157,11 +166,19 @@ export default class GptPlugin extends Plugin implements IPluginServices {
 			});
 			const chatViewContainer = leaf.view.containerEl
 				.children[1] as HTMLElement;
-			chatViewContainer.tabIndex = 0;
+			// chatViewContainer.tabIndex = 0;
 			chatViewContainer.focus();
 		} else {
 			this.notifyError("viewError");
 		}
+	}
+
+	getViewElem(): HTMLElement | null {
+		const leaf = this.app.workspace.getLeavesOfType(GPT_VIEW_TYPE)[0];
+		if (leaf) {
+			return leaf.view.containerEl;
+		}
+		return null;
 	}
 
 	onunload(): void {
