@@ -1,13 +1,12 @@
-// import { StrictMode, createContext, useContext } from "react";
-import { createContext, useContext } from "react";
+import { StrictMode, createContext, useContext } from "react";
 import { GptPluginSettings } from "@/settings";
 import { IPluginServices } from "@/interfaces";
-import ApiService from "@/apiService";
+import ApiService from "@/ApiService";
 
 interface PluginContextProps {
 	settings: GptPluginSettings;
-	pluginServices: IPluginServices,
-	apiService: ApiService,
+	pluginServices: IPluginServices;
+	apiService: ApiService;
 }
 
 type PluginContextProviderProps = {
@@ -25,11 +24,9 @@ export default function PluginContextProvider({
 	pluginServices,
 	apiService,
 }: PluginContextProviderProps) {
-
 	return (
 		<PluginContext.Provider value={{ settings, pluginServices, apiService }}>
-			{/* <StrictMode>{children}</StrictMode> */}
-			{children}
+			<StrictMode>{children}</StrictMode>
 		</PluginContext.Provider>
 	);
 }

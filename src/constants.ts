@@ -14,7 +14,11 @@ export type ErrorCode = keyof typeof ERROR_MESSAGES;
 
 export const GPT_VIEW_TYPE = "gpt-chat-view";
 
-export const APP_ICON = "bird";
+export const APP_PROPS = {
+	appName: "Quill",
+	appIcon: "feather",
+	sendIcon: "bird",
+};
 
 export const PROMPTS = {
 	systemInitial: {
@@ -27,7 +31,9 @@ export const PROMPTS = {
 			"provided template guidelines. Maintain a matter-of-fact and reserved " +
 			"tone. Correct any faulty presumptions detected in user inputs.\n\n" +
 			"Formatting Instructions:\n\nStyle your response in markdown format " +
-			"where it will improve readability and impact. Use sparingly.",
+			"where it will improve readability and impact. Use sparingly. " +
+			"Do not add conversation preamble, summaries, or labels when asked " +
+			"for specific content, since the output will be used directly in a note.",
 	},
 	onThisDate: {
 		role: "user",
@@ -43,7 +49,8 @@ export const PROMPTS = {
 		role: "user",
 		content:
 			"<= Define this term in the following format.\n\n" +
-			"###### <term, lowercase unless proper noun, etc.> `/<Pronunciation in International Phonetic Alphabet (IPA)>/`\n\n" +
+			"###### <term, lowercase unless proper noun, etc.> `/<Pronunciation in " +
+			"International Phonetic Alphabet (IPA)>/`\n\n" +
 			"<Definition. If more than one, enumerate.>\n\n" +
 			'<For each defn:> - *Example*: "<Use the term in a sentence>"\n\n' +
 			"Finally, add 2 newline chars, i.e. `\n\n`.",

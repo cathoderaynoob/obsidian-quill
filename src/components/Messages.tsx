@@ -1,13 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { usePluginContext } from "@/components/PluginContext";
+import { Role } from "@/interfaces";
 import emitter from "@/customEmitter";
 import Message from "@/components/Message";
 
-export type Role = "system" | "user" | "assistant";
-export interface PayloadMessagesType {
-	role: Role;
-	content: string;
-}
 export interface MessageType {
 	id: string;
 	role: Role;
@@ -24,7 +20,7 @@ const generateUniqueId = () => {
 };
 
 const Messages: React.FC = () => {
-	const { settings, apiService } = usePluginContext();
+	const { settings, apiService, pluginServices } = usePluginContext();
 	const [messages, setMessages] = useState<MessageType[]>([]);
 	const [currentIndex, setCurrentIndex] = useState(0);
 	// `useRef` maintains a reference to the most recent message object
@@ -89,59 +85,65 @@ const Messages: React.FC = () => {
 				});
 			} else {
 				messageElement.scrollIntoView({
-					behavior: "smooth",
 					block: "start",
+					behavior: "smooth",
 				});
 			}
 		}
 	};
 
-	// Event listener for the escape key
-	useEffect(() => {
-		const handleMessagesKeypress = (event: KeyboardEvent) => {
-			if (event.key === "Escape") {
-				apiService.cancelStream();
+	const goToMessage = (direction: "next" | "prev") => {
+		let isLast = false;
+		setCurrentIndex((prevIndex) => {
+			let newIndex = prevIndex;
+			switch (direction) {
+				case "next":
+					isLast = prevIndex === messages.length - 1;
+					newIndex = isLast ? prevIndex : prevIndex + 1;
+					break;
+				case "prev":
+					newIndex = Math.max(0, prevIndex - 1);
 			}
-			// Scroll down to next message
+			scrollToMessage(newIndex, isLast);
+			return newIndex;
+		});
+	};
+
+	const handleMessagesKeypress = (event: KeyboardEvent) => {
+		// 'j' and 'k' keys to navigate messages, unless
+		// the user is typing in the prompt input
+		const promptElem = document.getElementsByClassName("gpt-prompt-input")[0];
+		if (document.activeElement !== promptElem) {
 			if (event.key === "j") {
 				event.preventDefault();
-				setCurrentIndex((prevIndex) => {
-					// 1. If prevIndex is at the last message...
-					const isLast = prevIndex === messages.length - 1;
-					if (isLast) {
-						// 2. then (a) don't set new index, and scroll to block: end
-						scrollToMessage(prevIndex, isLast);
-						return prevIndex;
-					}
-					// 3. Else (a) set new index and scroll to start of next message
-					const newIndex = Math.min(prevIndex + 1, messages.length - 1);
-					scrollToMessage(newIndex);
-					return newIndex;
-				});
+				goToMessage("next");
 			}
-			// Scroll up to previous message
 			if (event.key === "k") {
 				event.preventDefault();
-				setCurrentIndex((prevIndex) => {
-					const newIndex = Math.max(prevIndex - 1, 0);
-					scrollToMessage(newIndex);
-					return newIndex;
-				});
+				goToMessage("prev");
 			}
-		};
-		emitter.on("keydown", handleMessagesKeypress);
+		}
+		// Cancel the stream if the user presses the "Escape" key
+		if (event.key === "Escape") {
+			event.preventDefault();
+			apiService.cancelStream();
+		}
+	};
+	useEffect(() => {
+		const activeViewElem = pluginServices.getViewElem();
+		activeViewElem?.addEventListener("keydown", handleMessagesKeypress);
 
 		return () => {
-			emitter.off("keydown", handleMessagesKeypress); // Clean up
+			activeViewElem?.removeEventListener("keydown", handleMessagesKeypress);
 		};
-	}, [apiService, messages.length]);
+	}, [apiService, pluginServices, messages.length]);
 
 	return (
 		<div id="gpt-messages">
 			{messages.map((message, index) => (
 				<Message key={message.id} {...message} dataId={`message-${index}`} />
 			))}
-			<div style={{ height: "90vh" }}></div>
+			<div style={{ height: "90svh" }}></div>
 		</div>
 	);
 };

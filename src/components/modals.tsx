@@ -1,11 +1,12 @@
 import { App, Modal } from "obsidian";
 import { Root, createRoot } from "react-dom/client";
-import PromptModalContent from "@/components/PromptModalContent";
+import PromptContent from "@/components/PromptContent";
 
 // GET PROMPT FROM USER MODAL ==================================================
 export class GptPromptModal extends Modal {
 	private modalRoot: Root | null = null;
 	private promptValue: string;
+	private rows = 6;
 	private selectedText?: string;
 	private onSend: (promptWithSelectedText: string) => void;
 
@@ -20,18 +21,15 @@ export class GptPromptModal extends Modal {
 	}
 
 	onOpen() {
-		// this.setTitle(
-		// 	this.selectedText
-		// 		? "How can I help you with your highlighted text?"
-		// 		: "How can I help?"
-		// );
-
 		const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-			this.promptValue = e.target.value.trim();
+			this.promptValue = e.target.value;
 		};
 
 		const handleKeyPress = (e: React.KeyboardEvent) => {
-			if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+			if (e.key === "Enter" && e.shiftKey) {
+				return;
+			} else if (e.key === "Enter") {
+				e.stopPropagation();
 				e.preventDefault();
 				this.close();
 				handleSend();
@@ -40,17 +38,21 @@ export class GptPromptModal extends Modal {
 
 		const handleSend = () => {
 			this.close();
-			this.onSend(this.promptValue);
+			this.onSend(this.promptValue.trim());
 		};
 
 		this.modalRoot = createRoot(this.contentEl);
 
 		this.modalRoot.render(
-			<PromptModalContent
-				handleInput={handleInput}
-				handleKeyPress={handleKeyPress}
-				handleSend={handleSend}
-			/>
+			<div id="gpt-prompt-modal">
+				<PromptContent
+					value={this.promptValue}
+					rows={this.rows}
+					handleInput={handleInput}
+					handleKeyPress={handleKeyPress}
+					handleSend={handleSend}
+				/>
+			</div>
 		);
 	}
 

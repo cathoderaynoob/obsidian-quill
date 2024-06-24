@@ -1,5 +1,5 @@
-import { Editor } from "obsidian";
 import OpenAI from "openai";
+import { Editor } from "obsidian";
 import { GptRequestPayload, IPluginServices } from "@/interfaces";
 import { GptPluginSettings } from "@/settings";
 import PayloadMessages from "@/PayloadMessages";
@@ -61,6 +61,7 @@ export default class ApiService {
 		this.streamingContent = null;
 	}
 
+	// TODO: Update this to possibly return string instead of void
 	async getStandardChatResponse(
 		payload: GptRequestPayload,
 		callback: (text: string, targetEditor?: Editor) => void,
