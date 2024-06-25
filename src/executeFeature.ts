@@ -3,7 +3,7 @@ import { PROMPTS } from "@/constants";
 import { GptRequestPayload, PayloadMessagesType } from "@/interfaces";
 import { buildPrompt } from "@/promptBuilder";
 import { FeatureProperties } from "@/featureRegistry";
-import { GptPluginSettings } from "@/settings";
+import { QuillPluginSettings } from "@/settings";
 import { IPluginServices } from "@/interfaces";
 import ApiService from "@/ApiService";
 import emitter from "@/customEmitter";
@@ -20,7 +20,7 @@ export interface ExecutionOptions {
 export const executeFeature = async (
 	featureRegistry: Record<string, FeatureProperties>,
 	options: ExecutionOptions,
-	settings: GptPluginSettings,
+	settings: QuillPluginSettings,
 	apiService: ApiService,
 	payloadMessages: PayloadMessages,
 	pluginServices: IPluginServices

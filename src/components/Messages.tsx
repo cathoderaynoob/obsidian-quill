@@ -112,7 +112,7 @@ const Messages: React.FC = () => {
 	const handleMessagesKeypress = (event: KeyboardEvent) => {
 		// 'j' and 'k' keys to navigate messages, unless
 		// the user is typing in the prompt input
-		const promptElem = document.getElementsByClassName("gpt-prompt-input")[0];
+		const promptElem = document.getElementsByClassName("quill-prompt-input")[0];
 		if (document.activeElement !== promptElem) {
 			if (event.key === "j") {
 				event.preventDefault();
@@ -139,7 +139,7 @@ const Messages: React.FC = () => {
 	}, [apiService, pluginServices, messages.length]);
 
 	return (
-		<div id="gpt-messages">
+		<div id="quill-messages">
 			{messages.map((message, index) => (
 				<Message key={message.id} {...message} dataId={`message-${index}`} />
 			))}

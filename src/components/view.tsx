@@ -1,9 +1,9 @@
 import { ItemView, setIcon, WorkspaceLeaf } from "obsidian";
 import { Root, createRoot } from "react-dom/client";
-import { GPT_VIEW_TYPE, APP_PROPS } from "@/constants";
+import { QUILL_VIEW_TYPE, APP_PROPS } from "@/constants";
 import { IPluginServices } from "@/interfaces";
-import { GptPluginSettings } from "@/settings";
-import GptPlugin from "@/main";
+import { QuillPluginSettings } from "@/settings";
+import QuillPlugin from "@/main";
 import Messages from "@/components/Messages";
 import MessagePad from "@/components/MessagePad";
 import PluginContextProvider from "@/components/PluginContext";
@@ -11,26 +11,26 @@ import emitter from "@/customEmitter";
 import ApiService from "@/ApiService";
 import Features from "@/Features";
 
-export default class GptView extends ItemView {
+export default class QuillView extends ItemView {
 	root: Root | null = null;
-	settings: GptPluginSettings;
+	settings: QuillPluginSettings;
 	apiService: ApiService;
 	pluginServices: IPluginServices;
 	features: Features;
 
-	static instance: GptView;
+	static instance: QuillView;
 
-	constructor(leaf: WorkspaceLeaf, plugin: GptPlugin) {
+	constructor(leaf: WorkspaceLeaf, plugin: QuillPlugin) {
 		super(leaf);
 		this.settings = plugin.settings;
 		this.apiService = plugin.apiService;
 		this.features = plugin.features;
 		this.pluginServices = plugin.pluginServices;
-		GptView.instance = this;
+		QuillView.instance = this;
 	}
 
 	getViewType(): string {
-		return GPT_VIEW_TYPE;
+		return QUILL_VIEW_TYPE;
 	}
 
 	getIcon(): string {
@@ -59,7 +59,7 @@ export default class GptView extends ItemView {
 				pluginServices={this.pluginServices}
 				apiService={this.apiService}
 			>
-				<div id="gpt-view-title" />
+				<div id="quill-view-title" />
 				<Messages />
 				<MessagePad executeFeature={this.features.executeFeature} />
 			</PluginContextProvider>
@@ -69,7 +69,9 @@ export default class GptView extends ItemView {
 		// setTimout ensures that the content element is rendered before
 		// the title bar element is created.
 		setTimeout(() => {
-			const titleBar = document.getElementById("gpt-view-title") as HTMLElement;
+			const titleBar = document.getElementById(
+				"quill-view-title"
+			) as HTMLElement;
 			setIcon(titleBar, APP_PROPS.appIcon);
 		}, 0);
 	}

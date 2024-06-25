@@ -1,18 +1,18 @@
 export const ERROR_MESSAGES = {
 	noApiKey:
-		"Your OpenAI API key is missing. Please enter it in the Obsidian GPT " +
-		"Plugin settings.",
+		"Your OpenAI API key is missing. Please enter it in the " +
+		"community plugin settings for Quill.",
 	noEngines: "No engines found. More information can be found in the console.",
 	noFeature: "Feature not found",
 	unknown: "An error occurred. Please check the console for details.",
 	viewError:
-		"Unable to open the GPT chat view. Please try again, or check the " +
+		"Unable to open Quill. Please try again, or check the " +
 		"console for any errors.",
 } as const;
 
 export type ErrorCode = keyof typeof ERROR_MESSAGES;
 
-export const GPT_VIEW_TYPE = "gpt-chat-view";
+export const QUILL_VIEW_TYPE = "quill-chat-view";
 
 export const APP_PROPS = {
 	appName: "Quill",

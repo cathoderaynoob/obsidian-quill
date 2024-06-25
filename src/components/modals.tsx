@@ -3,7 +3,7 @@ import { Root, createRoot } from "react-dom/client";
 import PromptContent from "@/components/PromptContent";
 
 // GET PROMPT FROM USER MODAL ==================================================
-export class GptPromptModal extends Modal {
+export class QuillPromptModal extends Modal {
 	private modalRoot: Root | null = null;
 	private promptValue: string;
 	private rows = 6;
@@ -44,7 +44,7 @@ export class GptPromptModal extends Modal {
 		this.modalRoot = createRoot(this.contentEl);
 
 		this.modalRoot.render(
-			<div id="gpt-prompt-modal">
+			<div id="quill-prompt-modal">
 				<PromptContent
 					value={this.promptValue}
 					rows={this.rows}
@@ -64,18 +64,18 @@ export class GptPromptModal extends Modal {
 }
 
 // SIMPLE TEXT OUTPUT MODAL ====================================================
-export class GptTextOutputModal extends Modal {
-	gptText: string;
+export class TextOutputModal extends Modal {
+	textOutput: string;
 	modalRoot: Root | null = null;
 
-	constructor(app: App, gptText: string) {
+	constructor(app: App, textOutput: string) {
 		super(app);
-		this.gptText = gptText;
+		this.textOutput = textOutput;
 	}
 
 	onOpen() {
 		this.modalRoot = createRoot(this.contentEl);
-		this.modalRoot.render(<div id="gpt-output-modal">{this.gptText}</div>);
+		this.modalRoot.render(<div id="quill-output-modal">{this.textOutput}</div>);
 	}
 
 	onClose() {

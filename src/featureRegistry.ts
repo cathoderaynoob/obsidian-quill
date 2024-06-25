@@ -1,6 +1,6 @@
 import { App, Editor } from "obsidian";
 import { PROMPTS } from "@/constants";
-import { GptTextOutputModal } from "@/components/modals";
+import { TextOutputModal } from "@/components/modals";
 import { renderToEditor } from "@/editorUtils";
 import emitter from "@/customEmitter";
 
@@ -22,7 +22,7 @@ export const createFeatureRegistry = (
 		id: "tellAJoke",
 		prompt: () => PROMPTS.tellAJoke.content,
 		processResponse: (response) => {
-			if (response.length) new GptTextOutputModal(app, response).open();
+			if (response.length) new TextOutputModal(app, response).open();
 		},
 	},
 

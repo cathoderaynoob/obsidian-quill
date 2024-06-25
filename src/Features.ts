@@ -1,5 +1,5 @@
 import { App } from "obsidian";
-import { GptPluginSettings } from "@/settings";
+import { QuillPluginSettings } from "@/settings";
 import { createFeatureRegistry, FeatureProperties } from "@/featureRegistry";
 import { executeFeature, ExecutionOptions } from "@/executeFeature";
 import { IPluginServices } from "@/interfaces";
@@ -9,12 +9,12 @@ import PayloadMessages from "@/PayloadMessages";
 export default class Features {
 	app: App;
 	apiService: ApiService;
-	settings: GptPluginSettings;
+	settings: QuillPluginSettings;
 	payloadMessages: PayloadMessages;
 	featureRegistry: Record<string, FeatureProperties>;
 	pluginServices: IPluginServices;
 
-	constructor(app: App, apiService: ApiService, settings: GptPluginSettings) {
+	constructor(app: App, apiService: ApiService, settings: QuillPluginSettings) {
 		this.app = app;
 		this.apiService = apiService;
 		this.settings = settings;

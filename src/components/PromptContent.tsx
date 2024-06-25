@@ -32,9 +32,9 @@ const PromptContent: React.FC<PromptContentProps> = ({
 	}, []);
 
 	return (
-		<div className="gpt-prompt-container" ref={promptContentRef}>
+		<div className="quill-prompt-container" ref={promptContentRef}>
 			<textarea
-				className="gpt-prompt-input"
+				className="quill-prompt-input"
 				placeholder="» press return to send / shift+return for a new line"
 				rows={rows}
 				value={value}
@@ -42,7 +42,7 @@ const PromptContent: React.FC<PromptContentProps> = ({
 				onKeyDown={handleKeyPress}
 			/>
 			{/* TODO: Disable unless text entered */}
-			<button className="gpt-prompt-send" onClick={handleSend} />
+			<button className="quill-prompt-send" onClick={handleSend} />
 		</div>
 	);
 };

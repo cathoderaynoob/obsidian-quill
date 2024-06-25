@@ -1,48 +1,48 @@
 /* Variables */
-[data-type="gpt-chat-view"],
-[id="gpt-prompt-modal"] {
-	--gpt-view-title-height: 2.5rem;
-	--gpt-app-bright-color: var(--text-accent);
-	--gpt-app-faint-color: var(--text-faint);
+[data-type="quill-chat-view"],
+[id="quill-prompt-modal"] {
+	--quill-view-title-height: 2.5rem;
+	--quill-app-bright-color: var(--text-accent);
+	--quill-app-faint-color: var(--text-faint);
 }
 
 /* View */
-.view-content:focus-within #gpt-view-title,
-.view-content:focus-within #gpt-message-pad {
-	color: var(--gpt-app-bright-color);
-	border-color: var(--gpt-app-bright-color);
+.view-content:focus-within #quill-view-title,
+.view-content:focus-within #quill-message-pad {
+	color: var(--quill-app-bright-color);
+	border-color: var(--quill-app-bright-color);
 	transition: color 0.2s ease, border-color 0.2s ease;
 }
-[data-type="gpt-chat-view"] .view-content {
+[data-type="quill-chat-view"] .view-content {
 	display: grid;
 	grid-template-rows: auto;
 	padding: 0;
 }
-#gpt-view-title {
+#quill-view-title {
 	background: var(--background-primary);
-	color: var(--gpt-app-faint-color);
-	border-bottom: 2px solid var(--gpt-app-faint-color);
-	height: var(--gpt-view-title-height);
+	color: var(--quill-app-faint-color);
+	border-bottom: 2px solid var(--quill-app-faint-color);
+	height: var(--quill-view-title-height);
 	padding: 0.7rem 1rem 0;
 	width: 100%;
 	font-weight: 400;
 	--icon-size: var(--icon-m);
 	transition: color 0.2s ease, border-color 0.2s ease;
 }
-#gpt-view-title::after {
+#quill-view-title::after {
 	position: relative;
 	bottom: 0.35rem;
 	margin-left: 0.5rem;
 	content: "new chat";
 	font-size: small;
-	color: var(--gpt-app-faint-color);
+	color: var(--quill-app-faint-color);
 	transition: color 0.2s ease;
 	cursor: pointer;
 }
-#gpt-view-title:hover::after {
-	color: var(--gpt-view-title-height);
+#quill-view-title:hover::after {
+	color: var(--quill-view-title-height);
 }
-#gpt-messages {
+#quill-messages {
 	display: grid;
 	gap: 0.5rem;
 	overflow-y: scroll;
@@ -52,59 +52,59 @@
 	mask-image: linear-gradient(to bottom, white 80%, transparent 85%);
 	-webkit-mask-image: linear-gradient(to bottom, white 80%, transparent 85%);
 }
-.gpt-message {
+.quill-message {
 	display: grid; /* Need this here to all pre scroll */
 	user-select: text;
 	-webkit-user-select: text;
 }
-.gpt-message p {
+.quill-message p {
 	/* Respect line breaks */
 	white-space: pre-wrap;
 }
-.gpt-message pre {
+.quill-message pre {
 	white-space: pre-wrap;
 	background: var(--background-secondary);
 }
-/* .gpt-message code  */
-.gpt-message code[class*="language-"] {
+/* .quill-message code  */
+.quill-message code[class*="language-"] {
 	white-space: pre;
 	font-size: smaller;
 	border: 1px solid rgba(255, 255, 255, 0.2);
 	border-radius: 0.5rem;
 	/* color: var(--em-color); */
 }
-.gpt-message-user {
+.quill-message-user {
 	grid-template-columns: 1rem 1fr;
 }
-/* .gpt-message-user-icon {
+/* .quill-message-user-icon {
 } */
-.gpt-message-user-icon::before {
+.quill-message-user-icon::before {
 	position: relative;
 	top: 0.33rem;
 	content: "»";
 	text-align: left;
 	font-size: larger;
 	font-weight: bold;
-	color: var(--gpt-app-bright-color);
+	color: var(--quill-app-bright-color);
 }
-.gpt-message-content {
+.quill-message-content {
 	position: relative;
 	top: 0.5rem;
 	overflow-x: scroll; /* Important: Allows pre scroll in grid */
 }
-.gpt-message-assistant .gpt-message-content {
+.quill-message-assistant .quill-message-content {
 	padding: 0 1rem 0.5rem 1rem;
 	border: 1px solid var(--background-modifier-border);
 	background: var(--background-primary);
 	border-radius: 1rem;
 }
-.gpt-message-selectedtext {
+.quill-message-selectedtext {
 	border-left: 3px solid var(--background-modifier-border);
-	/* border-left: 3px solid var(--gpt-app-faint-color); */
+	/* border-left: 3px solid var(--quill-app-faint-color); */
 	padding: 0.25rem 1rem 0.25rem 1rem;
 	margin: 0.75rem 0;
 }
-#gpt-message-pad {
+#quill-message-pad {
 	position: fixed;
 	bottom: 0;
 	left: 0;
@@ -112,15 +112,15 @@
 	width: 100%;
 	padding: 1rem 0.75rem 2.5rem;
 	background: var(--background-primary);
-	border-top: 2px solid var(--gpt-app-faint-color);
+	border-top: 2px solid var(--quill-app-faint-color);
 }
-.gpt-prompt-container {
+.quill-prompt-container {
 	position: relative;
 	display: grid;
 	grid-gap: 0.75rem;
 	grid-template-columns: 1fr 2.5rem;
 }
-.gpt-prompt-input {
+.quill-prompt-input {
 	border-radius: 0.5rem;
 	padding: 0.75rem 1rem 0.75rem 1rem;
 	/* height: 2.75rem; */
@@ -128,31 +128,31 @@
 	overflow: auto;
 	resize: none;
 }
-button.gpt-prompt-send {
+button.quill-prompt-send {
 	--icon-size: 22px; /* btwn --icon-m & lg */
 	position: relative;
 	border: none;
 	box-shadow: none;
 	padding: 0;
 	background: none;
-	color: var(--gpt-app-faint-color);
+	color: var(--quill-app-faint-color);
 	transition: color 0.2s ease;
 	cursor: pointer;
 }
-button.gpt-prompt-send::before {
+button.quill-prompt-send::before {
 	position: absolute;
 	top: 1.55rem;
 	content: "send";
 }
-button.gpt-prompt-send:focus,
-button.gpt-prompt-send:hover {
-	color: var(--gpt-app-bright-color);
+button.quill-prompt-send:focus,
+button.quill-prompt-send:hover {
+	color: var(--quill-app-bright-color);
 	transition: color 0.2s ease;
 }
 
 /* Start WDS technique */
 /* https://youtu.be/OhCzEjXvY9A?si=AKxDg-pzGHF5VAeK&t=214 */
-.gpt-message-selectedtext-content {
+.quill-message-selectedtext-content {
 	opacity: 0.4;
 	display: block;
 	--max-lines: 5;
@@ -165,14 +165,14 @@ button.gpt-prompt-send:hover {
 	cursor: pointer;
 	transition: opacity 0.15s ease;
 }
-.gpt-message-selectedtext-content > *:first-child {
+.quill-message-selectedtext-content > *:first-child {
 	margin: 0 auto;
 	margin-block-start: 0;
 }
-.gpt-expand-selectedtext {
+.quill-expand-selectedtext {
 	display: none;
 }
-.gpt-message-selectedtext-content:has(+ .gpt-expand-selectedtext:checked) {
+.quill-message-selectedtext-content:has(+ .quill-expand-selectedtext:checked) {
 	opacity: 0.8;
 	max-height: none;
 	mask-image: none;
@@ -182,18 +182,18 @@ button.gpt-prompt-send:hover {
 /* End WDS technique */
 
 /* AI model used for response */
-.gpt-message-model {
+.quill-message-model {
 	font-size: smaller;
 	text-align: right;
 	user-select: none;
-	color: var(--gpt-app-faint-color);
+	color: var(--quill-app-faint-color);
 }
 
 /* Modals */
-#gpt-prompt-modal {
+#quill-prompt-modal {
 	padding-right: 1.25rem;
 }
-#gpt-output-modal {
+#quill-output-modal {
 	padding: 0.5rem;
 	user-select: text;
 }
