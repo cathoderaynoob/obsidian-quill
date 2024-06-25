@@ -57,6 +57,7 @@ export const createFeatureRegistry = (
 			}
 		},
 		stream: true,
+		temperature: 0.2,
 	},
 
 	// NEW PROMPT

@@ -51,9 +51,10 @@ export const PROMPTS = {
 			"<= Define this term in the following format.\n\n" +
 			"###### <term, lowercase unless proper noun, etc.> `/<Pronunciation in " +
 			"International Phonetic Alphabet (IPA)>/`\n\n" +
-			"<Definition. If more than one, enumerate.>\n\n" +
-			'<For each defn:> - *Example*: "<Use the term in a sentence>"\n\n' +
-			"Finally, add 2 newline chars, i.e. `\n\n`.",
+			"<Definition. If more than one, enumerate.>\n" +
+			'<For each defn:> - *Example*: "<Use the term in a sentence>"\n' +
+			"Finally, after all definitions and examples, add 2 newline chars, " +
+			"i.e. `\n\n`.",
 	},
 	tellAJoke: {
 		role: "user",

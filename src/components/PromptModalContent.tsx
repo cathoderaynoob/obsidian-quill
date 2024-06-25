@@ -20,16 +20,16 @@ const PromptModalContent: React.FC<PromptModalContentProps> = ({
 	});
 
 	return (
-		<div id="quill-prompt-modal">
+		<div id="oq-prompt-modal">
 			<textarea
 				ref={textareaRef}
-				className="quill-prompt-input"
+				className="oq-prompt-input"
 				placeholder="Cmd-return to send"
 				rows={6}
 				onInput={handleInput}
 				onKeyDown={handleKeyPress}
 			/>
-			<button className="quill-prompt-send" onClick={handleSend}>
+			<button className="oq-prompt-send" onClick={handleSend}>
 				Send
 			</button>
 		</div>

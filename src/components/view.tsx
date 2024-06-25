@@ -47,8 +47,6 @@ export default class QuillView extends ItemView {
 			emitter.emit("keydown", event);
 		};
 		chatViewContainer.addEventListener("keydown", handleKeyDown);
-		chatViewContainer.tabIndex = 0;
-		chatViewContainer.focus();
 
 		const root = createRoot(chatViewContainer);
 		this.root = root;
@@ -59,7 +57,7 @@ export default class QuillView extends ItemView {
 				pluginServices={this.pluginServices}
 				apiService={this.apiService}
 			>
-				<div id="quill-view-title" />
+				<div id="oq-view-title" />
 				<Messages />
 				<MessagePad executeFeature={this.features.executeFeature} />
 			</PluginContextProvider>
@@ -69,9 +67,7 @@ export default class QuillView extends ItemView {
 		// setTimout ensures that the content element is rendered before
 		// the title bar element is created.
 		setTimeout(() => {
-			const titleBar = document.getElementById(
-				"quill-view-title"
-			) as HTMLElement;
+			const titleBar = document.getElementById("oq-view-title") as HTMLElement;
 			setIcon(titleBar, APP_PROPS.appIcon);
 		}, 0);
 	}

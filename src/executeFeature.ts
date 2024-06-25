@@ -95,6 +95,7 @@ export const executeFeature = async (
 				role: "assistant",
 				content: completedResponse,
 			});
+			emitter.emit("streamEnd");
 		}
 	} else {
 		await apiService.getStandardChatResponse(

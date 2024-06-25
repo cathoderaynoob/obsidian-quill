@@ -15,22 +15,16 @@ export interface MessageType {
 	// status?: string;
 }
 
-const generateUniqueId = () => {
-	return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-};
-
 const Messages: React.FC = () => {
 	const { settings, apiService, pluginServices } = usePluginContext();
 	const [messages, setMessages] = useState<MessageType[]>([]);
-	const [currentIndex, setCurrentIndex] = useState(0);
-	// `useRef` maintains a reference to the most recent message object
-	// across re-renders, so that the latest message can be updated with
-	// streaming content from the API.
+	const [, setCurrentIndex] = useState(0);
 	const latestMessageRef = useRef<MessageType | null>(null);
+	const lastScrollPositionRef = useRef(0);
+	const SCROLL_THRESHOLD_CHARS = 400;
 
+	// Add a new message
 	useEffect(() => {
-		// Adds a new message. When a new message prompt is initiated,
-		// a new message is added to the messages array.
 		const handleNewMessage = (role: Role, selectedText: string) => {
 			const newMessage: MessageType = {
 				id: generateUniqueId(),
@@ -46,14 +40,13 @@ const Messages: React.FC = () => {
 			});
 		};
 		emitter.on("newMessage", handleNewMessage);
-
 		return () => {
 			emitter.off("newMessage", handleNewMessage);
 		};
 	}, []);
 
+	// Update the most recent message with streaming content from the API.
 	useEffect(() => {
-		// Update the most recent message with streaming content from the API.
 		const handleUpdateMessage = (response: string) => {
 			if (latestMessageRef.current) {
 				latestMessageRef.current.content += response;
@@ -64,63 +57,92 @@ const Messages: React.FC = () => {
 					};
 					return updatedMessages;
 				});
+
+				const currentLength = latestMessageRef.current.content.length;
+				if (
+					currentLength >=
+					lastScrollPositionRef.current + SCROLL_THRESHOLD_CHARS
+				) {
+					scrollToBottom();
+					lastScrollPositionRef.current = currentLength;
+				}
 			}
 		};
 		emitter.on("updateMessage", handleUpdateMessage);
-
 		return () => {
 			emitter.off("updateMessage", handleUpdateMessage);
 		};
 	}, []);
 
-	const scrollToMessage = (index: number, isLast?: boolean) => {
-		const messageElement = document.querySelector(
-			`[data-id="message-${index}"]`
-		);
-		if (messageElement) {
-			if (isLast) {
-				messageElement.parentElement?.scrollBy({
-					top: 20,
-					behavior: "smooth",
-				});
-			} else {
-				messageElement.scrollIntoView({
-					block: "start",
-					behavior: "smooth",
-				});
-			}
-		}
-	};
+	// Clear the message highlight when the stream ends
+	useEffect(() => {
+		const handleStreamEnd = () => {
+			clearHighlights("oq-message-streaming");
+			lastScrollPositionRef.current = 0;
+			scrollToBottom();
+		};
+		emitter.on("streamEnd", handleStreamEnd);
+		return () => {
+			emitter.off("streamEnd", handleStreamEnd);
+		};
+	}, []);
 
-	const goToMessage = (direction: "next" | "prev") => {
-		let isLast = false;
+	// Scroll to bottom when the assistant sends a message
+	useEffect(() => {
+		if (messages.length > 0 && latestMessageRef.current?.role === "assistant") {
+			const timer = setTimeout(() => {
+				scrollToBottom();
+			}, 0);
+			return () => clearTimeout(timer);
+		}
+	}, [messages.length]);
+
+	// Control the message navigation
+	const goToMessage = (nav: "next" | "prev" | "first" | "last") => {
+		let atLastMsg = false;
 		setCurrentIndex((prevIndex) => {
 			let newIndex = prevIndex;
-			switch (direction) {
+			switch (nav) {
 				case "next":
-					isLast = prevIndex === messages.length - 1;
-					newIndex = isLast ? prevIndex : prevIndex + 1;
+					atLastMsg = prevIndex === messages.length - 1;
+					newIndex = atLastMsg ? prevIndex : prevIndex + 1;
 					break;
 				case "prev":
 					newIndex = Math.max(0, prevIndex - 1);
+					break;
+				case "first":
+					newIndex = 0;
+					break;
+				case "last":
+					newIndex = messages.length - 1;
+					break;
 			}
-			scrollToMessage(newIndex, isLast);
+			if (!atLastMsg) scrollToMessage(newIndex);
 			return newIndex;
 		});
 	};
 
+	// Keyboard navigation for messages
 	const handleMessagesKeypress = (event: KeyboardEvent) => {
-		// 'j' and 'k' keys to navigate messages, unless
-		// the user is typing in the prompt input
-		const promptElem = document.getElementsByClassName("quill-prompt-input")[0];
+		const promptElem = document.getElementsByClassName("oq-prompt-input")[0];
 		if (document.activeElement !== promptElem) {
-			if (event.key === "j") {
-				event.preventDefault();
-				goToMessage("next");
-			}
-			if (event.key === "k") {
-				event.preventDefault();
-				goToMessage("prev");
+			switch (event.key) {
+				case "j":
+					event.preventDefault();
+					goToMessage("next");
+					break;
+				case "k":
+					event.preventDefault();
+					goToMessage("prev");
+					break;
+				case "f":
+					event.preventDefault();
+					goToMessage("first");
+					break;
+				case "l":
+					event.preventDefault();
+					goToMessage("last");
+					break;
 			}
 		}
 		// Cancel the stream if the user presses the "Escape" key
@@ -129,23 +151,63 @@ const Messages: React.FC = () => {
 			apiService.cancelStream();
 		}
 	};
+
+	// Add event listener for keyboard navigation
 	useEffect(() => {
 		const activeViewElem = pluginServices.getViewElem();
 		activeViewElem?.addEventListener("keydown", handleMessagesKeypress);
-
 		return () => {
 			activeViewElem?.removeEventListener("keydown", handleMessagesKeypress);
 		};
 	}, [apiService, pluginServices, messages.length]);
 
+	// Render the messages
 	return (
-		<div id="quill-messages">
-			{messages.map((message, index) => (
-				<Message key={message.id} {...message} dataId={`message-${index}`} />
-			))}
-			<div style={{ height: "90svh" }}></div>
-		</div>
+		<>
+			<div id="oq-messages">
+				{messages.map((message, index) => (
+					<Message key={message.id} {...message} dataId={`message-${index}`} />
+				))}
+				<div id="oq-messages-shim"></div>
+			</div>
+		</>
 	);
+};
+
+// Generate a unique ID for each message
+const generateUniqueId = () => {
+	return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+};
+
+// Scroll to a specific message
+export const scrollToMessage = (index: number) => {
+	const messageElement = document.querySelector(`[data-id="message-${index}"]`);
+	if (messageElement) {
+		messageElement.scrollIntoView({
+			block: "start",
+			behavior: "smooth",
+		});
+		highlightMessage(index);
+	}
+};
+
+const scrollToBottom = () => {
+	const bottom = document.getElementById("oq-messages-shim");
+	bottom?.scrollIntoView({ behavior: "smooth" });
+};
+
+// Utility functions for highlighting messages
+export const highlightMessage = (index: number) => {
+	const messageElement = document.querySelector(`[data-id="message-${index}"]`);
+	messageElement?.classList.add("oq-message-highlight");
+};
+
+export const clearHighlights = (msgClassName: string) => {
+	const classSelector = `.${msgClassName}`;
+	const highlightedMessages = document.querySelectorAll(classSelector);
+	highlightedMessages.forEach((message) => {
+		message.classList.remove(msgClassName);
+	});
 };
 
 export default Messages;

@@ -18,38 +18,39 @@ const Message: React.FC<MessageProps> = ({
 	return (
 		<>
 			{message ? (
-				<div className={`quill-message quill-message-${role}`} data-id={dataId}>
-					{role === "user" && <p className="quill-message-user-icon"></p>}
-					<div className="quill-message-content">
+				<div className={`oq-message oq-message-${role}`} data-id={dataId}>
+					{role === "user" && <p className="oq-message-user-icon"></p>}
+					<div
+						className={`oq-message-content ${
+							role === "assistant" ? "oq-message-streaming" : ""
+						}`}
+					>
 						{error ? (
-							<div className="quill-message-error">{error}</div>
+							<div className="oq-message-error">{error}</div>
 						) : (
 							<ReactMarkdown>{message}</ReactMarkdown>
 						)}
 						{selectedText && (
-							<div className="quill-message-selectedtext">
-								<label
-									className="quill-message-selectedtext-content"
-									htmlFor={id}
-								>
+							<div className="oq-message-selectedtext">
+								<label className="oq-message-selectedtext-content" htmlFor={id}>
 									<ReactMarkdown>{selectedText}</ReactMarkdown>
 								</label>
 								<input
 									type="checkbox"
 									id={id}
-									className="quill-expand-selectedtext"
+									className="oq-expand-selectedtext"
 								/>
 							</div>
 						)}
 						{role === "assistant" && (
-							<div className="quill-message-model">{model}</div>
+							<div className="oq-message-model">{model}</div>
 						)}
 						{/* {actions && actions.length > 0 && (
-						<div className="quill-message-actions">
+						<div className="oq-message-actions">
 							{actions.map((action, index) => (
 								<button
 									key={index}
-									className="quill-message-action"
+									className="oq-message-action"
 									onClick={() => console.log(action)}
 								>
 									{action}

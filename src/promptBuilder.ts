@@ -10,15 +10,12 @@ export const buildPrompt = ({
 	formattingGuidance,
 }: Prompt): string => {
 	if (selectedText) {
-		inputText = inputText
-			? `**User Input:**\n*Describe your question or instruction related to ` +
-				`the selected text below.*\n\n` +
-				`${inputText}`
-			: "";
+		inputText = inputText ? `**User Prompt:**\n\n${inputText}` : "";
 		selectedText = selectedText
-			? `**Context from Note:**\n*This is the text you selected from your ` +
-				`note. Please review to ensure it's relevant to your inquiry.*\n\n` +
-				`${selectedText}`
+			? `**Selected Text from Note:**\n*The user has selected the following ` +
+				`text from a note in Obsidian. Follow the instruction in the user prompt ` +
+				`with regard to the following text. If asked to ignore, simply respond ` +
+				`with some kind expression of understanding.*\n\n${selectedText}`
 			: "";
 	}
 	formattingGuidance = formattingGuidance
