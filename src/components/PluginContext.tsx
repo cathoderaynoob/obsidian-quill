@@ -1,17 +1,17 @@
 import { StrictMode, createContext, useContext } from "react";
-import { GptPluginSettings } from "@/settings";
+import { QuillPluginSettings } from "@/settings";
 import { IPluginServices } from "@/interfaces";
 import ApiService from "@/ApiService";
 
 interface PluginContextProps {
-	settings: GptPluginSettings;
+	settings: QuillPluginSettings;
 	pluginServices: IPluginServices;
 	apiService: ApiService;
 }
 
 type PluginContextProviderProps = {
 	children: React.ReactNode;
-	settings: GptPluginSettings;
+	settings: QuillPluginSettings;
 	pluginServices: IPluginServices;
 	apiService: ApiService;
 };

@@ -3,21 +3,21 @@ import {
 	ErrorCode,
 	APP_PROPS,
 	ERROR_MESSAGES,
-	GPT_VIEW_TYPE,
+	QUILL_VIEW_TYPE,
 } from "@/constants";
 import {
 	DEFAULT_SETTINGS,
-	GptPluginSettings,
-	GptSettingsTab,
+	QuillPluginSettings,
+	QuillSettingsTab,
 } from "@/settings";
-import { GptPromptModal } from "@/components/modals";
+import { QuillPromptModal } from "@/components/modals";
 import { IPluginServices } from "@/interfaces";
 import ApiService from "@/ApiService";
 import Features from "@/Features";
-import GptView from "@/components/view";
+import QuillView from "@/components/view";
 
-export default class GptPlugin extends Plugin implements IPluginServices {
-	settings: GptPluginSettings;
+export default class QuillPlugin extends Plugin implements IPluginServices {
+	settings: QuillPluginSettings;
 	apiService: ApiService;
 	features: Features;
 	pluginServices: IPluginServices;
@@ -35,17 +35,17 @@ export default class GptPlugin extends Plugin implements IPluginServices {
 
 		// This adds a settings tab so the user can configure
 		// various aspects of the plugin
-		this.addSettingTab(new GptSettingsTab(this.app, this));
+		this.addSettingTab(new QuillSettingsTab(this.app, this));
 
 		// Add a view to the app
 		this.registerView(
-			GPT_VIEW_TYPE,
-			(leaf: WorkspaceLeaf) => new GptView(leaf, this)
+			QUILL_VIEW_TYPE,
+			(leaf: WorkspaceLeaf) => new QuillView(leaf, this)
 		);
 
 		// RIBBON AND COMMANDS
 
-		// Chat with GPT icon
+		// App icon
 		this.addRibbonIcon(
 			APP_PROPS.appIcon,
 			APP_PROPS.appName,
@@ -56,8 +56,8 @@ export default class GptPlugin extends Plugin implements IPluginServices {
 
 		// Open chat view command
 		this.addCommand({
-			id: "gpt-open",
-			name: "Open chat",
+			id: "open",
+			name: "Open",
 			callback: () => {
 				this.toggleView();
 			},
@@ -65,7 +65,7 @@ export default class GptPlugin extends Plugin implements IPluginServices {
 
 		// "Tell me a joke" command
 		this.addCommand({
-			id: "gpt-joke-modal",
+			id: "tell-a-joke",
 			name: "Tell me a joke",
 			callback: async () => {
 				await this.features.executeFeature({ id: "tellAJoke" });
@@ -90,7 +90,7 @@ export default class GptPlugin extends Plugin implements IPluginServices {
 			name: "Define...",
 			editorCallback: async (editor: Editor) => {
 				this.toggleView();
-				new GptPromptModal(this.app, async (userEntry) => {
+				new QuillPromptModal(this.app, async (userEntry) => {
 					await this.features.executeFeature({
 						id: "define",
 						inputText: userEntry,
@@ -102,11 +102,11 @@ export default class GptPlugin extends Plugin implements IPluginServices {
 
 		// Open modal to get prompt
 		this.addCommand({
-			id: "gpt-new-prompt",
+			id: "new-prompt",
 			name: "New prompt",
 			callback: async () => {
 				this.toggleView();
-				new GptPromptModal(this.app, async (userEntry) => {
+				new QuillPromptModal(this.app, async (userEntry) => {
 					await this.features.executeFeature({
 						id: "newPrompt",
 						inputText: userEntry,
@@ -117,14 +117,14 @@ export default class GptPlugin extends Plugin implements IPluginServices {
 
 		// Send selected text with instruction from modal
 		this.addCommand({
-			id: "gpt-select-and-prompt",
+			id: "send-text-with-prompt",
 			name: "Send selected text with my prompt",
 			editorCheckCallback: (checking: boolean, editor: Editor) => {
 				const selectedText = editor.getSelection().trim();
 				if (selectedText) {
 					if (!checking) {
 						this.toggleView();
-						const modal = new GptPromptModal(
+						const modal = new QuillPromptModal(
 							this.app,
 							async (userEntry) => {
 								// Now I have the selected text and prompt
@@ -153,7 +153,7 @@ export default class GptPlugin extends Plugin implements IPluginServices {
 	async toggleView(): Promise<void> {
 		const { workspace } = this.app;
 		let leaf: WorkspaceLeaf | null =
-			workspace.getLeavesOfType(GPT_VIEW_TYPE)[0];
+			workspace.getLeavesOfType(QUILL_VIEW_TYPE)[0];
 
 		if (!leaf) {
 			leaf = workspace.getRightLeaf(false);
@@ -161,7 +161,7 @@ export default class GptPlugin extends Plugin implements IPluginServices {
 
 		if (leaf) {
 			await leaf.setViewState({
-				type: GPT_VIEW_TYPE,
+				type: QUILL_VIEW_TYPE,
 				active: true,
 			});
 			const chatViewContainer = leaf.view.containerEl
@@ -174,7 +174,7 @@ export default class GptPlugin extends Plugin implements IPluginServices {
 	}
 
 	getViewElem(): HTMLElement | null {
-		const leaf = this.app.workspace.getLeavesOfType(GPT_VIEW_TYPE)[0];
+		const leaf = this.app.workspace.getLeavesOfType(QUILL_VIEW_TYPE)[0];
 		if (leaf) {
 			return leaf.view.containerEl;
 		}
@@ -182,7 +182,7 @@ export default class GptPlugin extends Plugin implements IPluginServices {
 	}
 
 	onunload(): void {
-		this.app.workspace.detachLeavesOfType(GPT_VIEW_TYPE);
+		this.app.workspace.detachLeavesOfType(QUILL_VIEW_TYPE);
 	}
 
 	// DATA STORAGE

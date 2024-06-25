@@ -18,18 +18,18 @@ const Message: React.FC<MessageProps> = ({
 	return (
 		<>
 			{message ? (
-				<div className={`gpt-message gpt-message-${role}`} data-id={dataId}>
-					{role === "user" && <p className="gpt-message-user-icon"></p>}
-					<div className="gpt-message-content">
+				<div className={`quill-message quill-message-${role}`} data-id={dataId}>
+					{role === "user" && <p className="quill-message-user-icon"></p>}
+					<div className="quill-message-content">
 						{error ? (
-							<div className="gpt-message-error">{error}</div>
+							<div className="quill-message-error">{error}</div>
 						) : (
 							<ReactMarkdown>{message}</ReactMarkdown>
 						)}
 						{selectedText && (
-							<div className="gpt-message-selectedtext">
+							<div className="quill-message-selectedtext">
 								<label
-									className="gpt-message-selectedtext-content"
+									className="quill-message-selectedtext-content"
 									htmlFor={id}
 								>
 									<ReactMarkdown>{selectedText}</ReactMarkdown>
@@ -37,19 +37,19 @@ const Message: React.FC<MessageProps> = ({
 								<input
 									type="checkbox"
 									id={id}
-									className="gpt-expand-selectedtext"
+									className="quill-expand-selectedtext"
 								/>
 							</div>
 						)}
 						{role === "assistant" && (
-							<div className="gpt-message-model">{model}</div>
+							<div className="quill-message-model">{model}</div>
 						)}
 						{/* {actions && actions.length > 0 && (
-						<div className="gpt-message-actions">
+						<div className="quill-message-actions">
 							{actions.map((action, index) => (
 								<button
 									key={index}
-									className="gpt-message-action"
+									className="quill-message-action"
 									onClick={() => console.log(action)}
 								>
 									{action}

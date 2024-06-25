@@ -1,18 +1,18 @@
 import OpenAI from "openai";
 import { Editor } from "obsidian";
 import { GptRequestPayload, IPluginServices } from "@/interfaces";
-import { GptPluginSettings } from "@/settings";
+import { QuillPluginSettings } from "@/settings";
 import PayloadMessages from "@/PayloadMessages";
 
 export default class ApiService {
 	pluginServices: IPluginServices;
-	settings: GptPluginSettings;
+	settings: QuillPluginSettings;
 	openai: OpenAI;
 	payloadMessages: PayloadMessages;
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	streamingContent: any | null = null;
 
-	constructor(pluginServices: IPluginServices, settings: GptPluginSettings) {
+	constructor(pluginServices: IPluginServices, settings: QuillPluginSettings) {
 		this.pluginServices = pluginServices;
 		this.settings = settings;
 		this.openai = new OpenAI({

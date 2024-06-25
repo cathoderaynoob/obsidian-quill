@@ -1,6 +1,6 @@
 {
-	"id": "obsidian-gpt-plugin",
-	"name": "Obsidian GPT Plugin",
+	"id": "obsidian-quill-plugin",
+	"name": "Quill",
 	"version": "0.0.1",
 	"minAppVersion": "0.15.0",
 	"description": "A plugin for Obsidian that uses OpenAI's GPT to generate text based on user purposes.",

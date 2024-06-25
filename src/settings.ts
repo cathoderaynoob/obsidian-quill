@@ -1,8 +1,8 @@
 import { App, PluginSettingTab, Setting } from "obsidian";
-import GptPlugin from "@/main";
+import QuillPlugin from "@/main";
 
 // Export the settings interface
-export interface GptPluginSettings {
+export interface QuillPluginSettings {
 	openaiApiKey: string;
 	openaiEnginesUrl: string;
 	openaiModel: string;
@@ -12,17 +12,17 @@ export interface GptPluginSettings {
 const openaiBaseUrl = "https://api.openai.com/v1";
 
 // Export the default settings
-export const DEFAULT_SETTINGS: GptPluginSettings = {
+export const DEFAULT_SETTINGS: QuillPluginSettings = {
 	openaiApiKey: "",
 	openaiEnginesUrl: `${openaiBaseUrl}/engines`,
 	openaiModel: "gpt-3.5-turbo",
 	openaiTemperature: 0.7,
 };
 
-export class GptSettingsTab extends PluginSettingTab {
-	plugin: GptPlugin;
+export class QuillSettingsTab extends PluginSettingTab {
+	plugin: QuillPlugin;
 
-	constructor(app: App, plugin: GptPlugin) {
+	constructor(app: App, plugin: QuillPlugin) {
 		super(app, plugin);
 		this.plugin = plugin;
 	}

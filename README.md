@@ -1,4 +1,4 @@
-# Obsidian GPT Plugin
+# Quill
 
 This Obsidian plugin brings the power of OpenAI's GPT to your note-taking workflow, allowing you to generate AI-powered content directly within Obsidian. Whether you're looking for a joke in the style of Louis CK or interesting historical facts, this plugin enhances your notes with intelligent and customizable text insertions.
 

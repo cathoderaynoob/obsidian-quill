@@ -36,7 +36,7 @@ const MessagePad: React.FC<MessagePadProps> = ({ executeFeature }) => {
 	};
 
 	return (
-		<div id="gpt-message-pad">
+		<div id="quill-message-pad">
 			<PromptContent
 				value={promptValue}
 				rows={rows}
