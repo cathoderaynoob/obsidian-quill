@@ -1,110 +1,129 @@
 /* Variables */
 [data-type="quill-chat-view"],
-[id="quill-prompt-modal"] {
-	--quill-view-title-height: 2.5rem;
-	--quill-app-bright-color: var(--text-accent);
-	--quill-app-faint-color: var(--text-faint);
+[id="oq-prompt-modal"] {
+	--oq-view-title-height: 2.5rem;
+	--oq-message-pad-height: 6.25rem;
+	--oq-app-bright-color: var(--text-accent);
+	--oq-app-faint-color: var(--text-faint);
 }
 
 /* View */
-.view-content:focus-within #quill-view-title,
-.view-content:focus-within #quill-message-pad {
-	color: var(--quill-app-bright-color);
-	border-color: var(--quill-app-bright-color);
+.view-content:focus-within #oq-view-title,
+.view-content:focus-within #oq-message-pad {
+	color: var(--oq-app-bright-color);
+	border-color: var(--oq-app-bright-color);
 	transition: color 0.2s ease, border-color 0.2s ease;
 }
 [data-type="quill-chat-view"] .view-content {
 	display: grid;
-	grid-template-rows: auto;
+	grid-gap: 0;
+	grid-template-rows: var(--oq-view-title-height) 1fr var(
+			--oq-message-pad-height
+		);
 	padding: 0;
 }
-#quill-view-title {
+#oq-view-title {
 	background: var(--background-primary);
-	color: var(--quill-app-faint-color);
-	border-bottom: 2px solid var(--quill-app-faint-color);
-	height: var(--quill-view-title-height);
+	color: var(--oq-app-faint-color);
+	border-bottom: 2px solid var(--oq-app-faint-color);
 	padding: 0.7rem 1rem 0;
 	width: 100%;
 	font-weight: 400;
 	--icon-size: var(--icon-m);
 	transition: color 0.2s ease, border-color 0.2s ease;
 }
-#quill-view-title::after {
+#oq-view-title::after {
 	position: relative;
 	bottom: 0.35rem;
 	margin-left: 0.5rem;
 	content: "new chat";
 	font-size: small;
-	color: var(--quill-app-faint-color);
+	color: var(--oq-app-faint-color);
 	transition: color 0.2s ease;
 	cursor: pointer;
 }
-#quill-view-title:hover::after {
-	color: var(--quill-view-title-height);
+#oq-view-title:hover::after {
+	color: var(--oq-view-title-height);
 }
-#quill-messages {
+#oq-messages {
 	display: grid;
+	grid-auto-rows: min-content;
 	gap: 0.5rem;
+	max-height: 100%;
 	overflow-y: scroll;
-	padding: 0 1rem;
+	/* padding: 0 1rem; */
 	line-height: var(--line-height-normal);
 	font-size: small;
-	mask-image: linear-gradient(to bottom, white 80%, transparent 85%);
-	-webkit-mask-image: linear-gradient(to bottom, white 80%, transparent 85%);
+	mask-image: linear-gradient(to top, transparent 0, white 2rem);
+	-webkit-mask-image: linear-gradient(to top, transparent 0, white 2rem);
+	scroll-behavior: smooth;
 }
-.quill-message {
+#oq-messages-shim {
+	height: 4rem;
+}
+.oq-message {
 	display: grid; /* Need this here to all pre scroll */
+	padding: 0 1rem;
+	border-left: 3px solid transparent;
 	user-select: text;
 	-webkit-user-select: text;
+	transition: border-color 0.2s ease;
 }
-.quill-message p {
+.oq-message p {
 	/* Respect line breaks */
 	white-space: pre-wrap;
 }
-.quill-message pre {
+.oq-message pre {
 	white-space: pre-wrap;
 	background: var(--background-secondary);
 }
-/* .quill-message code  */
-.quill-message code[class*="language-"] {
+/* .oq-message code  */
+.oq-message code[class*="language-"] {
 	white-space: pre;
 	font-size: smaller;
-	border: 1px solid rgba(255, 255, 255, 0.2);
-	border-radius: 0.5rem;
+	/* border: 1px solid rgba(255, 255, 255, 0.2);
+	border-radius: 0.5rem; */
 	/* color: var(--em-color); */
 }
-.quill-message-user {
+.oq-message-user {
 	grid-template-columns: 1rem 1fr;
 }
-/* .quill-message-user-icon {
-} */
-.quill-message-user-icon::before {
+.oq-message-user pre {
+	border: 1px solid var(--code-background);
+}
+.oq-message-user-icon::before {
 	position: relative;
 	top: 0.33rem;
 	content: "»";
 	text-align: left;
 	font-size: larger;
 	font-weight: bold;
-	color: var(--quill-app-bright-color);
+	color: var(--oq-app-bright-color);
 }
-.quill-message-content {
+.oq-message-content {
 	position: relative;
 	top: 0.5rem;
+	padding-right: 1rem;
 	overflow-x: scroll; /* Important: Allows pre scroll in grid */
 }
-.quill-message-assistant .quill-message-content {
+.oq-message-assistant .oq-message-content {
 	padding: 0 1rem 0.5rem 1rem;
 	border: 1px solid var(--background-modifier-border);
 	background: var(--background-primary);
 	border-radius: 1rem;
+	transition: border-color 0.5s ease;
 }
-.quill-message-selectedtext {
+.oq-message-assistant .oq-message-content.oq-message-streaming {
+	border-color: var(--oq-app-bright-color);
+	transition: border-color 0.3s ease;
+}
+.oq-message-selectedtext {
 	border-left: 3px solid var(--background-modifier-border);
-	/* border-left: 3px solid var(--quill-app-faint-color); */
+	/* border-left: 3px solid var(--oq-app-faint-color); */
 	padding: 0.25rem 1rem 0.25rem 1rem;
 	margin: 0.75rem 0;
 }
-#quill-message-pad {
+#oq-message-pad {
 	position: fixed;
 	bottom: 0;
 	left: 0;
@@ -112,15 +131,15 @@
 	width: 100%;
 	padding: 1rem 0.75rem 2.5rem;
 	background: var(--background-primary);
-	border-top: 2px solid var(--quill-app-faint-color);
+	border-top: 2px solid var(--oq-app-faint-color);
 }
-.quill-prompt-container {
+.oq-prompt-container {
 	position: relative;
 	display: grid;
 	grid-gap: 0.75rem;
 	grid-template-columns: 1fr 2.5rem;
 }
-.quill-prompt-input {
+.oq-prompt-input {
 	border-radius: 0.5rem;
 	padding: 0.75rem 1rem 0.75rem 1rem;
 	/* height: 2.75rem; */
@@ -128,31 +147,36 @@
 	overflow: auto;
 	resize: none;
 }
-button.quill-prompt-send {
+textarea.oq-prompt-input::placeholder {
+	white-space: nowrap;
+	overflow-x: hidden;
+	/* This doesn't work for some reason, but leaving here for now. */
+	text-overflow: ellipsis;
+}
+button.oq-prompt-send {
 	--icon-size: 22px; /* btwn --icon-m & lg */
 	position: relative;
 	border: none;
 	box-shadow: none;
 	padding: 0;
 	background: none;
-	color: var(--quill-app-faint-color);
+	color: var(--oq-app-faint-color);
 	transition: color 0.2s ease;
-	cursor: pointer;
 }
-button.quill-prompt-send::before {
+button.oq-prompt-send::before {
 	position: absolute;
 	top: 1.55rem;
 	content: "send";
 }
-button.quill-prompt-send:focus,
-button.quill-prompt-send:hover {
-	color: var(--quill-app-bright-color);
+button.oq-prompt-send:focus,
+button.oq-prompt-send:enabled:hover {
+	color: var(--oq-app-bright-color);
 	transition: color 0.2s ease;
+	cursor: pointer;
 }
-
 /* Start WDS technique */
 /* https://youtu.be/OhCzEjXvY9A?si=AKxDg-pzGHF5VAeK&t=214 */
-.quill-message-selectedtext-content {
+.oq-message-selectedtext-content {
 	opacity: 0.4;
 	display: block;
 	--max-lines: 5;
@@ -163,16 +187,35 @@ button.quill-prompt-send:hover {
 	mask-image: linear-gradient(to top, transparent, black 2rem);
 	-webkit-mask-image: linear-gradient(to top, transparent, black 2rem);
 	cursor: pointer;
+	transition: opacity 0.25s ease;
+}
+.oq-message-selectedtext-content:hover {
+	opacity: 0.7;
+}
+.oq-message-user code[class*="language-"] {
+	opacity: 0.8;
+	display: block;
+	--max-lines: 5;
+	/* line-height: var(--line-height-tight); */
+	max-height: 10rem;
+	/* overflow-y: scroll; */
+	position: relative;
+	mask-image: linear-gradient(to top, transparent, black 2rem);
+	-webkit-mask-image: linear-gradient(to top, transparent, black 2rem);
+	cursor: pointer;
 	transition: opacity 0.15s ease;
 }
-.quill-message-selectedtext-content > *:first-child {
+.oq-message-user code[class*="language-"] {
+	opacity: 1;
+}
+.oq-message-selectedtext-content > *:first-child {
 	margin: 0 auto;
 	margin-block-start: 0;
 }
-.quill-expand-selectedtext {
+.oq-expand-selectedtext {
 	display: none;
 }
-.quill-message-selectedtext-content:has(+ .quill-expand-selectedtext:checked) {
+.oq-message-selectedtext-content:has(+ .oq-expand-selectedtext:checked) {
 	opacity: 0.8;
 	max-height: none;
 	mask-image: none;
@@ -182,18 +225,18 @@ button.quill-prompt-send:hover {
 /* End WDS technique */
 
 /* AI model used for response */
-.quill-message-model {
+.oq-message-model {
 	font-size: smaller;
 	text-align: right;
 	user-select: none;
-	color: var(--quill-app-faint-color);
+	color: var(--oq-app-faint-color);
 }
 
 /* Modals */
-#quill-prompt-modal {
+#oq-prompt-modal {
 	padding-right: 1.25rem;
 }
-#quill-output-modal {
+#oq-output-modal {
 	padding: 0.5rem;
 	user-select: text;
 }

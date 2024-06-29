@@ -166,8 +166,8 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 			});
 			const chatViewContainer = leaf.view.containerEl
 				.children[1] as HTMLElement;
-			// chatViewContainer.tabIndex = 0;
-			chatViewContainer.focus();
+			chatViewContainer.tabIndex = 0;
+			// chatViewContainer.focus();
 		} else {
 			this.notifyError("viewError");
 		}

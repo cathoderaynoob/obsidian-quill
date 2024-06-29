@@ -27,6 +27,7 @@ export default function PluginContextProvider({
 	return (
 		<PluginContext.Provider value={{ settings, pluginServices, apiService }}>
 			<StrictMode>{children}</StrictMode>
+			{/* {children} */}
 		</PluginContext.Provider>
 	);
 }

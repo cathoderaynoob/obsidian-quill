@@ -32,19 +32,23 @@ const PromptContent: React.FC<PromptContentProps> = ({
 	}, []);
 
 	return (
-		<div className="quill-prompt-container" ref={promptContentRef}>
+		<div className="oq-prompt-container" ref={promptContentRef}>
 			<textarea
-				className="quill-prompt-input"
-				placeholder="» press return to send / shift+return for a new line"
+				className="oq-prompt-input"
+				placeholder="» return to send / shift+return for new line"
 				rows={rows}
 				value={value}
 				onInput={handleInput}
 				onKeyDown={handleKeyPress}
 			/>
 			{/* TODO: Disable unless text entered */}
-			<button className="quill-prompt-send" onClick={handleSend} />
+			<button className="oq-prompt-send" onClick={handleSend} />
 		</div>
 	);
 };
 
 export default PromptContent;
+
+// disabled={
+// 	!promptContentRef?.current?.querySelector("textarea")?.value.trim()
+// }

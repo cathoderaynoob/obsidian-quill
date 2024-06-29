@@ -1,6 +1,6 @@
 import { useState } from "react";
-import PromptContent from "@/components/PromptContent";
 import { ExecutionOptions } from "@/executeFeature";
+import PromptContent from "@/components/PromptContent";
 
 interface MessagePadProps {
 	executeFeature: (options: ExecutionOptions) => void;
@@ -26,17 +26,18 @@ const MessagePad: React.FC<MessagePadProps> = ({ executeFeature }) => {
 	};
 
 	const handleSend = () => {
-		setPromptValue(promptValue.trim());
+		const trimmedValue = promptValue.trim();
+		setPromptValue(trimmedValue);
 		executeFeature({
 			id: "newPrompt",
-			inputText: promptValue.trim(),
+			inputText: trimmedValue,
 		});
 		setPromptValue("");
 		setRows(1);
 	};
 
 	return (
-		<div id="quill-message-pad">
+		<div id="oq-message-pad">
 			<PromptContent
 				value={promptValue}
 				rows={rows}

@@ -44,7 +44,7 @@ export class QuillPromptModal extends Modal {
 		this.modalRoot = createRoot(this.contentEl);
 
 		this.modalRoot.render(
-			<div id="quill-prompt-modal">
+			<div id="oq-prompt-modal">
 				<PromptContent
 					value={this.promptValue}
 					rows={this.rows}
@@ -75,7 +75,7 @@ export class TextOutputModal extends Modal {
 
 	onOpen() {
 		this.modalRoot = createRoot(this.contentEl);
-		this.modalRoot.render(<div id="quill-output-modal">{this.textOutput}</div>);
+		this.modalRoot.render(<div id="oq-output-modal">{this.textOutput}</div>);
 	}
 
 	onClose() {

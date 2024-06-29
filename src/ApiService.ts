@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import emitter from "@/customEmitter";
 import { Editor } from "obsidian";
 import { GptRequestPayload, IPluginServices } from "@/interfaces";
 import { QuillPluginSettings } from "@/settings";
@@ -59,6 +60,7 @@ export default class ApiService {
 	cancelStream() {
 		this.streamingContent?.controller?.abort();
 		this.streamingContent = null;
+		emitter.emit("streamEnd");
 	}
 
 	// TODO: Update this to possibly return string instead of void
