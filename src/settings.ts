@@ -32,6 +32,7 @@ export class QuillSettingsTab extends PluginSettingTab {
 
 		containerEl.empty();
 
+		// OpenAI API Key
 		new Setting(containerEl)
 			.setName("Settings")
 			.setDesc("OpenAI API Key")
@@ -45,12 +46,19 @@ export class QuillSettingsTab extends PluginSettingTab {
 					})
 			);
 
+		// OpenAI Model
 		new Setting(containerEl).setDesc("Default Model").addText((text) =>
 			text
 				.setPlaceholder("Select model")
-				.setValue(this.plugin.settings.openaiModel)
+				.setValue(
+					this.plugin.settings.openaiModel.length
+						? this.plugin.settings.openaiModel
+						: DEFAULT_SETTINGS.openaiModel
+				)
 				.onChange(async (value) => {
-					this.plugin.settings.openaiModel = value;
+					this.plugin.settings.openaiModel = value.length
+						? value
+						: DEFAULT_SETTINGS.openaiModel;
 					await this.plugin.saveSettings();
 				})
 		);

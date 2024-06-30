@@ -1,21 +1,27 @@
 import { App, Modal } from "obsidian";
 import { Root, createRoot } from "react-dom/client";
+import { QuillPluginSettings } from "@/settings";
+import Features from "@/Features";
 import PromptContent from "@/components/PromptContent";
 
 // GET PROMPT FROM USER MODAL ==================================================
-export class QuillPromptModal extends Modal {
+export class PromptModal extends Modal {
 	private modalRoot: Root | null = null;
 	private promptValue: string;
 	private rows = 6;
+	private settings: QuillPluginSettings;
+	private features: Features;
 	private selectedText?: string;
 	private onSend: (promptWithSelectedText: string) => void;
 
 	constructor(
 		app: App,
+		settings: QuillPluginSettings,
 		onSend: (promptWithSelectedText: string) => void,
 		selectedText?: string
 	) {
 		super(app);
+		this.settings = settings;
 		this.selectedText = selectedText;
 		this.onSend = onSend;
 	}
@@ -48,6 +54,7 @@ export class QuillPromptModal extends Modal {
 				<PromptContent
 					value={this.promptValue}
 					rows={this.rows}
+					model={this.settings.openaiModel}
 					handleInput={handleInput}
 					handleKeyPress={handleKeyPress}
 					handleSend={handleSend}

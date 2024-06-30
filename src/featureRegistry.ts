@@ -57,6 +57,7 @@ export const createFeatureRegistry = (
 			}
 		},
 		stream: true,
+		model: "gpt-4o",
 		temperature: 0.2,
 	},
 

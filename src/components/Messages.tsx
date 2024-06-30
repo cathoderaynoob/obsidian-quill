@@ -77,9 +77,13 @@ const Messages: React.FC = () => {
 	// Clear the message highlight when the stream ends
 	useEffect(() => {
 		const handleStreamEnd = () => {
-			clearHighlights("oq-message-streaming");
-			lastScrollPositionRef.current = 0;
-			scrollToBottom();
+			// Without setTimeout, highlight isn't cleared
+			// if the response is minimal, e.g. "1 2 3"
+			setTimeout(() => {
+				clearHighlights("oq-message-streaming");
+				lastScrollPositionRef.current = 0;
+				scrollToBottom();
+			}, 0);
 		};
 		emitter.on("streamEnd", handleStreamEnd);
 		return () => {

@@ -1,10 +1,11 @@
 /* Variables */
 [data-type="quill-chat-view"],
 [id="oq-prompt-modal"] {
-	--oq-view-title-height: 2.5rem;
-	--oq-message-pad-height: 6.25rem;
 	--oq-app-bright-color: var(--text-accent);
 	--oq-app-faint-color: var(--text-faint);
+	--oq-view-title-height: 2.5rem;
+	--oq-message-pad-height: 6.25rem;
+	--oq-hightlight-width: 3px;
 }
 
 /* View */
@@ -51,7 +52,6 @@
 	gap: 0.5rem;
 	max-height: 100%;
 	overflow-y: scroll;
-	/* padding: 0 1rem; */
 	line-height: var(--line-height-normal);
 	font-size: small;
 	mask-image: linear-gradient(to top, transparent 0, white 2rem);
@@ -64,7 +64,7 @@
 .oq-message {
 	display: grid; /* Need this here to all pre scroll */
 	padding: 0 1rem;
-	border-left: 3px solid transparent;
+	border-left: var(--oq-hightlight-width) solid transparent;
 	user-select: text;
 	-webkit-user-select: text;
 	transition: border-color 0.2s ease;
@@ -126,10 +126,10 @@
 #oq-message-pad {
 	position: fixed;
 	bottom: 0;
-	left: 0;
+	left: var(--oq-hightlight-width);
 	z-index: 1000; /* Ensures the header is above other content */
 	width: 100%;
-	padding: 1rem 0.75rem 2.5rem;
+	padding: 1rem;
 	background: var(--background-primary);
 	border-top: 2px solid var(--oq-app-faint-color);
 }
@@ -139,11 +139,16 @@
 	grid-gap: 0.75rem;
 	grid-template-columns: 1fr 2.5rem;
 }
+.oq-prompt-model {
+	padding: 0.2rem 0 0 1rem;
+	font-size: x-small;
+	font-weight: normal;
+	color: var(--oq-app-faint-color);
+	opacity: 0.7;
+}
 .oq-prompt-input {
 	border-radius: 0.5rem;
-	padding: 0.75rem 1rem 0.75rem 1rem;
-	/* height: 2.75rem; */
-	/* max-height: 6.66rem; */
+	padding: 0.75rem 1rem;
 	overflow: auto;
 	resize: none;
 }
