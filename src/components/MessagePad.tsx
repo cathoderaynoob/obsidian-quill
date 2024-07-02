@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { ExecutionOptions } from "@/executeFeature";
-// import { FeatureProperties } from "@/featureRegistry";
 import PromptContent from "@/components/PromptContent";
 import { usePluginContext } from "@/components/PluginContext";
 

@@ -48,7 +48,8 @@ export const PROMPTS = {
 	define: {
 		role: "user",
 		content:
-			"<= Define this term in the following format.\n\n" +
+			"<= Define this term in the following format. Correct the spelling of " +
+			"the word provided if necessary, but do not comment on it.\n\n" +
 			"###### <term, lowercase unless proper noun, etc.> `/<Pronunciation in " +
 			"International Phonetic Alphabet (IPA)>/`\n\n" +
 			"<Definition. If more than one, enumerate.>\n" +
