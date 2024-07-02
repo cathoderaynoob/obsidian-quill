@@ -5,6 +5,7 @@ import { APP_PROPS } from "@/constants";
 interface PromptContentProps {
 	value: string;
 	rows: number;
+	model: string;
 	handleInput: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
 	handleKeyPress: (e: React.KeyboardEvent) => void;
 	handleSend: () => void;
@@ -13,6 +14,7 @@ interface PromptContentProps {
 const PromptContent: React.FC<PromptContentProps> = ({
 	value,
 	rows,
+	model,
 	handleInput,
 	handleKeyPress,
 	handleSend,
@@ -43,6 +45,7 @@ const PromptContent: React.FC<PromptContentProps> = ({
 			/>
 			{/* TODO: Disable unless text entered */}
 			<button className="oq-prompt-send" onClick={handleSend} />
+			<div className="oq-prompt-model">{model}</div>
 		</div>
 	);
 };

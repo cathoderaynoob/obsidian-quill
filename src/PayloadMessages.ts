@@ -1,4 +1,4 @@
-import { PayloadMessagesType } from "@/components/Messages";
+import { PayloadMessagesType } from "@/interfaces";
 
 class PayloadMessages {
 	payloadMessages: PayloadMessagesType[];

@@ -1,15 +1,15 @@
 import { ItemView, setIcon, WorkspaceLeaf } from "obsidian";
 import { Root, createRoot } from "react-dom/client";
-import { QUILL_VIEW_TYPE, APP_PROPS } from "@/constants";
 import { IPluginServices } from "@/interfaces";
+import { QUILL_VIEW_TYPE, APP_PROPS } from "@/constants";
 import { QuillPluginSettings } from "@/settings";
-import QuillPlugin from "@/main";
-import Messages from "@/components/Messages";
-import MessagePad from "@/components/MessagePad";
-import PluginContextProvider from "@/components/PluginContext";
-import emitter from "@/customEmitter";
 import ApiService from "@/ApiService";
+import emitter from "@/customEmitter";
 import Features from "@/Features";
+import MessagePad from "@/components/MessagePad";
+import Messages from "@/components/Messages";
+import PluginContextProvider from "@/components/PluginContext";
+import QuillPlugin from "@/main";
 
 export default class QuillView extends ItemView {
 	root: Root | null = null;

@@ -34,4 +34,8 @@ export default class Features {
 			this.pluginServices
 		);
 	}
+
+	getFeatureProperties = (id: string) => {
+		return this.featureRegistry[id];
+	};
 }

@@ -10,7 +10,7 @@ import {
 	QuillPluginSettings,
 	QuillSettingsTab,
 } from "@/settings";
-import { QuillPromptModal } from "@/components/modals";
+import { PromptModal } from "@/components/modals";
 import { IPluginServices } from "@/interfaces";
 import ApiService from "@/ApiService";
 import Features from "@/Features";
@@ -21,6 +21,7 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 	apiService: ApiService;
 	features: Features;
 	pluginServices: IPluginServices;
+	openModals: PromptModal[] = [];
 
 	async onload(): Promise<void> {
 		console.clear(); // TODO: Remove this line before publishing
@@ -29,15 +30,11 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 		this.features = new Features(this.app, this.apiService, this.settings);
 		this.pluginServices = {
 			toggleView: this.toggleView.bind(this),
-			notifyError: this.notifyError.bind(this),
 			getViewElem: this.getViewElem.bind(this),
+			notifyError: this.notifyError.bind(this),
 		};
 
-		// This adds a settings tab so the user can configure
-		// various aspects of the plugin
 		this.addSettingTab(new QuillSettingsTab(this.app, this));
-
-		// Add a view to the app
 		this.registerView(
 			QUILL_VIEW_TYPE,
 			(leaf: WorkspaceLeaf) => new QuillView(leaf, this)
@@ -90,13 +87,19 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 			name: "Define...",
 			editorCallback: async (editor: Editor) => {
 				this.toggleView();
-				new QuillPromptModal(this.app, async (userEntry) => {
-					await this.features.executeFeature({
-						id: "define",
-						inputText: userEntry,
-						targetEditor: editor,
-					});
-				}).open();
+				const modal = new PromptModal(
+					this.app,
+					this.settings,
+					async (userEntry) => {
+						await this.features.executeFeature({
+							id: "define",
+							inputText: userEntry,
+							targetEditor: editor,
+						});
+					}
+				);
+				this.openModals.push(modal);
+				modal.open();
 			},
 		});
 
@@ -106,12 +109,18 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 			name: "New prompt",
 			callback: async () => {
 				this.toggleView();
-				new QuillPromptModal(this.app, async (userEntry) => {
-					await this.features.executeFeature({
-						id: "newPrompt",
-						inputText: userEntry,
-					});
-				}).open();
+				const modal = new PromptModal(
+					this.app,
+					this.settings,
+					async (userEntry) => {
+						await this.features.executeFeature({
+							id: "newPrompt",
+							inputText: userEntry,
+						});
+					}
+				);
+				this.openModals.push(modal);
+				modal.open();
 			},
 		});
 
@@ -124,8 +133,9 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 				if (selectedText) {
 					if (!checking) {
 						this.toggleView();
-						const modal = new QuillPromptModal(
+						const modal = new PromptModal(
 							this.app,
+							this.settings,
 							async (userEntry) => {
 								// Now I have the selected text and prompt
 								await this.features.executeFeature({
@@ -136,7 +146,7 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 							},
 							selectedText
 						);
-
+						this.openModals.push(modal);
 						modal.open();
 					}
 					return true;
@@ -183,6 +193,8 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 
 	onunload(): void {
 		this.app.workspace.detachLeavesOfType(QUILL_VIEW_TYPE);
+		this.openModals.forEach((modal) => modal.close());
+		this.openModals = [];
 	}
 
 	// DATA STORAGE

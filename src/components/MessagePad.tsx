@@ -1,12 +1,15 @@
 import { useState } from "react";
 import { ExecutionOptions } from "@/executeFeature";
+// import { FeatureProperties } from "@/featureRegistry";
 import PromptContent from "@/components/PromptContent";
+import { usePluginContext } from "@/components/PluginContext";
 
 interface MessagePadProps {
 	executeFeature: (options: ExecutionOptions) => void;
 }
 
 const MessagePad: React.FC<MessagePadProps> = ({ executeFeature }) => {
+	const { settings } = usePluginContext();
 	const [promptValue, setPromptValue] = useState<string>("");
 	const [rows, setRows] = useState<number>(1);
 
@@ -41,6 +44,7 @@ const MessagePad: React.FC<MessagePadProps> = ({ executeFeature }) => {
 			<PromptContent
 				value={promptValue}
 				rows={rows}
+				model={settings.openaiModel}
 				handleInput={handleInput}
 				handleKeyPress={handleKeyPress}
 				handleSend={handleSend}
