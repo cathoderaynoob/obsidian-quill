@@ -1,32 +1,38 @@
 import { App, Modal } from "obsidian";
 import { Root, createRoot } from "react-dom/client";
 import { QuillPluginSettings } from "@/settings";
-import Features from "@/Features";
+import { getFeatureProperties } from "@/featuresRegistry";
 import PromptContent from "@/components/PromptContent";
+
+interface PromptModalParams {
+	app: App;
+	settings: QuillPluginSettings;
+	onSend: (prompt: string) => void;
+	featureId?: string;
+}
 
 // GET PROMPT FROM USER MODAL ==================================================
 export class PromptModal extends Modal {
 	private modalRoot: Root | null = null;
 	private promptValue: string;
-	private rows = 6;
 	private settings: QuillPluginSettings;
-	private features: Features;
-	private selectedText?: string;
-	private onSend: (promptWithSelectedText: string) => void;
+	private onSend: (prompt: string) => void;
+	private featureId?: string | null;
+	private rows = 6;
 
-	constructor(
-		app: App,
-		settings: QuillPluginSettings,
-		onSend: (promptWithSelectedText: string) => void,
-		selectedText?: string
-	) {
+	constructor({ app, settings, onSend, featureId }: PromptModalParams) {
 		super(app);
 		this.settings = settings;
-		this.selectedText = selectedText;
 		this.onSend = onSend;
+		this.featureId = featureId;
 	}
 
 	onOpen() {
+		const feature = this.featureId
+			? getFeatureProperties(this.app, this.featureId)
+			: null;
+		const model = feature?.model || this.settings.openaiModel;
+
 		const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
 			this.promptValue = e.target.value;
 		};
@@ -48,13 +54,12 @@ export class PromptModal extends Modal {
 		};
 
 		this.modalRoot = createRoot(this.contentEl);
-
 		this.modalRoot.render(
 			<div id="oq-prompt-modal">
 				<PromptContent
 					value={this.promptValue}
 					rows={this.rows}
-					model={this.settings.openaiModel}
+					model={model}
 					handleInput={handleInput}
 					handleKeyPress={handleKeyPress}
 					handleSend={handleSend}

@@ -84,20 +84,22 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 		// "Define..." command
 		this.addCommand({
 			id: "define",
-			name: "Define...",
+			name: "Define the word...",
 			editorCallback: async (editor: Editor) => {
+				const featureId = "define";
 				this.toggleView();
-				const modal = new PromptModal(
-					this.app,
-					this.settings,
-					async (userEntry) => {
+				const modal = new PromptModal({
+					app: this.app,
+					settings: this.settings,
+					onSend: async (userEntry) => {
 						await this.features.executeFeature({
-							id: "define",
+							id: featureId,
 							inputText: userEntry,
 							targetEditor: editor,
 						});
-					}
-				);
+					},
+					featureId: featureId,
+				});
 				this.openModals.push(modal);
 				modal.open();
 			},
@@ -109,16 +111,16 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 			name: "New prompt",
 			callback: async () => {
 				this.toggleView();
-				const modal = new PromptModal(
-					this.app,
-					this.settings,
-					async (userEntry) => {
+				const modal = new PromptModal({
+					app: this.app,
+					settings: this.settings,
+					onSend: async (userEntry) => {
 						await this.features.executeFeature({
 							id: "newPrompt",
 							inputText: userEntry,
 						});
-					}
-				);
+					},
+				});
 				this.openModals.push(modal);
 				modal.open();
 			},
@@ -133,10 +135,10 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 				if (selectedText) {
 					if (!checking) {
 						this.toggleView();
-						const modal = new PromptModal(
-							this.app,
-							this.settings,
-							async (userEntry) => {
+						const modal = new PromptModal({
+							app: this.app,
+							settings: this.settings,
+							onSend: async (userEntry) => {
 								// Now I have the selected text and prompt
 								await this.features.executeFeature({
 									id: "sendPromptWithSelectedText",
@@ -144,8 +146,7 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 									selectedText: selectedText,
 								});
 							},
-							selectedText
-						);
+						});
 						this.openModals.push(modal);
 						modal.open();
 					}

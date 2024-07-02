@@ -2,7 +2,7 @@ import { Editor } from "obsidian";
 import { PROMPTS } from "@/constants";
 import { GptRequestPayload, PayloadMessagesType } from "@/interfaces";
 import { buildPrompt } from "@/promptBuilder";
-import { FeatureProperties } from "@/featureRegistry";
+import { FeatureProperties } from "@/featuresRegistry";
 import { QuillPluginSettings } from "@/settings";
 import { IPluginServices } from "@/interfaces";
 import ApiService from "@/ApiService";

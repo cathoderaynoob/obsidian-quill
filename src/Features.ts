@@ -1,6 +1,6 @@
 import { App } from "obsidian";
 import { QuillPluginSettings } from "@/settings";
-import { createFeatureRegistry, FeatureProperties } from "@/featureRegistry";
+import { FeatureProperties, FeaturesRegistry } from "@/featuresRegistry";
 import { executeFeature, ExecutionOptions } from "@/executeFeature";
 import { IPluginServices } from "@/interfaces";
 import ApiService from "@/ApiService";
@@ -11,7 +11,7 @@ export default class Features {
 	apiService: ApiService;
 	settings: QuillPluginSettings;
 	payloadMessages: PayloadMessages;
-	featureRegistry: Record<string, FeatureProperties>;
+	featuresRegistry: Record<string, FeatureProperties>;
 	pluginServices: IPluginServices;
 
 	constructor(app: App, apiService: ApiService, settings: QuillPluginSettings) {
@@ -19,14 +19,14 @@ export default class Features {
 		this.apiService = apiService;
 		this.settings = settings;
 		this.payloadMessages = new PayloadMessages();
-		this.featureRegistry = createFeatureRegistry(app);
+		this.featuresRegistry = FeaturesRegistry(app);
 		this.executeFeature = this.executeFeature.bind(this);
 		this.pluginServices = apiService.pluginServices;
 	}
 
 	async executeFeature(options: ExecutionOptions) {
 		await executeFeature(
-			this.featureRegistry,
+			this.featuresRegistry,
 			options,
 			this.settings,
 			this.apiService,
@@ -34,8 +34,4 @@ export default class Features {
 			this.pluginServices
 		);
 	}
-
-	getFeatureProperties = (id: string) => {
-		return this.featureRegistry[id];
-	};
 }

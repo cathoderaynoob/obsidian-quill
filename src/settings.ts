@@ -47,6 +47,8 @@ export class QuillSettingsTab extends PluginSettingTab {
 			);
 
 		// OpenAI Model
+		// User can set the default model, or if left blank, the plugin will
+		// use the model from DEFAULT_SETTINGS
 		new Setting(containerEl).setDesc("Default Model").addText((text) =>
 			text
 				.setPlaceholder("Select model")
