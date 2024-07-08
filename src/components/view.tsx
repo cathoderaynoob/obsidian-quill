@@ -4,7 +4,6 @@ import { IPluginServices } from "@/interfaces";
 import { QUILL_VIEW_TYPE, APP_PROPS } from "@/constants";
 import { QuillPluginSettings } from "@/settings";
 import ApiService from "@/ApiService";
-import emitter from "@/customEmitter";
 import Features from "@/Features";
 import MessagePad from "@/components/MessagePad";
 import Messages from "@/components/Messages";
@@ -43,10 +42,6 @@ export default class QuillView extends ItemView {
 
 	async onOpen(): Promise<void> {
 		const chatViewContainer = this.containerEl.children[1] as HTMLElement;
-		const handleKeyDown = (event: KeyboardEvent) => {
-			emitter.emit("keydown", event);
-		};
-		chatViewContainer.addEventListener("keydown", handleKeyDown);
 
 		const root = createRoot(chatViewContainer);
 		this.root = root;

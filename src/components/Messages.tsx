@@ -110,6 +110,7 @@ const Messages: React.FC = () => {
 				case "next":
 					atLastMsg = prevIndex === messages.length - 1;
 					newIndex = atLastMsg ? prevIndex : prevIndex + 1;
+					highlightMessage(newIndex);
 					break;
 				case "prev":
 					newIndex = Math.max(0, prevIndex - 1);
@@ -121,7 +122,13 @@ const Messages: React.FC = () => {
 					newIndex = messages.length - 1;
 					break;
 			}
-			if (!atLastMsg) scrollToMessage(newIndex);
+			if (atLastMsg) {
+				scrollToBottom();
+			} else {
+				scrollToMessage(newIndex);
+				clearHighlights("oq-message-highlight");
+				highlightMessage(newIndex);
+			}
 			return newIndex;
 		});
 	};
@@ -172,7 +179,7 @@ const Messages: React.FC = () => {
 				{messages.map((message, index) => (
 					<Message key={message.id} {...message} dataId={`message-${index}`} />
 				))}
-				<div id="oq-messages-shim"></div>
+				<div id="oq-messages-shim" />
 			</div>
 		</>
 	);
@@ -187,11 +194,21 @@ const generateUniqueId = () => {
 export const scrollToMessage = (index: number) => {
 	const messageElement = document.querySelector(`[data-id="message-${index}"]`);
 	if (messageElement) {
-		messageElement.scrollIntoView({
-			block: "start",
-			behavior: "smooth",
-		});
-		highlightMessage(index);
+		const messageElemHeight = messageElement.getCssPropertyValue("height");
+		const messagesViewHeight = document
+			.getElementById("oq-messages")
+			?.getCssPropertyValue("height");
+		if (messagesViewHeight) {
+			const scrollToPos =
+				parseInt(messageElemHeight) >= parseInt(messagesViewHeight)
+					? "start"
+					: "center";
+			messageElement.scrollIntoView({
+				block: scrollToPos || "start",
+				behavior: "smooth",
+			});
+			highlightMessage(index);
+		}
 	}
 };
 
@@ -204,6 +221,9 @@ const scrollToBottom = () => {
 export const highlightMessage = (index: number) => {
 	const messageElement = document.querySelector(`[data-id="message-${index}"]`);
 	messageElement?.classList.add("oq-message-highlight");
+	setTimeout(() => {
+		clearHighlights("oq-message-highlight");
+	}, 100);
 };
 
 export const clearHighlights = (msgClassName: string) => {
