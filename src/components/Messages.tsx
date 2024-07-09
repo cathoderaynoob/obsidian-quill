@@ -3,6 +3,8 @@ import { usePluginContext } from "@/components/PluginContext";
 import { Role } from "@/interfaces";
 import emitter from "@/customEmitter";
 import Message from "@/components/Message";
+import PayloadMessages from "@/PayloadMessages";
+import TitleBar from "@/components/TitleBar";
 
 export interface MessageType {
 	id: string;
@@ -22,6 +24,12 @@ const Messages: React.FC = () => {
 	const latestMessageRef = useRef<MessageType | null>(null);
 	const lastScrollPositionRef = useRef(0);
 	const SCROLL_THRESHOLD_CHARS = 400;
+	const payloadMessages = PayloadMessages.getInstance();
+
+	const clearMessages = () => {
+		setMessages([]);
+		payloadMessages.clearPayloadMessages();
+	};
 
 	// Add a new message
 	useEffect(() => {
@@ -176,6 +184,7 @@ const Messages: React.FC = () => {
 	return (
 		<>
 			<div id="oq-messages">
+				<TitleBar clearMessages={clearMessages} />
 				{messages.map((message, index) => (
 					<Message key={message.id} {...message} dataId={`message-${index}`} />
 				))}

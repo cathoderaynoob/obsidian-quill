@@ -20,7 +20,7 @@ export default class ApiService {
 			apiKey: this.settings.openaiApiKey,
 			dangerouslyAllowBrowser: true,
 		});
-		this.payloadMessages = new PayloadMessages();
+		this.payloadMessages = PayloadMessages.getInstance();
 	}
 
 	hasApiKey(): boolean {

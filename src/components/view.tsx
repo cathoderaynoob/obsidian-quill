@@ -52,18 +52,17 @@ export default class QuillView extends ItemView {
 				pluginServices={this.pluginServices}
 				apiService={this.apiService}
 			>
-				<div id="oq-view-title" />
 				<Messages />
 				<MessagePad executeFeature={this.features.executeFeature} />
 			</PluginContextProvider>
 		);
 
-		// Create view title bar with icon.
-		// setTimout ensures that the content element is rendered before
-		// the title bar element is created.
+		// Add the New Chat icon
 		setTimeout(() => {
-			const titleBar = document.getElementById("oq-view-title") as HTMLElement;
-			setIcon(titleBar, APP_PROPS.appIcon);
+			const newChatButton = document.getElementById(
+				"oq-btn-new-chat"
+			) as HTMLElement;
+			setIcon(newChatButton, APP_PROPS.appIcon);
 		}, 0);
 	}
 

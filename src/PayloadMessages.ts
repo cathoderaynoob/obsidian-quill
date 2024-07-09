@@ -2,9 +2,17 @@ import { PayloadMessagesType } from "@/interfaces";
 
 class PayloadMessages {
 	payloadMessages: PayloadMessagesType[];
+	public static instance: PayloadMessages;
 
 	constructor() {
 		this.payloadMessages = [];
+	}
+
+	static getInstance(): PayloadMessages {
+		if (!PayloadMessages.instance) {
+			PayloadMessages.instance = new PayloadMessages();
+		}
+		return PayloadMessages.instance;
 	}
 
 	getPayloadMessages(): PayloadMessagesType[] {
