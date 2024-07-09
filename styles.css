@@ -18,12 +18,13 @@
 [data-type="quill-chat-view"] .view-content {
 	display: grid;
 	grid-gap: 0;
-	grid-template-rows: var(--oq-view-title-height) 1fr var(
-			--oq-message-pad-height
-		);
+	grid-template-rows: 1fr var(--oq-message-pad-height);
 	padding: 0;
 }
 #oq-view-title {
+	position: absolute;
+	top: 0;
+	height: var(--oq-view-title-height);
 	background: var(--background-primary);
 	color: var(--oq-app-faint-color);
 	border-bottom: 2px solid var(--oq-app-faint-color);
@@ -33,7 +34,7 @@
 	--icon-size: var(--icon-m);
 	transition: color 0.2s ease, border-color 0.2s ease;
 }
-#oq-view-title::after {
+#oq-btn-new-chat:after {
 	position: relative;
 	bottom: 0.35rem;
 	margin-left: 0.5rem;
@@ -41,15 +42,16 @@
 	font-size: small;
 	color: var(--oq-app-faint-color);
 	transition: color 0.2s ease;
-	cursor: pointer;
+	/* cursor: pointer; */
 }
-#oq-view-title:hover::after {
-	color: var(--oq-view-title-height);
+#oq-btn-new-chat:hover::after {
+	color: var(--oq-app-bright-color);
 }
 #oq-messages {
 	display: grid;
 	grid-auto-rows: min-content;
 	gap: 0.5rem;
+	padding-top: var(--oq-view-title-height);
 	max-height: 100%;
 	overflow-y: scroll;
 	line-height: var(--line-height-normal);
@@ -190,7 +192,7 @@ button.oq-prompt-send:enabled:hover {
 	mask-image: linear-gradient(to top, transparent, black 2rem);
 	-webkit-mask-image: linear-gradient(to top, transparent, black 2rem);
 	cursor: pointer;
-	transition: opacity 0.25s ease;
+	transition: opacity 0.5s ease;
 }
 .oq-message-selectedtext-content:hover {
 	opacity: 0.7;
@@ -221,6 +223,7 @@ button.oq-prompt-send:enabled:hover {
 	max-height: none;
 	mask-image: none;
 	-webkit-mask-image: none;
+	transition: max-height 0.5s ease;
 	/* cursor: auto; */ /* <- Not sure about this. Has trade offs. */
 }
 /* End WDS technique */

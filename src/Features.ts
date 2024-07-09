@@ -18,7 +18,7 @@ export default class Features {
 		this.app = app;
 		this.apiService = apiService;
 		this.settings = settings;
-		this.payloadMessages = new PayloadMessages();
+		this.payloadMessages = PayloadMessages.getInstance();
 		this.featuresRegistry = FeaturesRegistry(app);
 		this.executeFeature = this.executeFeature.bind(this);
 		this.pluginServices = apiService.pluginServices;
