@@ -11,8 +11,8 @@
 /* View */
 .view-content:focus-within #oq-view-title,
 .view-content:focus-within #oq-message-pad {
-	color: var(--oq-app-bright-color);
 	border-color: var(--oq-app-bright-color);
+	color: var(--oq-app-bright-color);
 	transition: color 0.2s ease, border-color 0.2s ease;
 }
 [data-type="quill-chat-view"] .view-content {
@@ -25,14 +25,19 @@
 	position: absolute;
 	top: 0;
 	height: var(--oq-view-title-height);
-	background: var(--background-primary);
-	color: var(--oq-app-faint-color);
-	border-bottom: 2px solid var(--oq-app-faint-color);
-	padding: 0.7rem 1rem 0;
 	width: 100%;
+	z-index: 1000;
+	color: var(--oq-app-faint-color);
+	transition: color 0.2s ease, border-color 0.2s ease;
+	border-bottom: 2px solid var(--oq-app-faint-color);
+	padding: 0.66rem 1rem 0;
 	font-weight: 400;
 	--icon-size: var(--icon-m);
-	transition: color 0.2s ease, border-color 0.2s ease;
+	background: var(--background-primary);
+}
+#oq-btn-new-chat {
+	width: fit-content;
+	cursor: pointer;
 }
 #oq-btn-new-chat:after {
 	position: relative;
@@ -42,7 +47,7 @@
 	font-size: small;
 	color: var(--oq-app-faint-color);
 	transition: color 0.2s ease;
-	/* cursor: pointer; */
+	cursor: pointer;
 }
 #oq-btn-new-chat:hover::after {
 	color: var(--oq-app-bright-color);
@@ -51,7 +56,7 @@
 	display: grid;
 	grid-auto-rows: min-content;
 	gap: 0.5rem;
-	padding-top: var(--oq-view-title-height);
+	padding-top: calc(var(--oq-view-title-height) + 12px);
 	max-height: 100%;
 	overflow-y: scroll;
 	line-height: var(--line-height-normal);
@@ -69,7 +74,7 @@
 	border-left: var(--oq-hightlight-width) solid transparent;
 	user-select: text;
 	-webkit-user-select: text;
-	transition: border-color 1s ease;
+	transition: border-color 1.5s ease;
 }
 .oq-message-highlight {
 	border-left-color: var(--oq-app-bright-color);
@@ -83,7 +88,6 @@
 	white-space: pre-wrap;
 	background: var(--background-secondary);
 }
-/* .oq-message code  */
 .oq-message code[class*="language-"] {
 	white-space: pre;
 	font-size: smaller;

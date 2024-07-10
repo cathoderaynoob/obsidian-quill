@@ -194,24 +194,38 @@ const generateUniqueId = () => {
 
 // Scroll to a specific message
 export const scrollToMessage = (index: number) => {
-	const messageElement = document.querySelector(`[data-id="message-${index}"]`);
-	if (messageElement) {
-		const messageElemHeight = messageElement.getCssPropertyValue("height");
-		const messagesViewHeight = document
-			.getElementById("oq-messages")
-			?.getCssPropertyValue("height");
-		if (messagesViewHeight) {
-			const scrollToPos =
-				parseInt(messageElemHeight) >= parseInt(messagesViewHeight)
-					? "start"
-					: "center";
-			messageElement.scrollIntoView({
-				block: scrollToPos || "start",
-				behavior: "smooth",
-			});
-			highlightMessage(index);
-		}
+	const container = document.getElementById("oq-messages");
+	const message = document.querySelector(
+		`[data-id="message-${index}"]`
+	) as HTMLElement;
+	const titleBar = document.getElementById("oq-view-title");
+
+	if (!container || !message) return;
+
+	const containerRect = container.getBoundingClientRect();
+	const messageRect = message.getBoundingClientRect();
+	const titleBarHeight = titleBar?.offsetHeight || 40;
+
+	const messagePos = messageRect.top - containerRect.top + container.scrollTop;
+	// 12 corresponds to oq-messages padding-top
+	const scrollToPosition = messagePos - titleBarHeight - 12;
+
+	// If the message is taller than the chat container,
+	// scroll the message to the top of the container
+	if (message.offsetHeight > container.offsetHeight) {
+		container.scrollTo({
+			top: scrollToPosition,
+			behavior: "smooth",
+		});
+	} else {
+		// Otherwise, scroll the message into view, centered
+		message.scrollIntoView({
+			block: "center",
+			behavior: "smooth",
+		});
 	}
+
+	highlightMessage(index);
 };
 
 const scrollToBottom = () => {
