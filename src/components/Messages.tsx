@@ -111,14 +111,11 @@ const Messages: React.FC = () => {
 
 	// Control the message navigation
 	const goToMessage = (nav: "next" | "prev" | "first" | "last") => {
-		let atLastMsg = false;
 		setCurrentIndex((prevIndex) => {
 			let newIndex = prevIndex;
 			switch (nav) {
 				case "next":
-					atLastMsg = prevIndex === messages.length - 1;
-					newIndex = atLastMsg ? prevIndex : prevIndex + 1;
-					highlightMessage(newIndex);
+					newIndex = Math.min(messages.length - 1, prevIndex + 1);
 					break;
 				case "prev":
 					newIndex = Math.max(0, prevIndex - 1);
@@ -130,13 +127,9 @@ const Messages: React.FC = () => {
 					newIndex = messages.length - 1;
 					break;
 			}
-			if (atLastMsg) {
-				scrollToBottom();
-			} else {
-				scrollToMessage(newIndex);
-				clearHighlights("oq-message-highlight");
-				highlightMessage(newIndex);
-			}
+			scrollToMessage(newIndex);
+			clearHighlights("oq-message-highlight");
+			highlightMessage(newIndex);
 			return newIndex;
 		});
 	};
