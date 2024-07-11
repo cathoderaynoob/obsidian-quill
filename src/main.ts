@@ -34,6 +34,26 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 			notifyError: this.notifyError.bind(this),
 		};
 
+		// const { vault } = this.app;
+		// console.log(vault.getAllLoadedFiles());
+		// const newFolderPath = "/Test2";
+		// vault.createFolder(newFolderPath);
+		// vault.create(newFolderPath + "/File1.md", "Line 1");
+		// console.log(vault.adapter.list(newFolderPath));
+
+		// console.log((await vault.adapter.list("Test")).files);
+		// const TestDirectory = vault.getFolderByPath("Test2");
+		// console.log(TestDirectory?.children);
+		// console.log(TestDirectory);
+		// const TestFile = vault.getFileByPath("Test/File 1.md");
+		// if (TestFile) {
+		// 	vault.modify(TestFile, "");
+		// 	for (let i = 1; i <= 10; i++) {
+		// 		vault.append(TestFile, `Line ${i}\n`);
+		// 	}
+		// 	console.log(TestFile);
+		// }
+
 		this.addSettingTab(new QuillSettingsTab(this.app, this));
 		this.registerView(
 			QUILL_VIEW_TYPE,
