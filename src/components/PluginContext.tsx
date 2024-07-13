@@ -1,3 +1,4 @@
+import { Vault } from "obsidian";
 import { StrictMode, createContext, useContext } from "react";
 import { QuillPluginSettings } from "@/settings";
 import { IPluginServices } from "@/interfaces";
@@ -7,6 +8,7 @@ interface PluginContextProps {
 	settings: QuillPluginSettings;
 	pluginServices: IPluginServices;
 	apiService: ApiService;
+	vault: Vault;
 }
 
 type PluginContextProviderProps = {
@@ -14,6 +16,7 @@ type PluginContextProviderProps = {
 	settings: QuillPluginSettings;
 	pluginServices: IPluginServices;
 	apiService: ApiService;
+	vault: Vault;
 };
 
 const PluginContext = createContext<PluginContextProps | null>(null);
@@ -23,9 +26,12 @@ export default function PluginContextProvider({
 	settings,
 	pluginServices,
 	apiService,
+	vault,
 }: PluginContextProviderProps) {
 	return (
-		<PluginContext.Provider value={{ settings, pluginServices, apiService }}>
+		<PluginContext.Provider
+			value={{ settings, pluginServices, apiService, vault }}
+		>
 			<StrictMode>{children}</StrictMode>
 			{/* {children} */}
 		</PluginContext.Provider>

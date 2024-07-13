@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { usePluginContext } from "@/components/PluginContext";
 import { Role } from "@/interfaces";
+import { saveChatToFile } from "@/vaultUtils";
 import emitter from "@/customEmitter";
 import Message from "@/components/Message";
 import PayloadMessages from "@/PayloadMessages";
@@ -18,17 +19,38 @@ export interface MessageType {
 }
 
 const Messages: React.FC = () => {
-	const { settings, apiService, pluginServices } = usePluginContext();
+	const SCROLL_THRESHOLD_CHARS = 400;
+	const { settings, apiService, pluginServices, vault } = usePluginContext();
 	const [messages, setMessages] = useState<MessageType[]>([]);
 	const [, setCurrentIndex] = useState(0);
 	const latestMessageRef = useRef<MessageType | null>(null);
 	const lastScrollPositionRef = useRef(0);
-	const SCROLL_THRESHOLD_CHARS = 400;
 	const payloadMessages = PayloadMessages.getInstance();
 
-	const clearMessages = () => {
-		setMessages([]);
-		payloadMessages.clearPayloadMessages();
+	const newChat = async (event: React.MouseEvent<HTMLElement>) => {
+		let success = false;
+		if (!event.altKey) {
+			success = await saveMessages();
+		}
+		if (success || event.altKey) {
+			setMessages([]);
+			payloadMessages.clearAll();
+		}
+	};
+
+	const saveMessages = async () => {
+		// const messages = payloadMessages.getAll(false);
+		if (messages.length) {
+			const filename = await saveChatToFile(
+				messages,
+				vault,
+				settings,
+				pluginServices
+			);
+			return !!filename;
+		} else {
+			return false;
+		}
 	};
 
 	// Add a new message
@@ -85,8 +107,8 @@ const Messages: React.FC = () => {
 	// Clear the message highlight when the stream ends
 	useEffect(() => {
 		const handleStreamEnd = () => {
-			// Without setTimeout, highlight isn't cleared
-			// if the response is minimal, e.g. "1 2 3"
+			// setTimeout is necessary when the response is minimal, e.g. "1 2 3".
+			// Otherwise the highlight isn't cleared.
 			setTimeout(() => {
 				clearHighlights("oq-message-streaming");
 				lastScrollPositionRef.current = 0;
@@ -177,7 +199,7 @@ const Messages: React.FC = () => {
 	return (
 		<>
 			<div id="oq-messages">
-				<TitleBar clearMessages={clearMessages} />
+				<TitleBar newChat={newChat} />
 				{messages.map((message, index) => (
 					<Message key={message.id} {...message} dataId={`message-${index}`} />
 				))}
@@ -224,8 +246,6 @@ export const scrollToMessage = (index: number) => {
 			behavior: "smooth",
 		});
 	}
-
-	highlightMessage(index);
 };
 
 const scrollToBottom = () => {

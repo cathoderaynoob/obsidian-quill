@@ -1,4 +1,4 @@
-import { App, PluginSettingTab, Setting } from "obsidian";
+import { App, PluginSettingTab, Setting, TFolder } from "obsidian";
 import QuillPlugin from "@/main";
 
 // Export the settings interface
@@ -7,6 +7,7 @@ export interface QuillPluginSettings {
 	openaiEnginesUrl: string;
 	openaiModel: string;
 	openaiTemperature: number;
+	vaultFolder: string;
 }
 
 const openaiBaseUrl = "https://api.openai.com/v1";
@@ -17,6 +18,7 @@ export const DEFAULT_SETTINGS: QuillPluginSettings = {
 	openaiEnginesUrl: `${openaiBaseUrl}/engines`,
 	openaiModel: "gpt-3.5-turbo-0125",
 	openaiTemperature: 0.7,
+	vaultFolder: "Quill Conversations",
 };
 
 interface OpenAIModels {
@@ -53,6 +55,7 @@ export class QuillSettingsTab extends PluginSettingTab {
 
 	display(): void {
 		const { containerEl } = this;
+		containerEl.addClass("oq-settings");
 
 		containerEl.empty();
 
@@ -60,7 +63,7 @@ export class QuillSettingsTab extends PluginSettingTab {
 			text: "Obsidian Quill Settings",
 		});
 
-		// OpenAI API Key
+		// OpenAI API Key `openaiApiKey`
 		new Setting(containerEl)
 			.setName("OpenAI API Key")
 			.setDesc("Enter your OpenAI API key.")
@@ -74,7 +77,7 @@ export class QuillSettingsTab extends PluginSettingTab {
 					})
 			);
 
-		// OpenAI Model
+		// OpenAI Model `openaiModel`
 		new Setting(containerEl)
 			.setName("OpenAI Model")
 			.setDesc(
@@ -88,6 +91,23 @@ export class QuillSettingsTab extends PluginSettingTab {
 				dropdown.setValue(this.plugin.settings.openaiModel);
 				dropdown.onChange(async (model) => {
 					this.plugin.settings.openaiModel = model;
+					await this.plugin.saveSettings();
+				});
+			});
+		// Vault Folder: `vaultFolder`
+		new Setting(containerEl)
+			.setName("Save Conversations To...")
+			.setDesc("Set the default folder for saving Quill conversations.")
+			.addDropdown((dropdown) => {
+				const folders = this.app.vault
+					.getAllLoadedFiles()
+					.filter((folder) => folder instanceof TFolder) as TFolder[];
+				folders.forEach((folder) =>
+					dropdown.addOption(folder.path, folder.path)
+				);
+				dropdown.setValue(this.plugin.settings.vaultFolder);
+				dropdown.onChange(async (folder) => {
+					this.plugin.settings.vaultFolder = folder;
 					await this.plugin.saveSettings();
 				});
 			});

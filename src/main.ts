@@ -1,4 +1,4 @@
-import { Editor, Notice, Plugin, WorkspaceLeaf } from "obsidian";
+import { Editor, Notice, Plugin, Vault, WorkspaceLeaf } from "obsidian";
 import {
 	ErrorCode,
 	APP_PROPS,
@@ -21,6 +21,7 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 	apiService: ApiService;
 	features: Features;
 	pluginServices: IPluginServices;
+	vault: Vault;
 	openModals: PromptModal[] = [];
 
 	async onload(): Promise<void> {
@@ -33,26 +34,7 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 			getViewElem: this.getViewElem.bind(this),
 			notifyError: this.notifyError.bind(this),
 		};
-
-		// const { vault } = this.app;
-		// console.log(vault.getAllLoadedFiles());
-		// const newFolderPath = "/Test2";
-		// vault.createFolder(newFolderPath);
-		// vault.create(newFolderPath + "/File1.md", "Line 1");
-		// console.log(vault.adapter.list(newFolderPath));
-
-		// console.log((await vault.adapter.list("Test")).files);
-		// const TestDirectory = vault.getFolderByPath("Test2");
-		// console.log(TestDirectory?.children);
-		// console.log(TestDirectory);
-		// const TestFile = vault.getFileByPath("Test/File 1.md");
-		// if (TestFile) {
-		// 	vault.modify(TestFile, "");
-		// 	for (let i = 1; i <= 10; i++) {
-		// 		vault.append(TestFile, `Line ${i}\n`);
-		// 	}
-		// 	console.log(TestFile);
-		// }
+		this.vault = this.app.vault;
 
 		this.addSettingTab(new QuillSettingsTab(this.app, this));
 		this.registerView(
@@ -198,6 +180,7 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 			const chatViewContainer = leaf.view.containerEl
 				.children[1] as HTMLElement;
 			chatViewContainer.tabIndex = 0;
+			chatViewContainer.focus();
 			const chatViewInput = chatViewContainer?.querySelector("textarea");
 			chatViewInput?.focus();
 		} else {
