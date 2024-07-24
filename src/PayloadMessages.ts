@@ -15,20 +15,31 @@ class PayloadMessages {
 		return PayloadMessages.instance;
 	}
 
-	getPayloadMessages(): PayloadMessagesType[] {
-		return this.payloadMessages;
+	getAll(includeSys?: boolean): PayloadMessagesType[] {
+		if (includeSys) {
+			return [...this.payloadMessages];
+		} else {
+			return this.payloadMessages.filter(
+				(message) => message.role !== "system"
+			);
+		}
 	}
 
-	getLatestPayloadMessage(): PayloadMessagesType {
-		return this.payloadMessages[this.payloadMessages.length - 1];
+	get(): PayloadMessagesType[] {
+		return [...this.payloadMessages];
+	}
+
+	getLatestMessage(): PayloadMessagesType | null {
+		if (this.payloadMessages.length === 0) return null;
+		return { ...this.payloadMessages[this.payloadMessages.length - 1] };
 	}
 
 	addMessage(message: PayloadMessagesType): PayloadMessagesType[] {
 		this.payloadMessages.push(message);
-		return this.payloadMessages;
+		return this.getAll();
 	}
 
-	clearPayloadMessages(): void {
+	clearAll(): void {
 		this.payloadMessages = [];
 	}
 }

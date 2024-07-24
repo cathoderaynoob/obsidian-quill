@@ -8,7 +8,25 @@
 	--oq-hightlight-width: 3px;
 }
 
+/* Settings */
+.oq-settings {
+	display: grid;
+	grid-gap: 1.5rem;
+	height: auto;
+}
+.oq-settings .setting-item {
+	display: grid;
+	grid-gap: 0.5rem;
+	grid-template-columns: 1fr 33%;
+}
+.oq-settings input,
+.oq-settings select {
+	width: 100%;
+}
+
 /* View */
+/* .mod-active .oq-messages:focus-within #oq-view-title,
+.mod-active .oq-messages:focus-within #oq-message-pad { */
 .view-content:focus-within #oq-view-title,
 .view-content:focus-within #oq-message-pad {
 	border-color: var(--oq-app-bright-color);

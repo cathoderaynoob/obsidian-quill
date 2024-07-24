@@ -1,11 +1,11 @@
 interface TitleBarProps {
-	clearMessages: () => void;
+	newChat: () => void;
 }
 
-const TitleBar: React.FC<TitleBarProps> = ({ clearMessages }) => {
+const TitleBar: React.FC<TitleBarProps> = ({ newChat }) => {
 	return (
 		<div id="oq-view-title">
-			<div id="oq-btn-new-chat" onClick={clearMessages} />
+			<div id="oq-btn-new-chat" onClick={newChat} />
 		</div>
 	);
 };

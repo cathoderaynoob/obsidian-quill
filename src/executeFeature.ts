@@ -60,7 +60,7 @@ export const executeFeature = async (
 		await emitEvent("newMessage", "user", selectedText);
 		if (inputText) await emitEvent("updateMessage", inputText);
 		await pluginServices.toggleView();
-		if (payloadMessages.getPayloadMessages().length === 0) {
+		if (payloadMessages.getAll().length === 0) {
 			const today = new Date().toLocaleDateString("en-US", {
 				month: "long",
 				day: "numeric",

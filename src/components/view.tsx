@@ -1,4 +1,4 @@
-import { ItemView, setIcon, WorkspaceLeaf } from "obsidian";
+import { ItemView, setIcon, Vault, WorkspaceLeaf } from "obsidian";
 import { Root, createRoot } from "react-dom/client";
 import { IPluginServices } from "@/interfaces";
 import { QUILL_VIEW_TYPE, APP_PROPS } from "@/constants";
@@ -15,6 +15,7 @@ export default class QuillView extends ItemView {
 	settings: QuillPluginSettings;
 	apiService: ApiService;
 	pluginServices: IPluginServices;
+	vault: Vault;
 	features: Features;
 
 	static instance: QuillView;
@@ -25,6 +26,7 @@ export default class QuillView extends ItemView {
 		this.apiService = plugin.apiService;
 		this.features = plugin.features;
 		this.pluginServices = plugin.pluginServices;
+		this.vault = plugin.vault;
 		QuillView.instance = this;
 	}
 
@@ -51,6 +53,7 @@ export default class QuillView extends ItemView {
 				settings={this.settings}
 				pluginServices={this.pluginServices}
 				apiService={this.apiService}
+				vault={this.vault}
 			>
 				<Messages />
 				<MessagePad executeFeature={this.features.executeFeature} />

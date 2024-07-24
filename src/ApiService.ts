@@ -46,9 +46,10 @@ export default class ApiService {
 				// More can be done with this:
 				// https://platform.openai.com/docs/api-reference/chat/create
 				const content = chunk.choices[0]?.delta?.content;
-				if (typeof content === "string")
+				if (typeof content === "string") {
 					callback(content, targetEditor || undefined);
-				completedMessage += content;
+					completedMessage += content;
+				}
 			}
 		} catch (error) {
 			this.pluginServices.notifyError("unknown", error);

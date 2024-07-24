@@ -4,6 +4,7 @@ export const ERROR_MESSAGES = {
 		"community plugin settings for Quill.",
 	noEngines: "No engines found. More information can be found in the console.",
 	noFeature: "Feature not found",
+	saveError: "Unable to save chat. Please check the console for details.",
 	unknown: "An error occurred. Please check the console for details.",
 	viewError:
 		"Unable to open Quill. Please try again, or check the " +
@@ -39,11 +40,11 @@ export const PROMPTS = {
 		role: "user",
 		content:
 			"Tell me one thing from history in one paragraph that happened on this date, " +
-			"interesting, significant, or funny. Start with `On **<MMMM D, YYYY>**,`. " +
-			"Italicize important or prominent persons, places, events, etc. This response " +
-			"is going into a note, so to create a separation from other text, append the " +
-			"response with 2 newline chars, 3 underscores, and 2 more newline chars, " +
-			"i.e. `\n\n___\n\n`.",
+			"interesting, significant, or funny. Start with `On **<MMMM D, YYYY>**,`." +
+			"Make sure the date is bold. Italicize important or prominent persons, " +
+			"places, events, etc. This response is going into a note, so to create a " +
+			"separation from other text, append the response with 2 newline chars, " +
+			"3 underscores, and 2 more newline chars, i.e. `\n\n___\n\n`.",
 	},
 	define: {
 		role: "user",
