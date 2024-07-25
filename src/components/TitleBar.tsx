@@ -1,5 +1,5 @@
 interface TitleBarProps {
-	newChat: () => void;
+	newChat: (event: React.MouseEvent<HTMLElement>) => void;
 }
 
 const TitleBar: React.FC<TitleBarProps> = ({ newChat }) => {

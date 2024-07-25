@@ -7,7 +7,8 @@ export interface QuillPluginSettings {
 	openaiEnginesUrl: string;
 	openaiModel: string;
 	openaiTemperature: number;
-	vaultFolder: string;
+	conversationsFolder: string;
+	messagesFolder: string;
 }
 
 const openaiBaseUrl = "https://api.openai.com/v1";
@@ -16,9 +17,10 @@ const openaiBaseUrl = "https://api.openai.com/v1";
 export const DEFAULT_SETTINGS: QuillPluginSettings = {
 	openaiApiKey: "",
 	openaiEnginesUrl: `${openaiBaseUrl}/engines`,
-	openaiModel: "gpt-3.5-turbo-0125",
+	openaiModel: "gpt-4o-mini",
 	openaiTemperature: 0.7,
-	vaultFolder: "Quill Conversations",
+	conversationsFolder: "Quill",
+	messagesFolder: "Quill",
 };
 
 interface OpenAIModels {
@@ -35,12 +37,8 @@ export const OPENAI_MODELS: OpenAIModels = {
 			display: "GPT-4o",
 		},
 		{
-			model: "gpt-3.5-turbo-0125",
-			display: "GPT-3.5 Turbo (0125)",
-		},
-		{
-			model: "gpt-3.5-turbo-instruct",
-			display: "GPT-3.5 Turbo Instruct",
+			model: "gpt-4o-mini",
+			display: "GPT-4o Mini",
 		},
 	],
 };
@@ -102,12 +100,32 @@ export class QuillSettingsTab extends PluginSettingTab {
 				const folders = this.app.vault
 					.getAllLoadedFiles()
 					.filter((folder) => folder instanceof TFolder) as TFolder[];
-				folders.forEach((folder) =>
-					dropdown.addOption(folder.path, folder.path)
+				const folderPaths = folders.map((folder) => folder.path).sort();
+				folderPaths.forEach((folderPath) =>
+					dropdown.addOption(folderPath, folderPath)
 				);
-				dropdown.setValue(this.plugin.settings.vaultFolder);
+				dropdown.setValue(this.plugin.settings.conversationsFolder);
 				dropdown.onChange(async (folder) => {
-					this.plugin.settings.vaultFolder = folder;
+					this.plugin.settings.conversationsFolder = folder;
+					await this.plugin.saveSettings();
+				});
+			});
+
+		// Save Messages Preferences
+		new Setting(containerEl)
+			.setName("Save Messages To...")
+			.setDesc("Set the default folder for saving Quill messages.")
+			.addDropdown((dropdown) => {
+				const folders = this.app.vault
+					.getAllLoadedFiles()
+					.filter((folder) => folder instanceof TFolder) as TFolder[];
+				const folderPaths = folders.map((folder) => folder.path).sort();
+				folderPaths.forEach((folderPath) =>
+					dropdown.addOption(folderPath, folderPath)
+				);
+				dropdown.setValue(this.plugin.settings.messagesFolder);
+				dropdown.onChange(async (folder) => {
+					this.plugin.settings.messagesFolder = folder;
 					await this.plugin.saveSettings();
 				});
 			});

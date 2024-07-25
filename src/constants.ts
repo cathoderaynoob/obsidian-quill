@@ -4,7 +4,7 @@ export const ERROR_MESSAGES = {
 		"community plugin settings for Quill.",
 	noEngines: "No engines found. More information can be found in the console.",
 	noFeature: "Feature not found",
-	saveError: "Unable to save chat. Please check the console for details.",
+	saveError: "Unable to save to a note. Please check the console for details.",
 	unknown: "An error occurred. Please check the console for details.",
 	viewError:
 		"Unable to open Quill. Please try again, or check the " +
@@ -34,7 +34,8 @@ export const PROMPTS = {
 			"Formatting Instructions:\n\nStyle your response in markdown format " +
 			"where it will improve readability and impact. Use sparingly. " +
 			"Do not add conversation preamble, summaries, or labels when asked " +
-			"for specific content, since the output will be used directly in a note.",
+			"for specific content, since the entire output will be copied directly " +
+			"to a note.",
 	},
 	onThisDate: {
 		role: "user",
@@ -49,14 +50,23 @@ export const PROMPTS = {
 	define: {
 		role: "user",
 		content:
-			"<= Define this term in the following format. Correct the spelling of " +
-			"the word provided if necessary, but do not comment on it.\n\n" +
-			"###### <term, lowercase unless proper noun, etc.> `/<Pronunciation in " +
-			"International Phonetic Alphabet (IPA)>/`\n\n" +
-			"<Definition. If more than one, enumerate.>\n" +
-			'<For each defn:> - *Example*: "<Use the term in a sentence>"\n' +
-			"Finally, after all definitions and examples, add 2 newline chars, " +
-			"i.e. `\n\n`.",
+			"<= [Define this term in the format of the following example.\n" +
+			"If proper noun, use title case. Otherwise always use lower case.\n" +
+			"Please provide multiple definitions, but only if there is more than one.\n\n" +
+			"###### term\n" +
+			"`/tɜrm/`\n\n" +
+			"1. A word or phrase used to describe a thing or to express " +
+			"a concept, especially in a particular kind of language or " +
+			"branch of study.\n" +
+			"   - *Example*: \"The term 'photosynthesis' is commonly used " +
+			'     in biology."\n' +
+			"2. A fixed or limited period for which something, such as " +
+			"an office, imprisonment, or investment, lasts or is " +
+			"intended to last.\n" +
+			"   - *Example*: \"The president's term in office is four " +
+			'     years."\n' +
+			"3. ...\n\n" +
+			"[After last definition, include one newline character.]",
 	},
 	tellAJoke: {
 		role: "user",

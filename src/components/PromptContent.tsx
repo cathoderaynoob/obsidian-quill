@@ -7,6 +7,7 @@ interface PromptContentProps {
 	rows: number;
 	model: string;
 	handleInput: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+	handleBlur: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
 	handleKeyPress: (e: React.KeyboardEvent) => void;
 	handleSend: () => void;
 }
@@ -18,6 +19,7 @@ const PromptContent: React.FC<PromptContentProps> = ({
 	handleInput,
 	handleKeyPress,
 	handleSend,
+	handleBlur,
 }) => {
 	const promptContentRef = useRef<HTMLDivElement>(null);
 
@@ -42,6 +44,7 @@ const PromptContent: React.FC<PromptContentProps> = ({
 				value={value}
 				onInput={handleInput}
 				onKeyDown={handleKeyPress}
+				onBlur={handleBlur}
 			/>
 			{/* TODO: Disable unless text entered */}
 			<button className="oq-prompt-send" onClick={handleSend} />
@@ -51,7 +54,3 @@ const PromptContent: React.FC<PromptContentProps> = ({
 };
 
 export default PromptContent;
-
-// disabled={
-// 	!promptContentRef?.current?.querySelector("textarea")?.value.trim()
-// }

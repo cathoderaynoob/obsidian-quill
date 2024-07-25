@@ -27,6 +27,13 @@ const MessagePad: React.FC<MessagePadProps> = ({ executeFeature }) => {
 		}
 	};
 
+	const handleBlur = () => {
+		if (/^\s*$/.test(promptValue)) {
+			const trimmedValue = promptValue.trim();
+			setPromptValue(trimmedValue);
+		}
+	};
+
 	const handleSend = () => {
 		const trimmedValue = promptValue.trim();
 		setPromptValue(trimmedValue);
@@ -47,6 +54,7 @@ const MessagePad: React.FC<MessagePadProps> = ({ executeFeature }) => {
 				handleInput={handleInput}
 				handleKeyPress={handleKeyPress}
 				handleSend={handleSend}
+				handleBlur={handleBlur}
 			/>
 		</div>
 	);

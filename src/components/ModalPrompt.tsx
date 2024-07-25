@@ -4,15 +4,15 @@ import { QuillPluginSettings } from "@/settings";
 import { getFeatureProperties } from "@/featuresRegistry";
 import PromptContent from "@/components/PromptContent";
 
-interface PromptModalParams {
+interface ModalPromptParams {
 	app: App;
 	settings: QuillPluginSettings;
 	onSend: (prompt: string) => void;
 	featureId?: string;
 }
 
-// GET PROMPT FROM USER MODAL ==================================================
-export class PromptModal extends Modal {
+// GET PROMPT FROM USER MODAL =================================================
+class ModalPrompt extends Modal {
 	private modalRoot: Root | null = null;
 	private promptValue: string;
 	private settings: QuillPluginSettings;
@@ -20,7 +20,7 @@ export class PromptModal extends Modal {
 	private featureId?: string | null;
 	private rows = 6;
 
-	constructor({ app, settings, onSend, featureId }: PromptModalParams) {
+	constructor({ app, settings, onSend, featureId }: ModalPromptParams) {
 		super(app);
 		this.settings = settings;
 		this.onSend = onSend;
@@ -53,6 +53,10 @@ export class PromptModal extends Modal {
 			this.onSend(this.promptValue.trim());
 		};
 
+		const handleBlur = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+			e.target.value = e.target.value.trim();
+		};
+
 		this.modalRoot = createRoot(this.contentEl);
 		this.modalRoot.render(
 			<div id="oq-prompt-modal">
@@ -63,6 +67,7 @@ export class PromptModal extends Modal {
 					handleInput={handleInput}
 					handleKeyPress={handleKeyPress}
 					handleSend={handleSend}
+					handleBlur={handleBlur}
 				/>
 			</div>
 		);
@@ -75,23 +80,4 @@ export class PromptModal extends Modal {
 	}
 }
 
-// SIMPLE TEXT OUTPUT MODAL ====================================================
-export class TextOutputModal extends Modal {
-	textOutput: string;
-	modalRoot: Root | null = null;
-
-	constructor(app: App, textOutput: string) {
-		super(app);
-		this.textOutput = textOutput;
-	}
-
-	onOpen() {
-		this.modalRoot = createRoot(this.contentEl);
-		this.modalRoot.render(<div id="oq-output-modal">{this.textOutput}</div>);
-	}
-
-	onClose() {
-		this.modalRoot?.unmount();
-		this.contentEl.empty();
-	}
-}
+export default ModalPrompt;

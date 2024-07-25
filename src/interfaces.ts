@@ -1,4 +1,7 @@
+import { App } from "obsidian";
+
 export interface IPluginServices {
+	app: App;
 	toggleView(): Promise<void>;
 	getViewElem(): HTMLElement | null;
 	notifyError(errorCode: string, consoleMsg?: string): void;
