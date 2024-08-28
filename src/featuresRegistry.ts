@@ -1,8 +1,8 @@
 import { App, Editor } from "obsidian";
 import { PROMPTS } from "@/constants";
-import { TextOutputModal } from "@/components/modals";
 import { renderToEditor } from "@/editorUtils";
 import emitter from "@/customEmitter";
+import ModalTextOutput from "@/components/ModalTextOutput";
 
 export interface FeatureProperties {
 	id: string;
@@ -23,7 +23,7 @@ export const FeaturesRegistry = (
 			id: "tellAJoke",
 			prompt: () => PROMPTS.tellAJoke.content,
 			processResponse: (response) => {
-				if (response.length) new TextOutputModal(app, response).open();
+				if (response.length) new ModalTextOutput(app, response).open();
 			},
 		},
 

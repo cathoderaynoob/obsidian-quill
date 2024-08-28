@@ -1,26 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import { usePluginContext } from "@/components/PluginContext";
 import { Role } from "@/interfaces";
-import { saveChatToFile } from "@/vaultUtils";
 import emitter from "@/customEmitter";
-import Message from "@/components/Message";
+import Message, { MessageType } from "@/components/Message";
 import PayloadMessages from "@/PayloadMessages";
 import TitleBar from "@/components/TitleBar";
 
-export interface MessageType {
-	id: string;
-	role: Role;
-	content: string;
-	model: string;
-	selectedText?: string;
-	error?: string;
-	// actions?: string[];
-	// status?: string;
-}
-
 const Messages: React.FC = () => {
 	const SCROLL_THRESHOLD_CHARS = 400;
-	const { settings, apiService, pluginServices, vault } = usePluginContext();
+	const { settings, apiService, pluginServices, vault, vaultUtils } =
+		usePluginContext();
 	const [messages, setMessages] = useState<MessageType[]>([]);
 	const [, setCurrentIndex] = useState(0);
 	const latestMessageRef = useRef<MessageType | null>(null);
@@ -41,7 +30,7 @@ const Messages: React.FC = () => {
 	const saveMessages = async () => {
 		// const messages = payloadMessages.getAll(false);
 		if (messages.length) {
-			const filename = await saveChatToFile(
+			const filename = await vaultUtils.saveConversationToFile(
 				messages,
 				vault,
 				settings,
@@ -93,6 +82,14 @@ const Messages: React.FC = () => {
 					currentLength >=
 					lastScrollPositionRef.current + SCROLL_THRESHOLD_CHARS
 				) {
+					console.log(
+						'document.getElementById("oq-messages")?.scrollTop',
+						document.getElementById("oq-messages")?.scrollTop
+					);
+					console.log(
+						"lastScrollPositionRef.current",
+						lastScrollPositionRef.current
+					);
 					scrollToBottom();
 					lastScrollPositionRef.current = currentLength;
 				}
@@ -201,7 +198,7 @@ const Messages: React.FC = () => {
 			<div id="oq-messages">
 				<TitleBar newChat={newChat} />
 				{messages.map((message, index) => (
-					<Message key={message.id} {...message} dataId={`message-${index}`} />
+					<Message key={message.id} {...message} dataIdx={`message-${index}`} />
 				))}
 				<div id="oq-messages-shim" />
 			</div>
@@ -218,17 +215,16 @@ const generateUniqueId = () => {
 export const scrollToMessage = (index: number) => {
 	const container = document.getElementById("oq-messages");
 	const message = document.querySelector(
-		`[data-id="message-${index}"]`
+		`[data-idx="message-${index}"]`
 	) as HTMLElement;
-	const titleBar = document.getElementById("oq-view-title");
-
 	if (!container || !message) return;
-
-	const containerRect = container.getBoundingClientRect();
-	const messageRect = message.getBoundingClientRect();
+	const titleBar = document.getElementById("oq-view-title");
 	const titleBarHeight = titleBar?.offsetHeight || 40;
 
-	const messagePos = messageRect.top - containerRect.top + container.scrollTop;
+	const messagePos = getMessagePos(container, message);
+
+	if (!messagePos) return;
+
 	// 12 corresponds to oq-messages padding-top
 	const scrollToPosition = messagePos - titleBarHeight - 12;
 
@@ -248,6 +244,15 @@ export const scrollToMessage = (index: number) => {
 	}
 };
 
+const getMessagePos = (container: HTMLElement, message: HTMLElement) => {
+	let messagePos = 0;
+	const containerRect = container.getBoundingClientRect();
+	const messageRect = message.getBoundingClientRect();
+
+	messagePos = messageRect.top - containerRect.top + container.scrollTop;
+	return messagePos;
+};
+
 const scrollToBottom = () => {
 	const bottom = document.getElementById("oq-messages-shim");
 	bottom?.scrollIntoView({ behavior: "smooth" });
@@ -255,7 +260,9 @@ const scrollToBottom = () => {
 
 // Utility functions for highlighting messages
 export const highlightMessage = (index: number) => {
-	const messageElement = document.querySelector(`[data-id="message-${index}"]`);
+	const messageElement = document.querySelector(
+		`[data-idx="message-${index}"]`
+	);
 	messageElement?.classList.add("oq-message-highlight");
 	setTimeout(() => {
 		clearHighlights("oq-message-highlight");

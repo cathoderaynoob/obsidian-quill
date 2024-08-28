@@ -1,11 +1,14 @@
 /* Variables */
 [data-type="quill-chat-view"],
-[id="oq-prompt-modal"] {
+[id="oq-prompt-modal"],
+[id="oq-saveas-form"] {
 	--oq-app-bright-color: var(--text-accent);
 	--oq-app-faint-color: var(--text-faint);
 	--oq-view-title-height: 2.5rem;
 	--oq-message-pad-height: 6.25rem;
 	--oq-hightlight-width: 3px;
+	--oq-transition-color: color 0.2s ease;
+	--oq-transition-opacity: opacity 0.2s ease;
 }
 
 /* Settings */
@@ -31,7 +34,7 @@
 .view-content:focus-within #oq-message-pad {
 	border-color: var(--oq-app-bright-color);
 	color: var(--oq-app-bright-color);
-	transition: color 0.2s ease, border-color 0.2s ease;
+	transition: var(--oq-transition-color), border-color 0.2s ease;
 }
 [data-type="quill-chat-view"] .view-content {
 	display: grid;
@@ -46,7 +49,7 @@
 	width: 100%;
 	z-index: 1000;
 	color: var(--oq-app-faint-color);
-	transition: color 0.2s ease, border-color 0.2s ease;
+	transition: var(--oq-transition-color), border-color 0.2s ease;
 	border-bottom: 2px solid var(--oq-app-faint-color);
 	padding: 0.66rem 1rem 0;
 	font-weight: 400;
@@ -64,7 +67,7 @@
 	content: "new chat";
 	font-size: small;
 	color: var(--oq-app-faint-color);
-	transition: color 0.2s ease;
+	transition: var(--oq-transition-color);
 	cursor: pointer;
 }
 #oq-btn-new-chat:hover::after {
@@ -128,6 +131,28 @@
 	padding-right: 1rem;
 	overflow-x: scroll; /* Important: Allows pre scroll in grid */
 }
+.oq-message-footer {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+}
+.oq-message-actions {
+	opacity: 0.2;
+	transition: var(--oq-transition-opacity);
+}
+.oq-message:hover .oq-message-actions {
+	opacity: 1;
+	transition: var(--oq-transition-opacity);
+}
+.oq-message-actions .lucide {
+	color: var(--oq-app-faint-color);
+	transition: var(--oq-transition-color);
+	margin-right: 0.5rem;
+}
+.oq-message-actions .lucide:hover {
+	color: var(--oq-app-bright-color);
+	transition: var(--oq-transition-color);
+	cursor: pointer;
+}
 .oq-message-assistant .oq-message-content {
 	padding: 0 1rem 0.5rem 1rem;
 	border: 1px solid var(--background-modifier-border);
@@ -138,6 +163,9 @@
 .oq-message-assistant .oq-message-content.oq-message-streaming {
 	border-color: var(--oq-app-bright-color);
 	transition: border-color 0.3s ease;
+}
+.oq-message-streaming .oq-message-actions {
+	visibility: hidden;
 }
 .oq-message-selectedtext {
 	border-left: 3px solid var(--background-modifier-border);
@@ -188,7 +216,7 @@ button.oq-prompt-send {
 	padding: 0;
 	background: none;
 	color: var(--oq-app-faint-color);
-	transition: color 0.2s ease;
+	transition: var(--oq-transition-color);
 }
 button.oq-prompt-send::before {
 	position: absolute;
@@ -198,7 +226,7 @@ button.oq-prompt-send::before {
 button.oq-prompt-send:focus,
 button.oq-prompt-send:enabled:hover {
 	color: var(--oq-app-bright-color);
-	transition: color 0.2s ease;
+	transition: var(--oq-transition-color);
 	cursor: pointer;
 }
 /* Start WDS technique */
@@ -259,6 +287,29 @@ button.oq-prompt-send:enabled:hover {
 }
 
 /* Modals */
+#oq-saveas-form {
+	display: grid;
+	padding-right: 1.25rem;
+	grid-row-gap: 1rem;
+}
+#oq-saveas-footer {
+	display: grid;
+	grid-template-columns: max-content max-content 1fr;
+	align-items: center;
+}
+#oq-saveas-form h5 {
+	margin: 0;
+	color: var(--text-normal);
+}
+#oq-saveas-form label {
+	font-size: 0.8rem;
+}
+#oq-saveas-form button {
+	width: fit-content;
+	justify-self: end;
+	background-color: var(--interactive-accent);
+	color: var(--text-on-accent);
+}
 #oq-prompt-modal {
 	padding-right: 1.25rem;
 }

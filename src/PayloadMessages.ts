@@ -36,7 +36,7 @@ class PayloadMessages {
 
 	addMessage(message: PayloadMessagesType): PayloadMessagesType[] {
 		this.payloadMessages.push(message);
-		return this.getAll();
+		return this.payloadMessages;
 	}
 
 	clearAll(): void {

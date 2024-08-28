@@ -3,12 +3,14 @@ import { StrictMode, createContext, useContext } from "react";
 import { QuillPluginSettings } from "@/settings";
 import { IPluginServices } from "@/interfaces";
 import ApiService from "@/ApiService";
+import VaultUtils from "@/VaultUtils";
 
 interface PluginContextProps {
 	settings: QuillPluginSettings;
 	pluginServices: IPluginServices;
 	apiService: ApiService;
 	vault: Vault;
+	vaultUtils: VaultUtils;
 }
 
 type PluginContextProviderProps = {
@@ -28,9 +30,11 @@ export default function PluginContextProvider({
 	apiService,
 	vault,
 }: PluginContextProviderProps) {
+	const vaultUtils = new VaultUtils(pluginServices, vault, settings);
+
 	return (
 		<PluginContext.Provider
-			value={{ settings, pluginServices, apiService, vault }}
+			value={{ settings, pluginServices, apiService, vault, vaultUtils }}
 		>
 			<StrictMode>{children}</StrictMode>
 			{/* {children} */}

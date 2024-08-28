@@ -10,10 +10,10 @@ import {
 	QuillPluginSettings,
 	QuillSettingsTab,
 } from "@/settings";
-import { PromptModal } from "@/components/modals";
 import { IPluginServices } from "@/interfaces";
 import ApiService from "@/ApiService";
 import Features from "@/Features";
+import ModalPrompt from "@/components/ModalPrompt";
 import QuillView from "@/components/view";
 
 export default class QuillPlugin extends Plugin implements IPluginServices {
@@ -22,7 +22,7 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 	features: Features;
 	pluginServices: IPluginServices;
 	vault: Vault;
-	openModals: PromptModal[] = [];
+	openModals: ModalPrompt[] = [];
 
 	async onload(): Promise<void> {
 		console.clear(); // TODO: Remove this line before publishing
@@ -30,6 +30,7 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 		this.apiService = new ApiService(this, this.settings);
 		this.features = new Features(this.app, this.apiService, this.settings);
 		this.pluginServices = {
+			app: this.app,
 			toggleView: this.toggleView.bind(this),
 			getViewElem: this.getViewElem.bind(this),
 			notifyError: this.notifyError.bind(this),
@@ -53,10 +54,10 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 			}
 		);
 
-		// Open chat view command
+		// Show Quill view command
 		this.addCommand({
-			id: "open",
-			name: "Open",
+			id: "show-quill",
+			name: "Show Quill",
 			callback: () => {
 				this.toggleView();
 			},
@@ -90,7 +91,7 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 			editorCallback: async (editor: Editor) => {
 				const featureId = "define";
 				this.toggleView();
-				const modal = new PromptModal({
+				const modal = new ModalPrompt({
 					app: this.app,
 					settings: this.settings,
 					onSend: async (userEntry) => {
@@ -113,7 +114,7 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 			name: "New prompt",
 			callback: async () => {
 				this.toggleView();
-				const modal = new PromptModal({
+				const modal = new ModalPrompt({
 					app: this.app,
 					settings: this.settings,
 					onSend: async (userEntry) => {
@@ -137,7 +138,7 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 				if (selectedText) {
 					if (!checking) {
 						this.toggleView();
-						const modal = new PromptModal({
+						const modal = new ModalPrompt({
 							app: this.app,
 							settings: this.settings,
 							onSend: async (userEntry) => {
