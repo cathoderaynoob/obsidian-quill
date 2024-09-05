@@ -16,7 +16,8 @@ export interface MessageType {
 }
 
 interface MessageProps extends MessageType {
-	dataIdx: string;
+	dataIdx: number;
+	handleOnCollapse: (index: number) => void;
 }
 
 const Message: React.FC<MessageProps> = ({
@@ -27,6 +28,7 @@ const Message: React.FC<MessageProps> = ({
 	selectedText,
 	error,
 	dataIdx,
+	handleOnCollapse,
 	// status,
 }) => {
 	const { settings, vault, vaultUtils } = usePluginContext();
@@ -42,6 +44,12 @@ const Message: React.FC<MessageProps> = ({
 		} catch (e) {
 			new Notice("Failed to copy message to clipboard");
 		}
+	};
+
+	const handleCollapseSelectedText = (
+		event: React.ChangeEvent<HTMLInputElement>
+	) => {
+		if (!event.target.checked) handleOnCollapse(dataIdx);
 	};
 
 	return (
@@ -67,7 +75,8 @@ const Message: React.FC<MessageProps> = ({
 								<input
 									type="checkbox"
 									id={id}
-									className="oq-expand-selectedtext"
+									className="oq-message-selectedtext-checkbox"
+									onChange={handleCollapseSelectedText}
 								/>
 							</div>
 						)}

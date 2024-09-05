@@ -263,10 +263,12 @@ button.oq-prompt-send:enabled:hover {
 	margin: 0 auto;
 	margin-block-start: 0;
 }
-.oq-expand-selectedtext {
+.oq-message-selectedtext-checkbox {
 	display: none;
 }
-.oq-message-selectedtext-content:has(+ .oq-expand-selectedtext:checked) {
+.oq-message-selectedtext-content:has(
+		+ .oq-message-selectedtext-checkbox:checked
+	) {
 	opacity: 0.8;
 	max-height: none;
 	mask-image: none;
