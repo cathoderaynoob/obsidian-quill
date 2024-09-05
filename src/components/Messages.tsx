@@ -23,7 +23,7 @@ const Messages: React.FC = () => {
 	};
 
 	const getMessageElem = (index: number): HTMLElement | null => {
-		return document.querySelector(`[data-idx="message-${index}"]`);
+		return document.querySelector(`[data-idx="${index}"]`);
 	};
 
 	const saveMessages = async () => {
@@ -40,6 +40,7 @@ const Messages: React.FC = () => {
 		}
 	};
 
+	// NEW CONVERSATION
 	const newConversation = async (event: React.MouseEvent<HTMLElement>) => {
 		let success = false;
 		if (!event.altKey) {
@@ -282,13 +283,30 @@ const Messages: React.FC = () => {
 		}
 	};
 
+	const handleCollapseSelectedText = (index: number) => {
+		const message = getMessageElem(index);
+		const container = getContainerElem();
+		if (!message || !container) return;
+		if (
+			message?.offsetHeight > container?.offsetHeight ||
+			container?.scrollTop > message?.offsetTop
+		) {
+			scrollToMessage(index, true);
+		}
+	};
+
 	// Render the messages
 	return (
 		<>
 			<div id="oq-messages">
 				<TitleBar newChat={newConversation} />
 				{messages.map((message, index) => (
-					<Message key={message.id} {...message} dataIdx={`message-${index}`} />
+					<Message
+						key={message.id}
+						{...message}
+						dataIdx={index}
+						handleOnCollapse={handleCollapseSelectedText}
+					/>
 				))}
 			</div>
 		</>
