@@ -56,21 +56,21 @@
 	--icon-size: var(--icon-m);
 	background: var(--background-primary);
 }
-#oq-btn-new-chat {
+#oq-btn-new-conv {
 	width: fit-content;
 	cursor: pointer;
 }
-#oq-btn-new-chat:after {
+#oq-btn-new-conv:after {
 	position: relative;
 	bottom: 0.35rem;
 	margin-left: 0.5rem;
-	content: "new chat";
+	content: "new conversation";
 	font-size: small;
 	color: var(--oq-app-faint-color);
 	transition: var(--oq-transition-color);
 	cursor: pointer;
 }
-#oq-btn-new-chat:hover::after {
+#oq-btn-new-conv:hover::after {
 	color: var(--oq-app-bright-color);
 }
 #oq-messages {
@@ -197,7 +197,7 @@
 .oq-prompt-input {
 	border-radius: 0.5rem;
 	padding: 0.75rem 1rem;
-	overflow: auto;
+	overflow-y: auto;
 	resize: none;
 }
 textarea.oq-prompt-input::placeholder {

@@ -13,8 +13,21 @@ const MessagePad: React.FC<MessagePadProps> = ({ executeFeature }) => {
 	const [rows, setRows] = useState<number>(1);
 
 	const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-		setRows(Math.min(e.target.value.split("\n").length, 6));
+		const textarea = e.target;
+		setTextareaSize(textarea);
 		setPromptValue(e.target.value);
+	};
+
+	const setTextareaSize = (textarea: HTMLTextAreaElement) => {
+		textarea.style.height = "auto";
+		const { borderTopWidth, borderBottomWidth, lineHeight } =
+			window.getComputedStyle(textarea);
+		const borderWidth =
+			parseFloat(borderTopWidth) + parseFloat(borderBottomWidth);
+		const rowHeight = parseInt(lineHeight) + borderWidth;
+		const maxHeight = rowHeight * 6;
+		const newHeight = Math.min(textarea.scrollHeight + borderWidth, maxHeight);
+		textarea.style.height = `${newHeight}px`;
 	};
 
 	const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -27,11 +40,13 @@ const MessagePad: React.FC<MessagePadProps> = ({ executeFeature }) => {
 		}
 	};
 
-	const handleBlur = () => {
+	const handleBlur = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+		const textarea = e.target;
 		if (/^\s*$/.test(promptValue)) {
 			const trimmedValue = promptValue.trim();
 			setPromptValue(trimmedValue);
 		}
+		setTextareaSize(textarea);
 	};
 
 	const handleSend = () => {

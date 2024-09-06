@@ -40,12 +40,11 @@ const Messages: React.FC = () => {
 	};
 
 	// NEW CONVERSATION
-	const newConversation = async (event: React.MouseEvent<HTMLElement>) => {
-		let success = false;
-		if (!event.altKey) {
-			success = await saveMessages();
-		}
-		if (success || event.altKey) {
+	const newConversation = async (event?: React.MouseEvent<HTMLElement>) => {
+		// Skip if alt+click. Save convo for all other use cases.
+		const skipSave = event ? event.altKey : false;
+		const success = skipSave || (await saveMessages());
+		if (success) {
 			setMessages([]);
 			payloadMessages.clearAll();
 		}
