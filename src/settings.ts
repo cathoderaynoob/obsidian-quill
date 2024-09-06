@@ -9,6 +9,7 @@ export interface QuillPluginSettings {
 	openaiTemperature: number;
 	conversationsFolder: string;
 	messagesFolder: string;
+	openSavedFile: boolean;
 }
 
 const openaiBaseUrl = "https://api.openai.com/v1";
@@ -21,6 +22,7 @@ export const DEFAULT_SETTINGS: QuillPluginSettings = {
 	openaiTemperature: 0.7,
 	conversationsFolder: "Quill",
 	messagesFolder: "Quill",
+	openSavedFile: false,
 };
 
 interface OpenAIModels {

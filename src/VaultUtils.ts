@@ -88,12 +88,11 @@ class VaultUtils {
 	async saveConversationToFile(
 		messages: MessageType[],
 		vault: Vault,
-		settings: QuillPluginSettings,
-		pluginServices: IPluginServices
+		settings: QuillPluginSettings
 	): Promise<string | null> {
 		const fileText = this.formatConversationForFile(messages);
 		if (!fileText.length) {
-			pluginServices.notifyError("saveError");
+			this.pluginServices.notifyError("saveError");
 			return null;
 		}
 		try {
@@ -133,6 +132,9 @@ class VaultUtils {
 				message,
 				this.getAllFolders(vault).sort(),
 				async (fileName, folderPath, openFile) => {
+					if (!fileName.length) {
+						fileName = this.createFilenameAsDatetime("md");
+					}
 					const filename = this.sanitizeFilename(
 						fileName.endsWith(".md") ? fileName : fileName + ".md"
 					);
@@ -141,6 +143,8 @@ class VaultUtils {
 						await vault.create(filepath, fileText);
 						new Notice(`${filename}\n  saved to\n${folderPath}`);
 						modal.close();
+						this.settings.openSavedFile = openFile;
+						await this.pluginServices.saveSettings();
 						if (openFile) {
 							this.openFile(vault, filepath);
 						}
