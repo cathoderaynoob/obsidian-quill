@@ -31,8 +31,7 @@ const Messages: React.FC = () => {
 			const filename = await vaultUtils.saveConversationToFile(
 				messages,
 				vault,
-				settings,
-				pluginServices
+				settings
 			);
 			return !!filename;
 		} else {

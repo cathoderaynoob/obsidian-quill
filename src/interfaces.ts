@@ -5,6 +5,7 @@ export interface IPluginServices {
 	toggleView(): Promise<void>;
 	getViewElem(): HTMLElement | null;
 	notifyError(errorCode: string, consoleMsg?: string): void;
+	saveSettings(): Promise<void>;
 }
 
 export interface GptEngines {

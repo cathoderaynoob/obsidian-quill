@@ -34,6 +34,7 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 			toggleView: this.toggleView.bind(this),
 			getViewElem: this.getViewElem.bind(this),
 			notifyError: this.notifyError.bind(this),
+			saveSettings: this.saveSettings.bind(this),
 		};
 		this.vault = this.app.vault;
 

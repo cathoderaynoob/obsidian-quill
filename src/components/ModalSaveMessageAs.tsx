@@ -80,6 +80,7 @@ class ModalSaveMessageAs extends Modal {
 				type: "checkbox",
 			},
 		});
+		openFile.checked = this.settings.openSavedFile;
 		footer.createEl("label", {
 			text: "Open file after saving",
 			attr: {
