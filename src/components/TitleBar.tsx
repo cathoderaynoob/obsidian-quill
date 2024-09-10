@@ -5,7 +5,8 @@ interface TitleBarProps {
 const TitleBar: React.FC<TitleBarProps> = ({ newChat }) => {
 	return (
 		<div id="oq-view-title">
-			<div id="oq-btn-new-chat" onClick={newChat} />
+			{/* TODO: Convert to button */}
+			<div id="oq-btn-new-conv" onClick={newChat} />
 		</div>
 	);
 };

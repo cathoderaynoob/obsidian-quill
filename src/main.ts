@@ -64,6 +64,16 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 			},
 		});
 
+		// Show Quill view command
+		this.addCommand({
+			id: "new-conversation",
+			name: "New Conversation",
+			callback: () => {
+				this.toggleView();
+				// Call `newConversation`
+			},
+		});
+
 		// "Tell me a joke" command
 		this.addCommand({
 			id: "tell-a-joke",

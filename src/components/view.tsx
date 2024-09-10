@@ -63,7 +63,7 @@ export default class QuillView extends ItemView {
 		// Add the New Chat icon
 		setTimeout(() => {
 			const newChatButton = document.getElementById(
-				"oq-btn-new-chat"
+				"oq-btn-new-conv"
 			) as HTMLElement;
 			setIcon(newChatButton, APP_PROPS.appIcon);
 		}, 0);
