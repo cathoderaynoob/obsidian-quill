@@ -57,7 +57,7 @@ const MessagePad: React.FC<MessagePadProps> = ({ executeFeature }) => {
 			inputText: trimmedValue,
 		});
 		setPromptValue("");
-		setRows(1);
+		// setRows(1);
 	};
 
 	return (

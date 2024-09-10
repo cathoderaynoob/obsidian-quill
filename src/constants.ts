@@ -1,3 +1,8 @@
+export const APP_PROPS = {
+	appName: "Quill",
+	appIcon: "feather",
+	sendIcon: "bird",
+};
 export const ERROR_MESSAGES = {
 	noApiKey:
 		"Your OpenAI API key is missing. Please enter it in the " +
@@ -10,17 +15,10 @@ export const ERROR_MESSAGES = {
 		"Unable to open Quill. Please try again, or check the " +
 		"console for any errors.",
 } as const;
-
 export type ErrorCode = keyof typeof ERROR_MESSAGES;
-
 export const QUILL_VIEW_TYPE = "quill-chat-view";
-
-export const APP_PROPS = {
-	appName: "Quill",
-	appIcon: "feather",
-	sendIcon: "bird",
-};
-
+export const SCROLL_CHARS_LIMIT = 400;
+export const STREAM_BUFFER_LIMIT = 300;
 export const PROMPTS = {
 	systemInitial: {
 		role: "system",
@@ -66,7 +64,7 @@ export const PROMPTS = {
 			"   - *Example*: \"The president's term in office is four " +
 			'     years."\n' +
 			"3. ...\n\n" +
-			"[After last definition, include one newline character.]",
+			"[Important: After last definition, include one newline character.]",
 	},
 	tellAJoke: {
 		role: "user",

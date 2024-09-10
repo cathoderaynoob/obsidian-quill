@@ -65,14 +65,14 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 		});
 
 		// Show Quill view command
-		this.addCommand({
-			id: "new-conversation",
-			name: "New Conversation",
-			callback: () => {
-				this.toggleView();
-				// Call `newConversation`
-			},
-		});
+		// this.addCommand({
+		// 	id: "new-conversation",
+		// 	name: "New Conversation",
+		// 	callback: () => {
+		// 		this.toggleView();
+		// 		// Call `newConversation`
+		// 	},
+		// });
 
 		// "Tell me a joke" command
 		this.addCommand({
@@ -90,7 +90,7 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 			editorCallback: async (editor: Editor) => {
 				await this.features.executeFeature({
 					id: "onThisDate",
-					targetEditor: editor,
+					outputTarget: editor,
 				});
 			},
 		});
@@ -109,7 +109,7 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 						await this.features.executeFeature({
 							id: featureId,
 							inputText: userEntry,
-							targetEditor: editor,
+							outputTarget: editor,
 						});
 					},
 					featureId: featureId,
@@ -189,6 +189,7 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 				type: QUILL_VIEW_TYPE,
 				active: true,
 			});
+			workspace.revealLeaf(leaf);
 			const chatViewContainer = leaf.view.containerEl
 				.children[1] as HTMLElement;
 			chatViewContainer.tabIndex = 0;

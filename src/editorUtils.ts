@@ -1,8 +1,13 @@
-import { Editor } from "obsidian";
+import { Editor, EditorPosition } from "obsidian";
 
-export const renderToEditor = async (text: string, editor: Editor) => {
+export const renderToEditor = async (
+	text: string,
+	editor: Editor,
+	editorPos: EditorPosition
+) => {
 	return new Promise<void>((resolve) => {
-		let { line, ch } = editor.getCursor();
+		let { line, ch } = editorPos || editor.getCursor("from");
+
 		// Without a leading space, the markdown rendering timing
 		// causes issues with the cursor position
 		let addSpace = false;
@@ -17,7 +22,9 @@ export const renderToEditor = async (text: string, editor: Editor) => {
 		const numNewLines: number = [...text.matchAll(/\n/g)].length;
 		if (numNewLines) {
 			line += numNewLines;
-			ch = 0;
+			const lastNewLineIndex = text.lastIndexOf("\n");
+			const charsAfterLastNewLine = text.slice(lastNewLineIndex + 1);
+			ch = charsAfterLastNewLine.length;
 		} else {
 			ch += text.length;
 			if (addSpace) {

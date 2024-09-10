@@ -1,6 +1,10 @@
 import { Editor } from "obsidian";
 import { PROMPTS } from "@/constants";
-import { GptRequestPayload, PayloadMessagesType } from "@/interfaces";
+import {
+	GptRequestPayload,
+	PayloadMessagesType,
+	OutputTarget,
+} from "@/interfaces";
 import { buildPrompt } from "@/promptBuilder";
 import { FeatureProperties } from "@/featuresRegistry";
 import { QuillPluginSettings } from "@/settings";
@@ -14,7 +18,7 @@ export interface ExecutionOptions {
 	inputText?: string;
 	selectedText?: string;
 	formattingGuidance?: string;
-	targetEditor?: Editor;
+	outputTarget?: OutputTarget;
 }
 
 export const executeFeature = async (
@@ -25,7 +29,7 @@ export const executeFeature = async (
 	payloadMessages: PayloadMessages,
 	pluginServices: IPluginServices
 ): Promise<void> => {
-	const { id, inputText, selectedText, formattingGuidance, targetEditor } =
+	const { id, inputText, selectedText, formattingGuidance, outputTarget } =
 		options;
 	const feature = featureRegistry[id];
 	if (!feature) {
@@ -46,7 +50,7 @@ export const executeFeature = async (
 		content: payloadPrompt,
 	};
 
-	if (feature.targetContainer === "view") {
+	if (feature.outputTarget === "view") {
 		const emitEvent = (
 			event: string,
 			role: string,
@@ -85,23 +89,31 @@ export const executeFeature = async (
 	};
 
 	if (feature.stream) {
+		let activeEditor: HTMLElement | null = null;
+		if (outputTarget instanceof Editor) {
+			setTimeout(() => {
+				activeEditor = document.querySelector(".cm-editor.cm-focused");
+				activeEditor?.classList.add("oq-streaming");
+			}, 100);
+		}
 		const completedResponse = await apiService.getStreamingChatResponse(
 			payload,
 			feature.processResponse,
-			targetEditor
+			outputTarget
 		);
-		if (feature.targetContainer === "view") {
+		if (feature.outputTarget === "view") {
 			payloadMessages.addMessage({
 				role: "assistant",
 				content: completedResponse,
 			});
 			emitter.emit("streamEnd");
 		}
+		activeEditor?.classList.remove("oq-streaming");
 	} else {
-		await apiService.getStandardChatResponse(
+		await apiService.getNonStreamingChatResponse(
 			payload,
 			feature.processResponse,
-			targetEditor
+			outputTarget
 		);
 	}
 };
