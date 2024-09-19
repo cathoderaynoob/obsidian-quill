@@ -49,6 +49,7 @@ const Messages: React.FC = () => {
 			setMessages([]);
 			payloadMessages.clearAll();
 		}
+		(document.querySelector("#oq-prompt-input") as HTMLElement)?.focus();
 	};
 
 	// SCROLL HANDLER
@@ -178,7 +179,7 @@ const Messages: React.FC = () => {
 
 	// Keyboard navigation for messages
 	const handleMessagesKeypress = (event: KeyboardEvent) => {
-		const promptElem = document.getElementsByClassName("oq-prompt-input")[0];
+		const promptElem = document.getElementById("oq-prompt-input");
 		if (document.activeElement !== promptElem) {
 			switch (event.key) {
 				case "j":
