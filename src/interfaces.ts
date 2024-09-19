@@ -1,4 +1,4 @@
-import { App } from "obsidian";
+import { App, Editor } from "obsidian";
 
 export interface IPluginServices {
 	app: App;
@@ -25,3 +25,5 @@ export interface PayloadMessagesType {
 	role: Role;
 	content: string;
 }
+
+export type OutputTarget = Editor | "view" | "modal";

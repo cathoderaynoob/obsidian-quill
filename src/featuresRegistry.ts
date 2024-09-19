@@ -1,5 +1,6 @@
-import { App, Editor } from "obsidian";
+import { App, Editor, EditorPosition } from "obsidian";
 import { PROMPTS } from "@/constants";
+import { OutputTarget } from "@/interfaces";
 import { renderToEditor } from "@/editorUtils";
 import emitter from "@/customEmitter";
 import ModalTextOutput from "@/components/ModalTextOutput";
@@ -7,11 +8,15 @@ import ModalTextOutput from "@/components/ModalTextOutput";
 export interface FeatureProperties {
 	id: string;
 	prompt: (inputText?: string) => string;
-	processResponse: (response: string, targetEditor?: Editor) => void;
+	processResponse: (
+		response: string,
+		outputTarget?: OutputTarget,
+		editorPos?: EditorPosition
+	) => void;
 	model?: string;
 	temperature?: number;
 	stream?: boolean;
-	targetContainer?: "view" | "modal";
+	outputTarget?: OutputTarget;
 }
 
 export const FeaturesRegistry = (
@@ -22,9 +27,10 @@ export const FeaturesRegistry = (
 		tellAJoke: {
 			id: "tellAJoke",
 			prompt: () => PROMPTS.tellAJoke.content,
-			processResponse: (response) => {
+			processResponse: (response: string) => {
 				if (response.length) new ModalTextOutput(app, response).open();
 			},
+			model: "gpt-4o-mini",
 		},
 
 		// ON THIS DATE
@@ -36,14 +42,19 @@ export const FeaturesRegistry = (
 					day: "numeric",
 					year: "numeric",
 				});
-				return `${today}: ` + PROMPTS.onThisDate.content;
+				return `${today}: ${PROMPTS.onThisDate.content}`;
 			},
-			processResponse: async (response, editor: Editor) => {
+			processResponse: async (
+				response: string,
+				editor: Editor,
+				editorPos: EditorPosition
+			) => {
 				if (response.length) {
-					await renderToEditor(response, editor);
+					await renderToEditor(response, editor, editorPos);
 				}
 			},
 			stream: true,
+			model: "gpt-4o-mini",
 		},
 
 		// Define...
@@ -52,9 +63,13 @@ export const FeaturesRegistry = (
 			prompt: (inputText: string) => {
 				return `${inputText} ${PROMPTS.define.content}`;
 			},
-			processResponse: async (response, editor: Editor) => {
+			processResponse: async (
+				response: string,
+				editor: Editor,
+				editorPos: EditorPosition
+			) => {
 				if (response.length) {
-					await renderToEditor(response, editor);
+					await renderToEditor(response, editor, editorPos);
 				}
 			},
 			stream: true,
@@ -66,20 +81,20 @@ export const FeaturesRegistry = (
 		newPrompt: {
 			id: "newPrompt",
 			prompt: (inputText: string) => inputText,
-			processResponse: (responseText: string) =>
-				emitter.emit("updateMessage", responseText),
+			processResponse: (response: string) =>
+				emitter.emit("updateMessage", response),
 			stream: true,
-			targetContainer: "view",
+			outputTarget: "view",
 		},
 
 		// SEND SELECTED TEXT WITH PROMPT
 		sendPromptWithSelectedText: {
 			id: "sendPromptWithSelectedText",
 			prompt: (inputText: string) => inputText,
-			processResponse: (responseText: string) =>
-				emitter.emit("updateMessage", responseText),
+			processResponse: (response: string) =>
+				emitter.emit("updateMessage", response),
 			stream: true,
-			targetContainer: "view",
+			outputTarget: "view",
 		},
 	};
 

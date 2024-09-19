@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { usePluginContext } from "@/components/PluginContext";
 import { Role } from "@/interfaces";
+import { SCROLL_CHARS_LIMIT } from "@/constants";
 import emitter from "@/customEmitter";
 import Message, { MessageType } from "@/components/Message";
 import PayloadMessages from "@/PayloadMessages";
 import TitleBar from "@/components/TitleBar";
 
 const Messages: React.FC = () => {
-	const SCROLL_THRESHOLD_CHARS = 400;
 	const { settings, apiService, pluginServices, vault, vaultUtils } =
 		usePluginContext();
 	const [messages, setMessages] = useState<MessageType[]>([]);
@@ -45,6 +45,7 @@ const Messages: React.FC = () => {
 		const skipSave = event ? event.altKey : false;
 		const success = skipSave || (await saveMessages());
 		if (success) {
+			apiService.cancelStream(); // When new convo started during a response
 			setMessages([]);
 			payloadMessages.clearAll();
 		}
@@ -120,7 +121,7 @@ const Messages: React.FC = () => {
 				const contentLength = latestMessageRef.current.content.length;
 				if (
 					contentLength >=
-					prevContentLengthRef.current + SCROLL_THRESHOLD_CHARS
+					prevContentLengthRef.current + SCROLL_CHARS_LIMIT
 				) {
 					scrollToMessage(messages.length - 1);
 					prevContentLengthRef.current = contentLength;
@@ -196,6 +197,9 @@ const Messages: React.FC = () => {
 					event.preventDefault();
 					goToMessage("last");
 					break;
+				case "b":
+					event.preventDefault();
+					scrollToBottom();
 			}
 		}
 		// Cancel the stream if the user presses the "Escape" key
@@ -276,6 +280,16 @@ const Messages: React.FC = () => {
 		else {
 			message.scrollIntoView({
 				block: "center",
+				behavior: "smooth",
+			});
+		}
+	};
+
+	const scrollToBottom = () => {
+		const container = getContainerElem();
+		if (container) {
+			container.scrollTo({
+				top: container.scrollHeight,
 				behavior: "smooth",
 			});
 		}

@@ -1,8 +1,9 @@
 import OpenAI from "openai";
-import emitter from "@/customEmitter";
-import { Editor } from "obsidian";
-import { GptRequestPayload, IPluginServices } from "@/interfaces";
+import { Editor, EditorPosition } from "obsidian";
+import { GptRequestPayload, IPluginServices, OutputTarget } from "@/interfaces";
 import { QuillPluginSettings } from "@/settings";
+import { STREAM_BUFFER_LIMIT } from "@/constants";
+import emitter from "@/customEmitter";
 import PayloadMessages from "@/PayloadMessages";
 
 export default class ApiService {
@@ -30,10 +31,30 @@ export default class ApiService {
 	// CHAT =====================================================================
 	async getStreamingChatResponse(
 		payload: GptRequestPayload,
-		callback: (text: string, targetEditor?: Editor) => void,
-		targetEditor?: Editor
+		callback: (
+			response: string,
+			outputTarget?: OutputTarget,
+			editorPos?: EditorPosition
+		) => void,
+		outputTarget?: OutputTarget
 	): Promise<string> {
+		const bufferLimit = STREAM_BUFFER_LIMIT;
+		let bufferedContent = "";
 		let completedMessage = "";
+		let lastEditorPos: EditorPosition | null = null;
+
+		const bufferContent = (content: string, editor: Editor) => {
+			if (!lastEditorPos) {
+				lastEditorPos = editor.getCursor();
+			}
+			bufferedContent += content;
+			if (bufferedContent.length >= bufferLimit) {
+				callback(bufferedContent, outputTarget, lastEditorPos);
+				lastEditorPos = editor.getCursor();
+				bufferedContent = "";
+			}
+		};
+
 		try {
 			this.streamingContent = await this.openai.chat.completions.create({
 				model: payload.model,
@@ -43,17 +64,23 @@ export default class ApiService {
 			});
 
 			for await (const chunk of this.streamingContent) {
-				// More can be done with this:
-				// https://platform.openai.com/docs/api-reference/chat/create
 				const content = chunk.choices[0]?.delta?.content;
 				if (typeof content === "string") {
-					callback(content, targetEditor || undefined);
+					if (outputTarget instanceof Editor) {
+						bufferContent(content, outputTarget);
+					} else {
+						callback(content);
+					}
 					completedMessage += content;
 				}
 			}
 		} catch (error) {
 			this.pluginServices.notifyError("unknown", error);
 			return "";
+		} finally {
+			if (outputTarget && bufferedContent.length > 0) {
+				callback(bufferedContent, outputTarget);
+			}
 		}
 		return completedMessage;
 	}
@@ -65,10 +92,10 @@ export default class ApiService {
 	}
 
 	// TODO: Update this to possibly return string instead of void
-	async getStandardChatResponse(
+	async getNonStreamingChatResponse(
 		payload: GptRequestPayload,
-		callback: (text: string, targetEditor?: Editor) => void,
-		targetEditor?: Editor
+		callback: (text: string, outputTarget?: OutputTarget) => void,
+		outputTarget?: OutputTarget
 	): Promise<void> {
 		try {
 			const completion = await this.openai.chat.completions.create({
@@ -76,18 +103,14 @@ export default class ApiService {
 				messages: payload.messages,
 				temperature: payload.temperature,
 			});
-			// More can be done with this:
-			// https://platform.openai.com/docs/api-reference/chat/create
 			if (completion.choices[0]?.message?.content) {
 				callback(
 					completion.choices[0]?.message?.content,
-					targetEditor || undefined
+					outputTarget || undefined
 				);
 			}
 		} catch (error) {
 			this.pluginServices.notifyError("unknown", error);
-			return;
 		}
-		return;
 	}
 }
