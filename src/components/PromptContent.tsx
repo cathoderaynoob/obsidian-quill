@@ -26,9 +26,15 @@ const PromptContent: React.FC<PromptContentProps> = ({
 	useEffect(() => {
 		setTimeout(() => {
 			if (promptContentRef?.current) {
-				promptContentRef.current.querySelector("textarea")?.focus();
+				(
+					promptContentRef.current.querySelector(
+						"#oq-prompt-input"
+					) as HTMLElement
+				)?.focus();
 				setIcon(
-					promptContentRef.current.querySelector("button") as HTMLElement,
+					promptContentRef.current.querySelector(
+						"button#oq-prompt-send"
+					) as HTMLElement,
 					APP_PROPS.sendIcon
 				);
 			}
@@ -38,7 +44,7 @@ const PromptContent: React.FC<PromptContentProps> = ({
 	return (
 		<div className="oq-prompt-container" ref={promptContentRef}>
 			<textarea
-				className="oq-prompt-input"
+				id="oq-prompt-input"
 				placeholder="» return to send / shift+return for new line"
 				rows={rows}
 				value={value}
@@ -47,7 +53,7 @@ const PromptContent: React.FC<PromptContentProps> = ({
 				onBlur={handleBlur}
 			/>
 			{/* TODO: Disable unless text entered */}
-			<button className="oq-prompt-send" onClick={handleSend} />
+			<button id="oq-prompt-send" onClick={handleSend} />
 			<div className="oq-prompt-model">{model}</div>
 		</div>
 	);

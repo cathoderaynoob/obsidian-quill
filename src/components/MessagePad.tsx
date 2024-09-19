@@ -10,7 +10,7 @@ interface MessagePadProps {
 const MessagePad: React.FC<MessagePadProps> = ({ executeFeature }) => {
 	const { settings } = usePluginContext();
 	const [promptValue, setPromptValue] = useState<string>("");
-	const [rows, setRows] = useState<number>(1);
+	const [rows] = useState<number>(1);
 
 	const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
 		const textarea = e.target;
@@ -57,7 +57,6 @@ const MessagePad: React.FC<MessagePadProps> = ({ executeFeature }) => {
 			inputText: trimmedValue,
 		});
 		setPromptValue("");
-		// setRows(1);
 	};
 
 	return (
