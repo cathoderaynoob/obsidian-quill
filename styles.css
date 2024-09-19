@@ -29,27 +29,27 @@
 }
 
 /* Editor */
-.cm-editor.oq-streaming {
+.cm-editor#oq-streaming {
 	pointer-events: none;
 }
 .cm-active {
 	transition: background-color 1.5s ease;
 }
-.oq-streaming .cm-active {
+#oq-streaming .cm-active {
 	padding: 0.5rem 0 0.5rem 0.75rem !important;
 	border-radius: 0.33rem;
 	background-color: var(--text-accent);
 	color: var(--text-on-accent);
 	transition: background-color 1s ease;
 }
-.oq-streaming .cm-active::before {
+#oq-streaming .cm-active::before {
 	content: "» ";
 }
-.oq-streaming .cm-active.cm-line {
+#oq-streaming .cm-active.cm-line {
 	text-indent: 0 !important;
 }
-.oq-streaming .cm-active.cm-line .list-number,
-.oq-streaming .cm-active.cm-line .list-bullet {
+#oq-streaming .cm-active.cm-line .list-number,
+#oq-streaming .cm-active.cm-line .list-bullet {
 	color: var(--text-on-accent);
 }
 

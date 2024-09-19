@@ -9,6 +9,10 @@ import { buildPrompt } from "@/promptBuilder";
 import { FeatureProperties } from "@/featuresRegistry";
 import { QuillPluginSettings } from "@/settings";
 import { IPluginServices } from "@/interfaces";
+import {
+	activateEditorKeypress,
+	deactivateEditorKeypress,
+} from "@/editorUtils";
 import ApiService from "@/ApiService";
 import emitter from "@/customEmitter";
 import PayloadMessages from "@/PayloadMessages";
@@ -89,11 +93,14 @@ export const executeFeature = async (
 	};
 
 	if (feature.stream) {
-		let activeEditor: HTMLElement | null = null;
+		let editorElem: HTMLElement | null = null;
 		if (outputTarget instanceof Editor) {
 			setTimeout(() => {
-				activeEditor = document.querySelector(".cm-editor.cm-focused");
-				activeEditor?.classList.add("oq-streaming");
+				editorElem = document.querySelector(".cm-editor.cm-focused");
+				if (editorElem) {
+					editorElem.id = "oq-streaming";
+					activateEditorKeypress(editorElem, apiService);
+				}
 			}, 100);
 		}
 		const completedResponse = await apiService.getStreamingChatResponse(
@@ -108,7 +115,10 @@ export const executeFeature = async (
 			});
 			emitter.emit("streamEnd");
 		}
-		activeEditor?.classList.remove("oq-streaming");
+		if (editorElem) {
+			(editorElem as HTMLElement).id = "";
+			deactivateEditorKeypress(editorElem);
+		}
 	} else {
 		await apiService.getNonStreamingChatResponse(
 			payload,
