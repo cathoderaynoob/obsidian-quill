@@ -81,6 +81,7 @@ export default class ApiService {
 			if (outputTarget && bufferedContent.length > 0) {
 				callback(bufferedContent, outputTarget);
 			}
+			emitter.emit("streamEnd");
 		}
 		return completedMessage;
 	}
@@ -88,7 +89,6 @@ export default class ApiService {
 	cancelStream() {
 		this.streamingContent?.controller?.abort();
 		this.streamingContent = null;
-		emitter.emit("streamEnd");
 	}
 
 	// TODO: Update this to possibly return string instead of void

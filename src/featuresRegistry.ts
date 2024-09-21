@@ -82,7 +82,7 @@ export const FeaturesRegistry = (
 			id: "newPrompt",
 			prompt: (inputText: string) => inputText,
 			processResponse: (response: string) =>
-				emitter.emit("updateMessage", response),
+				emitter.emit("updateResponseMessage", response),
 			stream: true,
 			outputTarget: "view",
 		},
@@ -92,7 +92,7 @@ export const FeaturesRegistry = (
 			id: "sendPromptWithSelectedText",
 			prompt: (inputText: string) => inputText,
 			processResponse: (response: string) =>
-				emitter.emit("updateMessage", response),
+				emitter.emit("updateResponseMessage", response),
 			stream: true,
 			outputTarget: "view",
 		},

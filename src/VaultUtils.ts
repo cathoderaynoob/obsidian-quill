@@ -32,9 +32,34 @@ class VaultUtils {
 		return VaultUtils.instance;
 	}
 
-	createFilenameAsDatetime(fileExt: string) {
-		const now = format(Date.now(), "yyyy-MM-dd HH.mm.ss");
-		return `${now}.${fileExt}`;
+	getAllFolders() {
+		const folders = this.vault
+			.getAllLoadedFiles()
+			.filter((file) => file instanceof TFolder) as TFolder[];
+		return folders.map((folder) => folder.path).sort();
+	}
+
+	openFile(filepath: string) {
+		try {
+			const leaf = this.pluginServices.app.workspace.getLeaf();
+			const file = this.vault.getAbstractFileByPath(filepath) as TFile;
+			if (file) {
+				leaf?.openFile(file);
+			}
+		} catch (e) {
+			new Notice(e);
+			console.log(e);
+		}
+	}
+
+	getDateTime() {
+		return format(Date.now(), "yyyy-MM-dd HH.mm.ss");
+	}
+
+	createFilenameAsDatetime(fileExt?: string) {
+		fileExt = fileExt || "md"; // Default file type
+		const now = this.getDateTime();
+		return `Quill ${now}.${fileExt}`;
 	}
 
 	createFilenameFromTitle(content: string) {
@@ -54,58 +79,71 @@ class VaultUtils {
 		return sanitized;
 	}
 
-	getAllFolders(vault: Vault) {
-		const folders = vault
-			.getAllLoadedFiles()
-			.filter((file) => file instanceof TFolder) as TFolder[];
-		return folders.map((folder) => folder.path).sort();
+	// SAVE A CONVERSATION
+	getConversationsFolder() {
+		const folder = this.settings.conversationsFolder;
+		if (this.vault.getFolderByPath(folder) === null) {
+			this.vault.createFolder(folder);
+		}
+		return;
 	}
 
-	private formatConversationForFile(messages: MessageType[]): string {
-		let fileText = "";
-		const msgsToFormat = [...messages];
-		msgsToFormat.forEach((msg, i) => {
-			let header = `# `;
-			const index = i + 1;
-			const separator = `\n___\n`;
-			switch (msg.role) {
-				case "user":
-					header += `» sent (${index})`;
-					break;
-				case "assistant":
-					header += `« received (${index})\n\`${msg.model}\``;
-					break;
-			}
-			fileText += `${header}\n\n${msg.content}\n`;
-			if (msg.selectedText) {
-				fileText += "\n```\n" + msg.selectedText + "\n```\n";
-			}
-			fileText += separator;
-		});
+	private async formatLatestMessageForFile(
+		msg: MessageType,
+		file: TFile
+	): Promise<string> {
+		const fileContent = await this.vault.read(file);
+		const matches = fileContent.match(/\[Message \d+\]/g)?.length || 0;
+		const messageNum = matches + 1;
+		let header = msg.role === "user" ? `# [Message ${messageNum}]\n` : "";
+		const separator = `\n___\n`;
+		switch (msg.role) {
+			case "user":
+				header += `#### [» Prompt]`;
+				break;
+			case "assistant":
+				header += `#### [« Response]\n\`${msg.model}\``;
+				break;
+		}
+		let fileText = `${header}\n\n${msg.content}\n`;
+		if (msg.selectedText) {
+			fileText += "\n```\n" + msg.selectedText + "\n```\n";
+		}
+		fileText += separator;
+
 		return fileText;
 	}
 
-	async saveConversationToFile(
-		messages: MessageType[],
-		vault: Vault,
-		settings: QuillPluginSettings
+	async appendLatestMessageToFile(
+		conversationId: string,
+		latestMessage: MessageType
 	): Promise<string | null> {
-		const fileText = this.formatConversationForFile(messages);
-		if (!fileText.length) {
-			this.pluginServices.notifyError("saveError");
-			return null;
-		}
+		if (!latestMessage.content.length) return null;
 		try {
-			const folder = settings.conversationsFolder;
-			if (vault.getFolderByPath(folder) === null) {
-				vault.createFolder(folder);
+			// Get conversation folder
+			const folder = this.settings.conversationsFolder;
+			if (this.vault.getFolderByPath(folder) === null) {
+				this.vault.createFolder(folder);
 			}
-			const fileName = this.createFilenameAsDatetime("md");
-			const savedFile = await vault.create(`${folder}/${fileName}`, fileText);
-			new Notice(
-				`Conversation saved to\n  "${folder}"\nas\n  "${savedFile.name}"`
+			// Set the filename
+			const filename = `${conversationId}.md`;
+			const filePath = `${folder}/${filename}`;
+			let file = this.vault.getFileByPath(filePath);
+			// Does the file already exist?
+			if (!file) {
+				file = await this.vault.create(filePath, "");
+			}
+			const messageText = await this.formatLatestMessageForFile(
+				latestMessage,
+				file
 			);
-			return savedFile.name;
+			if (!messageText.length) {
+				this.pluginServices.notifyError("saveError");
+				return null;
+			}
+			// Append the latest message
+			await this.vault.append(file, messageText);
+			return filename;
 		} catch (e) {
 			new Notice(e);
 			console.log(e);
@@ -113,9 +151,9 @@ class VaultUtils {
 		}
 	}
 
+	// SAVE A MESSAGE TO A FILE AS...
 	async saveMessageAs(
 		message: string,
-		vault: Vault,
 		settings: QuillPluginSettings
 	): Promise<{ filename: string; path: string } | null> {
 		const fileText = message;
@@ -128,25 +166,24 @@ class VaultUtils {
 			const modal = new ModalSaveMessageAs(
 				this.pluginServices.app,
 				this.settings,
-				vault,
 				message,
-				this.getAllFolders(vault).sort(),
+				this.getAllFolders().sort(),
 				async (fileName, folderPath, openFile) => {
 					if (!fileName.length) {
-						fileName = this.createFilenameAsDatetime("md");
+						fileName = this.createFilenameAsDatetime();
 					}
 					const filename = this.sanitizeFilename(
 						fileName.endsWith(".md") ? fileName : fileName + ".md"
 					);
 					const filepath = `${folderPath}/${filename}`;
 					try {
-						await vault.create(filepath, fileText);
+						await this.vault.create(filepath, fileText);
 						new Notice(`${filename}\n  saved to\n${folderPath}`);
 						modal.close();
 						this.settings.openSavedFile = openFile;
 						await this.pluginServices.saveSettings();
 						if (openFile) {
-							this.openFile(vault, filepath);
+							this.openFile(filepath);
 						}
 						resolve({ filename, path: folderPath });
 					} catch (e) {
@@ -157,19 +194,6 @@ class VaultUtils {
 			);
 			modal.open();
 		});
-	}
-
-	openFile(vault: Vault, filepath: string) {
-		try {
-			const leaf = this.pluginServices.app.workspace.getLeaf();
-			const file = vault.getAbstractFileByPath(filepath) as TFile;
-			if (file) {
-				leaf?.openFile(file);
-			}
-		} catch (e) {
-			new Notice(e);
-			console.log(e);
-		}
 	}
 }
 

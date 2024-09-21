@@ -33,7 +33,7 @@ export const PROMPTS = {
 			"where it will improve readability and impact. Use sparingly. " +
 			"Do not add conversation preamble, summaries, or labels when asked " +
 			"for specific content, since the entire output will be copied directly " +
-			"to a note.",
+			"to a note. ALWAYS REPLY, EVEN WHEN TESTING.",
 	},
 	onThisDate: {
 		role: "user",

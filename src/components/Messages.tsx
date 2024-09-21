@@ -8,7 +8,7 @@ import PayloadMessages from "@/PayloadMessages";
 import TitleBar from "@/components/TitleBar";
 
 const Messages: React.FC = () => {
-	const { settings, apiService, pluginServices, vault, vaultUtils } =
+	const { settings, apiService, pluginServices, vaultUtils } =
 		usePluginContext();
 	const [messages, setMessages] = useState<MessageType[]>([]);
 	const [, setCurrentIndex] = useState(0);
@@ -23,33 +23,48 @@ const Messages: React.FC = () => {
 	};
 
 	const getMessageElem = (index: number): HTMLElement | null => {
-		return document.querySelector(`[data-idx="${index}"]`);
+		return document.querySelector(`[conv-idx="${index}"]`);
 	};
 
-	const saveMessages = async () => {
-		if (messages.length) {
-			const filename = await vaultUtils.saveConversationToFile(
-				messages,
-				vault,
-				settings
-			);
-			return !!filename;
-		} else {
-			return false;
-		}
+	const clearMessages = (): void => {
+		setMessages([]);
+		payloadMessages.clearAll();
+		if (latestMessageRef.current)
+			latestMessageRef.current.conversationId = null;
 	};
 
 	// NEW CONVERSATION
 	const newConversation = async (event?: React.MouseEvent<HTMLElement>) => {
 		// Skip if alt+click. Save convo for all other use cases.
-		const skipSave = event ? event.altKey : false;
-		const success = skipSave || (await saveMessages());
-		if (success) {
-			apiService.cancelStream(); // When new convo started during a response
-			setMessages([]);
-			payloadMessages.clearAll();
-		}
+		// const skipSave = event ? event.altKey : false;
+		// const success = skipSave || (await saveConversation());
+		// if (success) {
+		apiService.cancelStream(); // When new convo started during a response
+		clearMessages();
+		// }
 		(document.querySelector("#oq-prompt-input") as HTMLElement)?.focus();
+	};
+
+	const getConversationId = (): string => {
+		const conversationId =
+			latestMessageRef.current?.conversationId || vaultUtils.getDateTime();
+		return conversationId;
+	};
+
+	const saveConversation = async (
+		updatedMessage: MessageType
+	): Promise<boolean> => {
+		if (!settings.saveConversations) return false;
+		if (updatedMessage) {
+			const filename = await vaultUtils.appendLatestMessageToFile(
+				getConversationId(),
+				updatedMessage
+			);
+			if (!filename) return false;
+			return true;
+		} else {
+			return false;
+		}
 	};
 
 	// SCROLL HANDLER
@@ -76,28 +91,38 @@ const Messages: React.FC = () => {
 	}, []);
 
 	// NEW MESSAGE
-	// Add a new message to the chat when a new message is received
+	// Adds a new message to the conversation, but
+	// does not include content of message (see `handleupdateResponseMessage`)
 	useEffect(() => {
 		const container = getContainerElem();
 		if (!container) return;
 
-		const handleNewMessage = (role: Role, selectedText: string) => {
+		const handleNewMessage = async (
+			role: Role,
+			inputText: string,
+			selectedText: string
+		): Promise<void> => {
 			const newMessage: MessageType = {
+				conversationId: getConversationId(),
+				convIdx: messages.length + 1,
 				id: generateUniqueId(),
 				role: role,
-				content: "",
+				content: inputText || "",
 				model: settings.openaiModel,
 				selectedText: selectedText,
 			};
 			latestMessageRef.current = newMessage;
 			prevContentLengthRef.current = 0;
 			stopScrolling.current = false;
+
 			setMessages((prevMessages) => {
 				return [...prevMessages, newMessage];
 			});
 			prevScrollTop.current = container.scrollTop;
-			scrollToMessage(messages.length - 1);
+			await scrollToMessage(messages.length - 1);
+			if (role === "user") saveConversation(newMessage);
 		};
+
 		emitter.on("newMessage", handleNewMessage);
 		return () => {
 			emitter.off("newMessage", handleNewMessage);
@@ -107,7 +132,7 @@ const Messages: React.FC = () => {
 	// UPDATE MESSAGE
 	// Update the most recent message with streaming content from the API.
 	useEffect(() => {
-		const handleUpdateMessage = (response: string) => {
+		const handleResponseMessage = async (response: string) => {
 			if (latestMessageRef.current) {
 				latestMessageRef.current.content += response;
 				setMessages((prevMessages) => {
@@ -124,14 +149,14 @@ const Messages: React.FC = () => {
 					contentLength >=
 					prevContentLengthRef.current + SCROLL_CHARS_LIMIT
 				) {
-					scrollToMessage(messages.length - 1);
+					await scrollToMessage(messages.length - 1);
 					prevContentLengthRef.current = contentLength;
 				}
 			}
 		};
-		emitter.on("updateMessage", handleUpdateMessage);
+		emitter.on("updateResponseMessage", handleResponseMessage);
 		return () => {
-			emitter.off("updateMessage", handleUpdateMessage);
+			emitter.off("updateResponseMessage", handleResponseMessage);
 		};
 	}, [messages]);
 
@@ -145,6 +170,9 @@ const Messages: React.FC = () => {
 				clearHighlights("oq-message-streaming");
 				scrollToMessage(messages.length - 1);
 			}, 0);
+			setTimeout(() => {
+				saveConversation(messages[messages.length - 1]);
+			}, 1500);
 		};
 		emitter.on("streamEnd", handleStreamEnd);
 		return () => {
@@ -219,7 +247,7 @@ const Messages: React.FC = () => {
 		};
 	}, [apiService, pluginServices, messages.length]);
 
-	// Generate a unique ID for each message
+	// Unique ID used for each conversation and message
 	const generateUniqueId = () => {
 		return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 	};
@@ -251,7 +279,10 @@ const Messages: React.FC = () => {
 	};
 
 	// Scroll to a specific message
-	const scrollToMessage = (index: number, isMsgNav?: boolean): void => {
+	const scrollToMessage = async (
+		index: number,
+		isMsgNav?: boolean
+	): Promise<void> => {
 		if (!isMsgNav && stopScrolling.current) return;
 		const container = getContainerElem();
 		const message = getMessageElem(index);
@@ -312,12 +343,12 @@ const Messages: React.FC = () => {
 	return (
 		<>
 			<div id="oq-messages">
-				<TitleBar newChat={newConversation} />
+				<TitleBar newConversation={newConversation} />
 				{messages.map((message, index) => (
 					<Message
 						key={message.id}
 						{...message}
-						dataIdx={index}
+						convIdx={index}
 						handleOnCollapse={handleCollapseSelectedText}
 					/>
 				))}

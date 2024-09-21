@@ -7,6 +7,7 @@ export interface QuillPluginSettings {
 	openaiEnginesUrl: string;
 	openaiModel: string;
 	openaiTemperature: number;
+	saveConversations: boolean;
 	conversationsFolder: string;
 	messagesFolder: string;
 	openSavedFile: boolean;
@@ -20,6 +21,7 @@ export const DEFAULT_SETTINGS: QuillPluginSettings = {
 	openaiEnginesUrl: `${openaiBaseUrl}/engines`,
 	openaiModel: "gpt-4o-mini",
 	openaiTemperature: 0.7,
+	saveConversations: true,
 	conversationsFolder: "Quill",
 	messagesFolder: "Quill",
 	openSavedFile: false,
@@ -60,9 +62,13 @@ export class QuillSettingsTab extends PluginSettingTab {
 		containerEl.empty();
 
 		this.containerEl.createEl("h3", {
-			text: "Obsidian Quill Settings",
+			text: "Obsidian Quill",
 		});
 
+		// OpenAI
+		this.containerEl.createEl("h4", {
+			text: "OpenAI",
+		});
 		// OpenAI API Key `openaiApiKey`
 		new Setting(containerEl)
 			.setName("OpenAI API Key")
@@ -94,10 +100,27 @@ export class QuillSettingsTab extends PluginSettingTab {
 					await this.plugin.saveSettings();
 				});
 			});
-		// Vault Folder: `vaultFolder`
+
+		// Save Preferences
+		this.containerEl.createEl("h4", {
+			text: "Save Preferences",
+		});
+		// Save Conversations Automatically
+		new Setting(containerEl)
+			.setName("Save Conversations Automatically")
+			.setDesc("Save each conversation to a note automatically")
+			.addToggle((toggle) => {
+				toggle.setValue(this.plugin.settings.saveConversations);
+				toggle.onChange(async () => {
+					this.plugin.settings.saveConversations = toggle.getValue();
+					await this.plugin.saveSettings();
+				});
+			});
+
+		// Save Conversations To...
 		new Setting(containerEl)
 			.setName("Save Conversations To...")
-			.setDesc("Set the default folder for saving Quill conversations.")
+			.setDesc("Choose the default folder for saved conversations.")
 			.addDropdown((dropdown) => {
 				const folders = this.app.vault
 					.getAllLoadedFiles()
@@ -116,7 +139,7 @@ export class QuillSettingsTab extends PluginSettingTab {
 		// Save Messages Preferences
 		new Setting(containerEl)
 			.setName("Save Messages To...")
-			.setDesc("Set the default folder for saving Quill messages.")
+			.setDesc("Choose the default folder for saving individual messages.")
 			.addDropdown((dropdown) => {
 				const folders = this.app.vault
 					.getAllLoadedFiles()
