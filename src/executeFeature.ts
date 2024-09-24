@@ -58,15 +58,15 @@ export const executeFeature = async (
 		const emitEvent = (
 			event: string,
 			role: string,
+			prompt?: string,
 			selectedText?: string
 		): Promise<void> => {
 			return new Promise<void>((resolve) => {
-				emitter.emit(event, role, selectedText);
+				emitter.emit(event, role, prompt, selectedText);
 				resolve();
 			});
 		};
-		await emitEvent("newMessage", "user", selectedText);
-		if (inputText) await emitEvent("updateMessage", inputText);
+		await emitEvent("newMessage", "user", inputText, selectedText);
 		await pluginServices.toggleView();
 		if (payloadMessages.getAll().length === 0) {
 			const today = new Date().toLocaleDateString("en-US", {
@@ -113,7 +113,6 @@ export const executeFeature = async (
 				role: "assistant",
 				content: completedResponse,
 			});
-			emitter.emit("streamEnd");
 		}
 		if (editorElem) {
 			(editorElem as HTMLElement).id = "";

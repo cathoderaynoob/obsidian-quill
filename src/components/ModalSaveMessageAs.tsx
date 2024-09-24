@@ -1,27 +1,22 @@
-import { App, DropdownComponent, Modal, Vault } from "obsidian";
+import { App, Modal } from "obsidian";
 import { QuillPluginSettings } from "@/settings";
 
 class ModalSaveMessageAs extends Modal {
-	private vault: Vault;
 	private content: string;
 	private folderPaths: string[];
 	private selectedFolderPath: string;
-	private selectedFileName: string;
 	private onSubmit: (name: string, path: string, openFile: boolean) => void;
-	private dropdown: DropdownComponent;
 	private settings: QuillPluginSettings;
 
 	constructor(
 		app: App,
 		settings: QuillPluginSettings,
-		vault: Vault,
 		content: string,
 		folderPaths: string[],
 		onSubmit: (name: string, path: string, openFile: boolean) => void
 	) {
 		super(app);
 		this.settings = settings;
-		this.vault = vault;
 		this.content = content;
 		this.folderPaths = folderPaths;
 		this.onSubmit = onSubmit;

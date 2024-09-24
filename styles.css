@@ -15,7 +15,6 @@
 /* Settings */
 .oq-settings {
 	display: grid;
-	grid-gap: 1.5rem;
 	height: auto;
 }
 .oq-settings .setting-item {

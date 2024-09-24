@@ -6,6 +6,8 @@ import { Role } from "@/interfaces";
 import { usePluginContext } from "@/components/PluginContext";
 
 export interface MessageType {
+	conversationId: string | null;
+	convIdx: number;
 	id: string;
 	role: Role;
 	content: string;
@@ -16,25 +18,25 @@ export interface MessageType {
 }
 
 interface MessageProps extends MessageType {
-	dataIdx: number;
 	handleOnCollapse: (index: number) => void;
 }
 
 const Message: React.FC<MessageProps> = ({
+	conversationId,
+	convIdx,
 	id,
 	role,
 	content: message,
 	model,
 	selectedText,
 	error,
-	dataIdx,
 	handleOnCollapse,
 	// status,
 }) => {
-	const { settings, vault, vaultUtils } = usePluginContext();
+	const { settings, vaultUtils } = usePluginContext();
 
 	const saveMessage = async (event: React.MouseEvent<SVGSVGElement>) => {
-		vaultUtils.saveMessageAs(message, vault, settings);
+		vaultUtils.saveMessageAs(message, settings);
 	};
 
 	const copyMessageToClipboard = () => {
@@ -49,13 +51,13 @@ const Message: React.FC<MessageProps> = ({
 	const handleCollapseSelectedText = (
 		event: React.ChangeEvent<HTMLInputElement>
 	) => {
-		if (!event.target.checked) handleOnCollapse(dataIdx);
+		if (!event.target.checked) handleOnCollapse(convIdx);
 	};
 
 	return (
 		<>
 			{message ? (
-				<div className={`oq-message oq-message-${role}`} data-idx={dataIdx}>
+				<div className={`oq-message oq-message-${role}`} conv-idx={convIdx}>
 					{role === "user" && <p className="oq-message-user-icon"></p>}
 					<div
 						className={`oq-message-content ${
