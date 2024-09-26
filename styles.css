@@ -6,7 +6,7 @@
 	--oq-app-faint-color: var(--text-faint);
 	--oq-view-title-height: 2.5rem;
 	--oq-message-pad-height: 6.25rem;
-	--oq-hightlight-width: 3px;
+	--oq-highlight-width: 3px;
 	--oq-transition-color: color 0.2s ease;
 	--oq-transition-opacity: opacity 0.2s ease;
 	--oq-transition-border-color: border-color 1.5s ease;
@@ -62,12 +62,10 @@
 [data-type="quill-chat-view"] .view-content {
 	display: grid;
 	grid-gap: 0;
-	grid-template-rows: 1fr var(--oq-message-pad-height);
+	grid-template-rows: var(--oq-view-title-height) 1fr auto;
 	padding: 0;
 }
 #oq-view-title {
-	position: absolute;
-	top: 0;
 	height: var(--oq-view-title-height);
 	width: 100%;
 	z-index: 1000;
@@ -100,7 +98,6 @@
 	display: grid;
 	grid-auto-rows: min-content;
 	gap: 0.5rem;
-	padding-top: calc(var(--oq-view-title-height) + 12px);
 	padding-bottom: 1.25rem;
 	max-height: 100%;
 	overflow-y: scroll;
@@ -113,7 +110,7 @@
 .oq-message {
 	display: grid; /* Need this here to all pre scroll */
 	padding: 0 1rem;
-	border-left: var(--oq-hightlight-width) solid transparent;
+	border-left: var(--oq-highlight-width) solid transparent;
 	user-select: text;
 	-webkit-user-select: text;
 	transition: border-color 1.5s ease;
@@ -195,9 +192,6 @@
 	margin: 0.75rem 0;
 }
 #oq-message-pad {
-	position: fixed;
-	bottom: 0;
-	left: var(--oq-hightlight-width);
 	z-index: 1000; /* Ensures the header is above other content */
 	width: 100%;
 	padding: 1rem;
