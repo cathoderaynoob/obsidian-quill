@@ -33,7 +33,12 @@ const Messages: React.FC = () => {
 			latestMessageRef.current.conversationId = null;
 	};
 
-	// NEW CONVERSATION
+	// Unique ID used for each conversation and message
+	const generateUniqueId = () => {
+		return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+	};
+
+	// NEW CONVERSATION =========================================================
 	const newConversation = async (event?: React.MouseEvent<HTMLElement>) => {
 		// Skip if alt+click. Save convo for all other use cases.
 		// const skipSave = event ? event.altKey : false;
@@ -56,46 +61,26 @@ const Messages: React.FC = () => {
 	): Promise<boolean> => {
 		if (!settings.saveConversations) return false;
 		if (updatedMessage) {
-			const filename = await vaultUtils.appendLatestMessageToFile(
-				getConversationId(),
-				updatedMessage
-			);
-			if (!filename) return false;
+			// Allow time for scrolling, etc. to complete, which this can interrupt
+			setTimeout(async () => {
+				const filename = await vaultUtils.appendLatestMessageToFile(
+					getConversationId(),
+					updatedMessage
+				);
+				if (!filename) return false;
+			}, 1500);
 			return true;
 		} else {
 			return false;
 		}
 	};
 
-	// SCROLL HANDLER
-	useEffect(() => {
-		if (stopScrolling.current) return;
-
-		const container = getContainerElem();
-		if (!container) return;
-
-		const handleScroll = () => {
-			// Stop scrolling if the user scrolls up
-			const isScrollingDown = container.scrollTop < prevScrollTop.current;
-			if (isScrollingDown) {
-				stopScrolling.current = true;
-				return;
-			}
-			prevScrollTop.current = container.scrollTop;
-		};
-		container.addEventListener("scroll", handleScroll);
-
-		return () => {
-			container.removeEventListener("scroll", handleScroll);
-		};
-	}, []);
-
-	// NEW MESSAGE
+	// NEW MESSAGE ==============================================================
 	// Adds a new message to the conversation, but
 	// does not include content of message (see `handleupdateResponseMessage`)
 	useEffect(() => {
-		const container = getContainerElem();
-		if (!container) return;
+		const containerElem = getContainerElem();
+		if (!containerElem) return;
 
 		const handleNewMessage = async (
 			role: Role,
@@ -118,8 +103,8 @@ const Messages: React.FC = () => {
 			setMessages((prevMessages) => {
 				return [...prevMessages, newMessage];
 			});
-			prevScrollTop.current = container.scrollTop;
-			await scrollToMessage(messages.length - 1);
+			prevScrollTop.current = containerElem.scrollTop;
+			scrollToMessage(messages.length - 1);
 			if (role === "user") saveConversation(newMessage);
 		};
 
@@ -129,7 +114,7 @@ const Messages: React.FC = () => {
 		};
 	}, [messages]);
 
-	// UPDATE MESSAGE
+	// UPDATE MESSAGE ===========================================================
 	// Update the most recent message with streaming content from the API.
 	useEffect(() => {
 		const handleResponseMessage = async (response: string) => {
@@ -160,25 +145,39 @@ const Messages: React.FC = () => {
 		};
 	}, [messages]);
 
-	// STREAM END
-	// Clear the message highlight when the stream ends
+	// STREAM END ===============================================================
 	useEffect(() => {
 		const handleStreamEnd = () => {
-			// setTimeout is necessary when the response is minimal,
-			// e.g. "1 2 3". Otherwise the highlight isn't cleared.
-			setTimeout(() => {
-				clearHighlights("oq-message-streaming");
-				scrollToMessage(messages.length - 1);
-			}, 0);
-			setTimeout(() => {
-				saveConversation(messages[messages.length - 1]);
-			}, 1500);
+			clearHighlights("oq-message-streaming");
+			scrollToMessage(messages.length - 1);
+			saveConversation(messages[messages.length - 1]);
 		};
 		emitter.on("streamEnd", handleStreamEnd);
 		return () => {
 			emitter.off("streamEnd", handleStreamEnd);
 		};
 	}, [messages]);
+
+	// SCROLL HANDLING ==========================================================
+	useEffect(() => {
+		const containerElem = getContainerElem();
+		if (stopScrolling.current || !containerElem) return;
+
+		const handleScroll = () => {
+			// Stop scrolling if the user scrolls up
+			const isScrollingUp = containerElem.scrollTop < prevScrollTop.current;
+			if (isScrollingUp) {
+				stopScrolling.current = true;
+				return;
+			}
+			prevScrollTop.current = containerElem.scrollTop;
+		};
+		containerElem.addEventListener("scroll", handleScroll);
+
+		return () => {
+			containerElem.removeEventListener("scroll", handleScroll);
+		};
+	}, []);
 
 	// Control the message navigation
 	const goToMessage = (nav: "next" | "prev" | "first" | "last") => {
@@ -247,21 +246,70 @@ const Messages: React.FC = () => {
 		};
 	}, [apiService, pluginServices, messages.length]);
 
-	// Unique ID used for each conversation and message
-	const generateUniqueId = () => {
-		return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-	};
-
-	const getMessagePos = (container: HTMLElement, message: HTMLElement) => {
+	const getMessagePos = (
+		containerElem: HTMLElement,
+		message: HTMLElement
+	): number => {
 		let messagePos = 0;
-		const containerRect = container.getBoundingClientRect();
+		if (!containerElem) return messagePos;
+		const containerRect = containerElem.getBoundingClientRect();
 		const messageRect = message.getBoundingClientRect();
 
-		messagePos = messageRect.top - containerRect.top + container.scrollTop;
+		messagePos = messageRect.top - containerRect.top + containerElem.scrollTop;
 		return messagePos;
 	};
 
-	// Utility functions for highlighting messages
+	// Scroll to a specific message
+	const scrollToMessage = async (
+		index: number,
+		isMsgNav?: boolean
+	): Promise<void> => {
+		if (!isMsgNav && stopScrolling.current) return;
+		const containerElem = getContainerElem();
+		const message = getMessageElem(index);
+		if (!containerElem || !message) return;
+
+		// If the message is taller than the viewable area,
+		// scroll the message to the top of the view port
+		if (message.offsetHeight >= containerElem.offsetHeight) {
+			const messagePos = getMessagePos(containerElem, message);
+			const scrollToPosition = messagePos - 16;
+			containerElem.scrollTo({
+				top: scrollToPosition,
+				behavior: "smooth",
+			});
+			stopScrolling.current = true;
+		}
+		// Otherwise, scroll the message into view, centered
+		else {
+			message.scrollIntoView({
+				block: "center",
+				behavior: "smooth",
+			});
+		}
+	};
+
+	const scrollToBottom = () => {
+		const containerElem = getContainerElem();
+		containerElem?.scrollTo({
+			top: containerElem.scrollHeight,
+			behavior: "smooth",
+		});
+	};
+
+	const handleCollapseSelectedText = (index: number) => {
+		const containerElem = getContainerElem();
+		const message = getMessageElem(index);
+		if (!(message && containerElem)) return;
+		if (
+			message.offsetHeight > containerElem.offsetHeight ||
+			containerElem.scrollTop > message.offsetTop
+		) {
+			scrollToMessage(index, true);
+		}
+	};
+
+	// Utility functions for highlighting messages ==============================
 	const highlightMessage = (index: number) => {
 		const messageElement = getMessageElem(index);
 		messageElement?.classList.add("oq-message-highlight");
@@ -278,72 +326,11 @@ const Messages: React.FC = () => {
 		});
 	};
 
-	// Scroll to a specific message
-	const scrollToMessage = async (
-		index: number,
-		isMsgNav?: boolean
-	): Promise<void> => {
-		if (!isMsgNav && stopScrolling.current) return;
-		const container = getContainerElem();
-		const message = getMessageElem(index);
-		if (!container || !message) return;
-
-		const titleBarHeight =
-			document.getElementById("oq-view-title")?.offsetHeight || 0;
-		const messagePadHeight =
-			document.getElementById("oq-message-pad")?.offsetHeight || 0;
-		const viewPortHeight =
-			container.offsetHeight - titleBarHeight - messagePadHeight;
-
-		// If the message is taller than the viewable area,
-		// scroll the message to the top of the view port
-		if (message.offsetHeight >= viewPortHeight) {
-			const messagePos = getMessagePos(container, message);
-			if (!messagePos) return;
-
-			// 12 corresponds to #oq-messages padding-top
-			const scrollToPosition = messagePos - titleBarHeight - 12;
-			container.scrollTo({
-				top: scrollToPosition,
-				behavior: "smooth",
-			});
-		}
-		// Otherwise, scroll the message into view, centered
-		else {
-			message.scrollIntoView({
-				block: "center",
-				behavior: "smooth",
-			});
-		}
-	};
-
-	const scrollToBottom = () => {
-		const container = getContainerElem();
-		if (container) {
-			container.scrollTo({
-				top: container.scrollHeight,
-				behavior: "smooth",
-			});
-		}
-	};
-
-	const handleCollapseSelectedText = (index: number) => {
-		const message = getMessageElem(index);
-		const container = getContainerElem();
-		if (!message || !container) return;
-		if (
-			message?.offsetHeight > container?.offsetHeight ||
-			container?.scrollTop > message?.offsetTop
-		) {
-			scrollToMessage(index, true);
-		}
-	};
-
 	// Render the messages
 	return (
 		<>
+			<TitleBar newConversation={newConversation} />
 			<div id="oq-messages">
-				<TitleBar newConversation={newConversation} />
 				{messages.map((message, index) => (
 					<Message
 						key={message.id}

@@ -81,7 +81,10 @@ export default class ApiService {
 			if (outputTarget && bufferedContent.length > 0) {
 				callback(bufferedContent, outputTarget);
 			}
-			emitter.emit("streamEnd");
+			// Give completedMessage time to be return before emitting streamEnd
+			setTimeout(() => {
+				emitter.emit("streamEnd");
+			}, 150);
 		}
 		return completedMessage;
 	}
