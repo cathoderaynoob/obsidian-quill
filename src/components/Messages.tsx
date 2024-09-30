@@ -47,7 +47,7 @@ const Messages: React.FC = () => {
 		apiService.cancelStream(); // When new convo started during a response
 		clearMessages();
 		// }
-		(document.querySelector("#oq-prompt-input") as HTMLElement)?.focus();
+		(document.querySelector(".oq-prompt-input") as HTMLElement)?.focus();
 	};
 
 	const getConversationId = (): string => {
@@ -148,6 +148,7 @@ const Messages: React.FC = () => {
 	// STREAM END ===============================================================
 	useEffect(() => {
 		const handleStreamEnd = () => {
+			enableSend();
 			clearHighlights("oq-message-streaming");
 			scrollToMessage(messages.length - 1);
 			saveConversation(messages[messages.length - 1]);
@@ -206,7 +207,9 @@ const Messages: React.FC = () => {
 
 	// Keyboard navigation for messages
 	const handleMessagesKeypress = (event: KeyboardEvent) => {
-		const promptElem = document.getElementById("oq-prompt-input");
+		const promptElem = document.querySelector(
+			".oq-prompt-input"
+		) as HTMLElement;
 		if (document.activeElement !== promptElem) {
 			switch (event.key) {
 				case "j":
@@ -324,6 +327,14 @@ const Messages: React.FC = () => {
 		highlightedMessages.forEach((message) => {
 			message.classList.remove(msgClassName);
 		});
+	};
+
+	const enableSend = () => {
+		const messagePad = document.getElementById("oq-message-pad");
+		const inputElem = messagePad?.querySelector(
+			".oq-prompt-send"
+		) as HTMLButtonElement;
+		inputElem.disabled = false;
 	};
 
 	// Render the messages

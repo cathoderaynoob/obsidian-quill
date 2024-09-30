@@ -211,7 +211,7 @@
 	color: var(--oq-app-faint-color);
 	/* opacity: 0.7; Too light? */
 }
-#oq-prompt-input {
+.oq-prompt-input {
 	border-radius: 0.5rem;
 	padding: 0.75rem 1rem;
 	overflow-y: auto;
@@ -219,23 +219,23 @@
 	outline: 1px solid var(--background-primary);
 	transition: outline-color 0.2s ease;
 }
-#oq-prompt-input:hover {
+.oq-prompt-input:hover {
 	box-shadow: none;
 	transition: border-color 0.2s ease;
 }
-#oq-prompt-input:focus {
+.oq-prompt-input:focus {
 	box-shadow: none;
 	border-color: var(--oq-app-bright-color);
 	outline-color: var(--oq-app-bright-color);
 	transition: outline-color 0.2s ease;
 }
-textarea#oq-prompt-input::placeholder {
+textarea.oq-prompt-input::placeholder {
 	white-space: nowrap;
 	overflow-x: hidden;
 	/* This doesn't work for some reason, but leaving here for now. */
 	text-overflow: ellipsis;
 }
-button#oq-prompt-send {
+button.oq-prompt-send {
 	--icon-size: 22px; /* btwn --icon-m & lg */
 	position: relative;
 	border: none;
@@ -245,20 +245,24 @@ button#oq-prompt-send {
 	color: var(--oq-app-faint-color);
 	transition: var(--oq-transition-color);
 }
-button#oq-prompt-send::before {
+textarea.oq-prompt-input:focus + button.oq-prompt-send {
+	color: var(--oq-app-bright-color);
+	transition: var(--oq-transition-color);
+}
+button.oq-prompt-send::before {
 	position: absolute;
 	top: 1.55rem;
 	content: "send";
 }
-button#oq-prompt-send:disabled {
+button.oq-prompt-send:disabled {
 	border-color: var(--oq-app-faint-color);
 }
-button#oq-prompt-send:disabled::before {
+button.oq-prompt-send:disabled::before {
 	font-weight: 800;
 	content: "•••";
 }
-button#oq-prompt-send:focus,
-button#oq-prompt-send:enabled:hover {
+button.oq-prompt-send:focus,
+button.oq-prompt-send:enabled:hover {
 	color: var(--oq-app-bright-color);
 	transition: var(--oq-transition-color);
 	cursor: pointer;

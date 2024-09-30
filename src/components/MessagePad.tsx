@@ -11,12 +11,7 @@ const MessagePad: React.FC<MessagePadProps> = ({ executeFeature }) => {
 	const { settings } = usePluginContext();
 	const [promptValue, setPromptValue] = useState<string>("");
 	const [rows] = useState<number>(1);
-
-	const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-		const textarea = e.target;
-		setTextareaSize(textarea);
-		setPromptValue(e.target.value);
-	};
+	const messagePadId = "oq-message-pad";
 
 	const setTextareaSize = (textarea: HTMLTextAreaElement) => {
 		textarea.style.height = "auto";
@@ -30,14 +25,10 @@ const MessagePad: React.FC<MessagePadProps> = ({ executeFeature }) => {
 		textarea.style.height = `${newHeight}px`;
 	};
 
-	const handleKeyPress = (e: React.KeyboardEvent) => {
-		if (e.key === "Enter" && e.shiftKey) {
-			return;
-		} else if (e.key === "Enter") {
-			e.stopPropagation();
-			e.preventDefault();
-			handleSend();
-		}
+	const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+		const textarea = e.target;
+		setTextareaSize(textarea);
+		setPromptValue(e.target.value);
 	};
 
 	const handleBlur = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -49,8 +40,23 @@ const MessagePad: React.FC<MessagePadProps> = ({ executeFeature }) => {
 		setTextareaSize(textarea);
 	};
 
+	const handleKeyPress = (e: React.KeyboardEvent) => {
+		if (e.key === "Enter" && e.shiftKey) {
+			return;
+		} else if (e.key === "Enter") {
+			e.stopPropagation();
+			e.preventDefault();
+			handleSend();
+		}
+	};
+
 	const handleSend = () => {
 		const trimmedValue = promptValue.trim();
+		const messagePad = document.getElementById(messagePadId);
+		const inputElem = messagePad?.querySelector(
+			".oq-prompt-send"
+		) as HTMLButtonElement;
+		inputElem.disabled = true;
 		setPromptValue(trimmedValue);
 		executeFeature({
 			id: "newPrompt",
@@ -60,15 +66,15 @@ const MessagePad: React.FC<MessagePadProps> = ({ executeFeature }) => {
 	};
 
 	return (
-		<div id="oq-message-pad">
+		<div id={messagePadId}>
 			<PromptContent
 				value={promptValue}
 				rows={rows}
 				model={settings.openaiModel}
+				handleBlur={handleBlur}
 				handleInput={handleInput}
 				handleKeyPress={handleKeyPress}
 				handleSend={handleSend}
-				handleBlur={handleBlur}
 			/>
 		</div>
 	);

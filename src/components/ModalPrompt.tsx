@@ -37,6 +37,10 @@ class ModalPrompt extends Modal {
 			this.promptValue = e.target.value;
 		};
 
+		const handleBlur = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+			e.target.value = e.target.value.trim();
+		};
+
 		const handleKeyPress = (e: React.KeyboardEvent) => {
 			if (e.key === "Enter" && e.shiftKey) {
 				return;
@@ -51,10 +55,6 @@ class ModalPrompt extends Modal {
 		const handleSend = () => {
 			this.close();
 			this.onSend(this.promptValue.trim());
-		};
-
-		const handleBlur = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-			e.target.value = e.target.value.trim();
 		};
 
 		this.modalRoot = createRoot(this.contentEl);
