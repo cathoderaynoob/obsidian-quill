@@ -216,6 +216,18 @@
 	padding: 0.75rem 1rem;
 	overflow-y: auto;
 	resize: none;
+	outline: 1px solid var(--background-primary);
+	transition: outline-color 0.2s ease;
+}
+#oq-prompt-input:hover {
+	box-shadow: none;
+	transition: border-color 0.2s ease;
+}
+#oq-prompt-input:focus {
+	box-shadow: none;
+	border-color: var(--oq-app-bright-color);
+	outline-color: var(--oq-app-bright-color);
+	transition: outline-color 0.2s ease;
 }
 textarea#oq-prompt-input::placeholder {
 	white-space: nowrap;
@@ -237,6 +249,13 @@ button#oq-prompt-send::before {
 	position: absolute;
 	top: 1.55rem;
 	content: "send";
+}
+button#oq-prompt-send:disabled {
+	border-color: var(--oq-app-faint-color);
+}
+button#oq-prompt-send:disabled::before {
+	font-weight: 800;
+	content: "•••";
 }
 button#oq-prompt-send:focus,
 button#oq-prompt-send:enabled:hover {
