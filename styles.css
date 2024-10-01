@@ -10,22 +10,21 @@
 	--oq-highlight-width: 3px;
 	--oq-transition-color: color 0.2s ease;
 	--oq-transition-opacity: opacity 0.2s ease;
-	--oq-transition-border-color: border-color 1.5s ease;
 }
 
 /* Settings */
 .oq-settings {
 	display: grid;
 	height: auto;
-}
-.oq-settings .setting-item {
-	display: grid;
-	grid-gap: 0.5rem;
-	grid-template-columns: 1fr 33%;
-}
-.oq-settings input,
-.oq-settings select {
-	width: 100%;
+	.setting-item {
+		display: grid;
+		grid-gap: 0.5rem;
+		grid-template-columns: 1fr 33%;
+	}
+	input,
+	select {
+		width: 100%;
+	}
 }
 
 /* Editor */
@@ -35,31 +34,35 @@
 .cm-active {
 	transition: background-color 1.5s ease;
 }
-#oq-streaming .cm-active {
-	padding: 0.5rem 0 0.5rem 0.75rem !important;
-	border-radius: 0.33rem;
-	background-color: var(--text-accent);
-	color: var(--text-on-accent);
-	transition: background-color 1s ease;
-}
-#oq-streaming .cm-active::before {
-	content: "» ";
-}
-#oq-streaming .cm-active.cm-line {
-	text-indent: 0 !important;
-}
-#oq-streaming .cm-active.cm-line .list-number,
-#oq-streaming .cm-active.cm-line .list-bullet {
-	color: var(--text-on-accent);
+#oq-streaming {
+	.cm-active {
+		padding: 0.5rem 0 0.5rem 0.75rem !important;
+		border-radius: 0.33rem;
+		background-color: var(--text-accent);
+		color: var(--text-on-accent);
+		transition: background-color 1s ease;
+		&::before {
+			content: "» ";
+		}
+		&.cm-line {
+			text-indent: 0 !important;
+			.list-number,
+			.list-bullet {
+				color: var(--text-on-accent);
+			}
+		}
+	}
 }
 
 /* View */
-.view-content:focus-within #oq-view-title,
-.view-content:focus-within #oq-message-pad {
-	border-color: var(--oq-app-bright-color);
-	/* border-color: var(--oq-app-blur-color); */
-	color: var(--oq-app-bright-color);
-	transition: var(--oq-transition-color), border-color 0.2s ease;
+.view-content:focus-within {
+	#oq-view-title,
+	#oq-message-pad {
+		border-color: var(--oq-app-bright-color);
+		/* border-color: var(--oq-app-blur-color); */
+		color: var(--oq-app-bright-color);
+		transition: var(--oq-transition-color), border-color 0.2s ease;
+	}
 }
 [data-type="quill-chat-view"] .view-content {
 	display: grid;
@@ -82,20 +85,21 @@
 #oq-btn-new-conv {
 	width: fit-content;
 	cursor: pointer;
+	&:after {
+		position: relative;
+		bottom: 0.35rem;
+		margin-left: 0.5rem;
+		content: "new conversation";
+		font-size: small;
+		color: var(--oq-app-faint-color);
+		transition: var(--oq-transition-color);
+		cursor: pointer;
+	}
+	&:hover::after {
+		color: var(--oq-app-bright-color);
+	}
 }
-#oq-btn-new-conv:after {
-	position: relative;
-	bottom: 0.35rem;
-	margin-left: 0.5rem;
-	content: "new conversation";
-	font-size: small;
-	color: var(--oq-app-faint-color);
-	transition: var(--oq-transition-color);
-	cursor: pointer;
-}
-#oq-btn-new-conv:hover::after {
-	color: var(--oq-app-bright-color);
-}
+
 #oq-messages {
 	display: grid;
 	grid-auto-rows: min-content;
@@ -116,29 +120,30 @@
 	user-select: text;
 	-webkit-user-select: text;
 	transition: border-color 1.5s ease;
+	p {
+		/* Respect line breaks */
+		white-space: pre-wrap;
+	}
+	pre {
+		white-space: pre-wrap;
+		background: var(--background-secondary);
+	}
+	code[class*="language-"] {
+		white-space: pre;
+		font-size: smaller;
+	}
 }
 .oq-message-highlight {
 	border-left-color: var(--oq-app-bright-color);
 	transition: border-color 0.1s ease;
 }
-.oq-message p {
-	/* Respect line breaks */
-	white-space: pre-wrap;
-}
-.oq-message pre {
-	white-space: pre-wrap;
-	background: var(--background-secondary);
-}
-.oq-message code[class*="language-"] {
-	white-space: pre;
-	font-size: smaller;
-}
 .oq-message-user {
 	grid-template-columns: 1rem 1fr;
+	pre {
+		border: 1px solid var(--code-background);
+	}
 }
-.oq-message-user pre {
-	border: 1px solid var(--code-background);
-}
+
 .oq-message-user-icon::before {
 	line-height: 1;
 	content: "»";
@@ -173,16 +178,18 @@
 	transition: var(--oq-transition-color);
 	cursor: pointer;
 }
-.oq-message-assistant .oq-message-content {
-	padding: 0 1rem 0.5rem 1rem;
-	border: 1px solid var(--background-modifier-border);
-	background: var(--background-primary);
-	border-radius: 1rem;
-	transition: border-color 0.5s ease;
-}
-.oq-message-assistant .oq-message-content.oq-message-streaming {
-	border-color: var(--oq-app-bright-color);
-	transition: border-color 0.3s ease;
+.oq-message-assistant {
+	.oq-message-content {
+		padding: 0 1rem 0.5rem 1rem;
+		border: 1px solid var(--background-modifier-border);
+		background: var(--background-primary);
+		border-radius: 1rem;
+		transition: border-color 0.5s ease;
+	}
+	.oq-message-content.oq-message-streaming {
+		border-color: var(--oq-app-bright-color);
+		transition: border-color 0.3s ease;
+	}
 }
 .oq-message-streaming .oq-message-actions {
 	visibility: hidden;
@@ -220,22 +227,22 @@
 	resize: none;
 	outline: 1px solid var(--background-primary);
 	transition: outline-color 0.2s ease;
-}
-.oq-prompt-input:hover {
-	box-shadow: none;
-	transition: border-color 0.2s ease;
-}
-.oq-prompt-input:focus {
-	box-shadow: none;
-	border-color: var(--oq-app-bright-color);
-	outline-color: var(--oq-app-bright-color);
-	transition: outline-color 0.2s ease;
-}
-textarea.oq-prompt-input::placeholder {
-	white-space: nowrap;
-	overflow-x: hidden;
-	/* This doesn't work for some reason, but leaving here for now. */
-	text-overflow: ellipsis;
+	&:hover {
+		box-shadow: none;
+		transition: border-color 0.2s ease;
+	}
+	&:focus {
+		box-shadow: none;
+		border-color: var(--oq-app-bright-color);
+		outline-color: var(--oq-app-bright-color);
+		transition: outline-color 0.2s ease;
+	}
+	&::placeholder {
+		white-space: nowrap;
+		overflow-x: hidden;
+		/* This doesn't work for some reason, but leaving here for now. */
+		text-overflow: ellipsis;
+	}
 }
 button.oq-prompt-send {
 	--icon-size: 22px; /* btwn --icon-m & lg */
@@ -249,31 +256,28 @@ button.oq-prompt-send {
 	/* transition: var(--oq-transition-color); */
 	opacity: 0.6;
 	transition: var(--oq-transition-opacity);
-}
-/* textarea.oq-prompt-input:focus + button.oq-prompt-send { */
-button.oq-prompt-send:hover,
-button.oq-prompt-send:enabled:focus {
-	/* color: var(--oq-app-bright-color); */
-	/* transition: var(--oq-transition-color); */
-	opacity: 1;
-	transition: var(--oq-transition-opacity);
-}
-button.oq-prompt-send::before {
-	position: absolute;
-	top: 1.55rem;
-	content: "send";
-}
-button.oq-prompt-send:disabled {
-	color: var(--oq-app-faint-color);
-}
-button.oq-prompt-send:disabled::before {
-	font-weight: 800;
-	content: "•••";
-}
-button.oq-prompt-send:focus {
-	color: var(--oq-app-bright-color);
-	transition: var(--oq-transition-color);
-	cursor: pointer;
+	&:focus {
+		color: var(--oq-app-bright-color);
+		transition: var(--oq-transition-color);
+		cursor: pointer;
+	}
+	&:hover,
+	&:enabled:focus {
+		opacity: 1;
+		transition: var(--oq-transition-opacity);
+	}
+	&::before {
+		position: absolute;
+		top: 1.55rem;
+		content: "send";
+	}
+	&:disabled {
+		color: var(--oq-app-faint-color);
+		&::before {
+			font-weight: 800;
+			content: "•••";
+		}
+	}
 }
 /* Start WDS technique */
 /* https://youtu.be/OhCzEjXvY9A?si=AKxDg-pzGHF5VAeK&t=214 */
@@ -289,23 +293,25 @@ button.oq-prompt-send:focus {
 	-webkit-mask-image: linear-gradient(to top, transparent, black 2rem);
 	cursor: pointer;
 	transition: opacity 0.5s ease;
+	:hover {
+		opacity: 0.8;
+	}
 }
-.oq-message-selectedtext-content:hover {
-	opacity: 0.7;
-}
-.oq-message-user code[class*="language-"] {
-	opacity: 0.8;
-	display: block;
-	--max-lines: 5;
-	max-height: 10rem;
-	position: relative;
-	mask-image: linear-gradient(to top, transparent, black 2rem);
-	-webkit-mask-image: linear-gradient(to top, transparent, black 2rem);
-	cursor: pointer;
-	transition: opacity 0.15s ease;
-}
-.oq-message-user code[class*="language-"] {
-	opacity: 1;
+.oq-message-user {
+	code[class*="language-"] {
+		opacity: 0.8;
+		display: block;
+		--max-lines: 5;
+		max-height: 10rem;
+		position: relative;
+		mask-image: linear-gradient(to top, transparent, black 2rem);
+		-webkit-mask-image: linear-gradient(to top, transparent, black 2rem);
+		cursor: pointer;
+		transition: opacity 0.15s ease;
+	}
+	code[class*="language-"] {
+		opacity: 1;
+	}
 }
 .oq-message-selectedtext-content > *:first-child {
 	margin: 0 auto;
