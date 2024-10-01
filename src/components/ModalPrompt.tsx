@@ -52,6 +52,7 @@ class ModalPrompt extends Modal {
 			}
 		};
 
+		// Need to pass target to handleSend so MessagePad can disable the button
 		const handleSend = () => {
 			this.close();
 			this.onSend(this.promptValue.trim());

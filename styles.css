@@ -4,6 +4,7 @@
 [id="oq-saveas-form"] {
 	--oq-app-bright-color: var(--text-accent);
 	--oq-app-faint-color: var(--text-faint);
+	--oq-app-blur-color: var(--text-selection);
 	--oq-view-title-height: 2.5rem;
 	--oq-message-pad-height: 6.25rem;
 	--oq-highlight-width: 3px;
@@ -56,6 +57,7 @@
 .view-content:focus-within #oq-view-title,
 .view-content:focus-within #oq-message-pad {
 	border-color: var(--oq-app-bright-color);
+	/* border-color: var(--oq-app-blur-color); */
 	color: var(--oq-app-bright-color);
 	transition: var(--oq-transition-color), border-color 0.2s ease;
 }
@@ -242,12 +244,19 @@ button.oq-prompt-send {
 	box-shadow: none;
 	padding: 0;
 	background: none;
-	color: var(--oq-app-faint-color);
-	transition: var(--oq-transition-color);
-}
-textarea.oq-prompt-input:focus + button.oq-prompt-send {
+	/* color: var(--oq-app-faint-color); */
 	color: var(--oq-app-bright-color);
-	transition: var(--oq-transition-color);
+	/* transition: var(--oq-transition-color); */
+	opacity: 0.6;
+	transition: var(--oq-transition-opacity);
+}
+/* textarea.oq-prompt-input:focus + button.oq-prompt-send { */
+button.oq-prompt-send:hover,
+button.oq-prompt-send:enabled:focus {
+	/* color: var(--oq-app-bright-color); */
+	/* transition: var(--oq-transition-color); */
+	opacity: 1;
+	transition: var(--oq-transition-opacity);
 }
 button.oq-prompt-send::before {
 	position: absolute;
@@ -255,14 +264,13 @@ button.oq-prompt-send::before {
 	content: "send";
 }
 button.oq-prompt-send:disabled {
-	border-color: var(--oq-app-faint-color);
+	color: var(--oq-app-faint-color);
 }
 button.oq-prompt-send:disabled::before {
 	font-weight: 800;
 	content: "•••";
 }
-button.oq-prompt-send:focus,
-button.oq-prompt-send:enabled:hover {
+button.oq-prompt-send:focus {
 	color: var(--oq-app-bright-color);
 	transition: var(--oq-transition-color);
 	cursor: pointer;
