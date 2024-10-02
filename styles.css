@@ -121,8 +121,7 @@
 	-webkit-user-select: text;
 	transition: border-color 1.5s ease;
 	p {
-		/* Respect line breaks */
-		white-space: pre-wrap;
+		white-space: pre-wrap; /* Respect line breaks */
 	}
 	pre {
 		white-space: pre-wrap;
@@ -143,7 +142,6 @@
 		border: 1px solid var(--code-background);
 	}
 }
-
 .oq-message-user-icon::before {
 	line-height: 1;
 	content: "»";
@@ -172,11 +170,11 @@
 	color: var(--oq-app-faint-color);
 	transition: var(--oq-transition-color);
 	margin-right: 0.5rem;
-}
-.oq-message-actions .lucide:hover {
-	color: var(--oq-app-bright-color);
-	transition: var(--oq-transition-color);
-	cursor: pointer;
+	&:hover {
+		color: var(--oq-app-bright-color);
+		transition: var(--oq-transition-color);
+		cursor: pointer;
+	}
 }
 .oq-message-assistant {
 	.oq-message-content {
@@ -201,7 +199,7 @@
 	margin: 0.75rem 0;
 }
 #oq-message-pad {
-	z-index: 1000; /* Ensures the header is above other content */
+	z-index: 1000;
 	width: 100%;
 	padding: 1rem;
 	background: var(--background-primary);
@@ -218,7 +216,6 @@
 	font-size: x-small;
 	font-weight: normal;
 	color: var(--oq-app-faint-color);
-	/* opacity: 0.7; Too light? */
 }
 .oq-prompt-input {
 	border-radius: 0.5rem;
@@ -240,8 +237,6 @@
 	&::placeholder {
 		white-space: nowrap;
 		overflow-x: hidden;
-		/* This doesn't work for some reason, but leaving here for now. */
-		text-overflow: ellipsis;
 	}
 }
 button.oq-prompt-send {
@@ -345,24 +340,24 @@ button.oq-prompt-send {
 	display: grid;
 	padding-right: 1.25rem;
 	grid-row-gap: 1rem;
+	h5 {
+		margin: 0;
+		color: var(--text-normal);
+	}
+	label {
+		font-size: 0.8rem;
+	}
+	button {
+		width: fit-content;
+		justify-self: end;
+		background-color: var(--interactive-accent);
+		color: var(--text-on-accent);
+	}
 }
 #oq-saveas-footer {
 	display: grid;
 	grid-template-columns: max-content max-content 1fr;
 	align-items: center;
-}
-#oq-saveas-form h5 {
-	margin: 0;
-	color: var(--text-normal);
-}
-#oq-saveas-form label {
-	font-size: 0.8rem;
-}
-#oq-saveas-form button {
-	width: fit-content;
-	justify-self: end;
-	background-color: var(--interactive-accent);
-	color: var(--text-on-accent);
 }
 #oq-prompt-modal {
 	padding-right: 1.25rem;
