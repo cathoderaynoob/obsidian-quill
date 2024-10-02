@@ -254,10 +254,10 @@ button.oq-prompt-send {
 	&:focus {
 		color: var(--oq-app-bright-color);
 		transition: var(--oq-transition-color);
-		cursor: pointer;
 	}
-	&:hover,
+	&:enabled:hover,
 	&:enabled:focus {
+		cursor: pointer;
 		opacity: 1;
 		transition: var(--oq-transition-opacity);
 	}

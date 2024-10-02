@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ELEM_IDS } from "@/constants";
 import { ExecutionOptions } from "@/executeFeature";
 import PromptContent from "@/components/PromptContent";
 import { usePluginContext } from "@/components/PluginContext";
@@ -11,7 +12,6 @@ const MessagePad: React.FC<MessagePadProps> = ({ executeFeature }) => {
 	const { settings } = usePluginContext();
 	const [promptValue, setPromptValue] = useState<string>("");
 	const [rows] = useState<number>(1);
-	const messagePadId = "oq-message-pad";
 
 	const setTextareaSize = (textarea: HTMLTextAreaElement) => {
 		textarea.style.height = "auto";
@@ -52,10 +52,8 @@ const MessagePad: React.FC<MessagePadProps> = ({ executeFeature }) => {
 
 	const handleSend = () => {
 		const trimmedValue = promptValue.trim();
-		const messagePad = document.getElementById(messagePadId);
-		const inputElem = messagePad?.querySelector(
-			".oq-prompt-send"
-		) as HTMLButtonElement;
+		const messagePad = document.getElementById(ELEM_IDS.messagePad);
+		const inputElem = messagePad?.querySelector("button") as HTMLButtonElement;
 		inputElem.disabled = true;
 		setPromptValue(trimmedValue);
 		executeFeature({
@@ -66,7 +64,7 @@ const MessagePad: React.FC<MessagePadProps> = ({ executeFeature }) => {
 	};
 
 	return (
-		<div id={messagePadId}>
+		<div id={ELEM_IDS.messagePad}>
 			<PromptContent
 				value={promptValue}
 				rows={rows}

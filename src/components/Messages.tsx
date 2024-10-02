@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { usePluginContext } from "@/components/PluginContext";
 import { Role } from "@/interfaces";
-import { SCROLL_CHARS_LIMIT } from "@/constants";
+import { ELEM_IDS, SCROLL_CHARS_LIMIT } from "@/constants";
 import emitter from "@/customEmitter";
 import Message, { MessageType } from "@/components/Message";
 import PayloadMessages from "@/PayloadMessages";
@@ -26,6 +26,10 @@ const Messages: React.FC = () => {
 		return document.querySelector(`[conv-idx="${index}"]`);
 	};
 
+	const focusPrompt = (): void => {
+		(document.querySelector(".oq-prompt-input") as HTMLElement)?.focus();
+	};
+
 	const clearMessages = (): void => {
 		setMessages([]);
 		payloadMessages.clearAll();
@@ -47,7 +51,7 @@ const Messages: React.FC = () => {
 		apiService.cancelStream(); // When new convo started during a response
 		clearMessages();
 		// }
-		(document.querySelector(".oq-prompt-input") as HTMLElement)?.focus();
+		focusPrompt();
 	};
 
 	const getConversationId = (): string => {
@@ -237,6 +241,7 @@ const Messages: React.FC = () => {
 		if (event.key === "Escape") {
 			event.preventDefault();
 			apiService.cancelStream();
+			focusPrompt();
 		}
 	};
 
@@ -330,10 +335,8 @@ const Messages: React.FC = () => {
 	};
 
 	const enableSend = () => {
-		const messagePad = document.getElementById("oq-message-pad");
-		const inputElem = messagePad?.querySelector(
-			".oq-prompt-send"
-		) as HTMLButtonElement;
+		const messagePad = document.getElementById(ELEM_IDS.messagePad);
+		const inputElem = messagePad?.querySelector("button") as HTMLButtonElement;
 		inputElem.disabled = false;
 	};
 

@@ -1,5 +1,6 @@
 import { App, Modal } from "obsidian";
 import { Root, createRoot } from "react-dom/client";
+import { ELEM_IDS } from "@/constants";
 import { QuillPluginSettings } from "@/settings";
 import { getFeatureProperties } from "@/featuresRegistry";
 import PromptContent from "@/components/PromptContent";
@@ -55,6 +56,12 @@ class ModalPrompt extends Modal {
 		// Need to pass target to handleSend so MessagePad can disable the button
 		const handleSend = () => {
 			this.close();
+			if (feature?.outputTarget === "view") {
+				const button = document
+					.getElementById(ELEM_IDS.messagePad)
+					?.querySelector("button") as HTMLButtonElement;
+				button.disabled = true;
+			}
 			this.onSend(this.promptValue.trim());
 		};
 
