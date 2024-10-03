@@ -10,6 +10,7 @@ interface PromptContentProps {
 	handleBlur: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
 	handleKeyPress: (e: React.KeyboardEvent) => void;
 	handleSend: () => void;
+	disabled: boolean;
 }
 
 const PromptContent: React.FC<PromptContentProps> = ({
@@ -20,6 +21,7 @@ const PromptContent: React.FC<PromptContentProps> = ({
 	handleKeyPress,
 	handleSend,
 	handleBlur,
+	disabled = false,
 }) => {
 	const promptContentRef = useRef<HTMLDivElement>(null);
 	const textareaClass = "oq-prompt-input";
@@ -54,7 +56,11 @@ const PromptContent: React.FC<PromptContentProps> = ({
 				onInput={handleInput}
 				onKeyDown={handleKeyPress}
 			/>
-			<button className={buttonClass} onClick={handleSend} />
+			<button
+				className={buttonClass}
+				onClick={handleSend}
+				disabled={disabled}
+			/>
 			<div className="oq-prompt-model">{model}</div>
 		</div>
 	);

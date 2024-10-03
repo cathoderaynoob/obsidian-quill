@@ -76,6 +76,7 @@ class ModalPrompt extends Modal {
 					handleKeyPress={handleKeyPress}
 					handleSend={handleSend}
 					handleBlur={handleBlur}
+					disabled={false}
 				/>
 			</div>
 		);

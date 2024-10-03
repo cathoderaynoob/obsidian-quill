@@ -19,7 +19,7 @@ const Messages: React.FC = () => {
 	const payloadMessages = PayloadMessages.getInstance();
 
 	const getContainerElem = (): HTMLElement | null => {
-		return document.getElementById("oq-messages");
+		return document.getElementById(ELEM_IDS.messages);
 	};
 
 	const getMessageElem = (index: number): HTMLElement | null => {
