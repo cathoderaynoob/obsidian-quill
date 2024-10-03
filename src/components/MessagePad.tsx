@@ -9,7 +9,7 @@ interface MessagePadProps {
 }
 
 const MessagePad: React.FC<MessagePadProps> = ({ executeFeature }) => {
-	const { isStreaming, settings } = usePluginContext();
+	const { isResponding: isStreaming, settings } = usePluginContext();
 	const [promptValue, setPromptValue] = useState<string>("");
 	const [rows] = useState<number>(1);
 
@@ -43,10 +43,10 @@ const MessagePad: React.FC<MessagePadProps> = ({ executeFeature }) => {
 	const handleKeyPress = (e: React.KeyboardEvent) => {
 		if (e.key === "Enter" && e.shiftKey) {
 			return;
-		} else if (e.key === "Enter" && !isStreaming) {
+		} else if (e.key === "Enter") {
 			e.stopPropagation();
 			e.preventDefault();
-			handleSend();
+			if (!isStreaming) handleSend();
 		}
 	};
 

@@ -11,8 +11,8 @@ interface PluginContextProps {
 	apiService: ApiService;
 	vault: Vault;
 	vaultUtils: VaultUtils;
-	isStreaming: boolean;
-	setIsStreaming: React.Dispatch<React.SetStateAction<boolean>>;
+	isResponding: boolean;
+	setIsResponding: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 type PluginContextProviderProps = {
@@ -43,8 +43,8 @@ export default function PluginContextProvider({
 				apiService,
 				vault,
 				vaultUtils,
-				isStreaming,
-				setIsStreaming,
+				isResponding: isStreaming,
+				setIsResponding: setIsStreaming,
 			}}
 		>
 			<StrictMode>{children}</StrictMode>

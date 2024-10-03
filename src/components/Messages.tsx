@@ -8,8 +8,13 @@ import PayloadMessages from "@/PayloadMessages";
 import TitleBar from "@/components/TitleBar";
 
 const Messages: React.FC = () => {
-	const { settings, apiService, pluginServices, vaultUtils } =
-		usePluginContext();
+	const {
+		settings,
+		apiService,
+		pluginServices,
+		vaultUtils,
+		setIsResponding: setIsStreaming,
+	} = usePluginContext();
 	const [messages, setMessages] = useState<MessageType[]>([]);
 	const [, setCurrentIndex] = useState(0);
 	const latestMessageRef = useRef<MessageType | null>(null);
@@ -110,6 +115,7 @@ const Messages: React.FC = () => {
 			prevScrollTop.current = containerElem.scrollTop;
 			scrollToMessage(messages.length - 1);
 			if (role === "user") saveConversation(newMessage);
+			if (role === "assistant") setIsStreaming(true);
 		};
 
 		emitter.on("newMessage", handleNewMessage);
@@ -152,7 +158,8 @@ const Messages: React.FC = () => {
 	// STREAM END ===============================================================
 	useEffect(() => {
 		const handleStreamEnd = () => {
-			enableSend();
+			setIsStreaming(false);
+			// enableSend();
 			clearHighlights("oq-message-streaming");
 			scrollToMessage(messages.length - 1);
 			saveConversation(messages[messages.length - 1]);
@@ -334,11 +341,11 @@ const Messages: React.FC = () => {
 		});
 	};
 
-	const enableSend = () => {
-		const messagePad = document.getElementById(ELEM_IDS.messagePad);
-		const inputElem = messagePad?.querySelector("button") as HTMLButtonElement;
-		inputElem.disabled = false;
-	};
+	// const enableSend = () => {
+	// 	const messagePad = document.getElementById(ELEM_IDS.messagePad);
+	// 	const inputElem = messagePad?.querySelector("button") as HTMLButtonElement;
+	// 	inputElem.disabled = false;
+	// };
 
 	// Render the messages
 	return (
