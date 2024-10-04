@@ -8,13 +8,8 @@ import PayloadMessages from "@/PayloadMessages";
 import TitleBar from "@/components/TitleBar";
 
 const Messages: React.FC = () => {
-	const {
-		settings,
-		apiService,
-		pluginServices,
-		vaultUtils,
-		setIsResponding: setIsStreaming,
-	} = usePluginContext();
+	const { settings, apiService, pluginServices, vaultUtils, setIsResponding } =
+		usePluginContext();
 	const [messages, setMessages] = useState<MessageType[]>([]);
 	const [, setCurrentIndex] = useState(0);
 	const latestMessageRef = useRef<MessageType | null>(null);
@@ -28,7 +23,7 @@ const Messages: React.FC = () => {
 	};
 
 	const getMessageElem = (index: number): HTMLElement | null => {
-		return document.querySelector(`[conv-idx="${index}"]`);
+		return document.querySelector(`[data-conv-idx="${index}"]`);
 	};
 
 	const focusPrompt = (): void => {
@@ -69,19 +64,15 @@ const Messages: React.FC = () => {
 		updatedMessage: MessageType
 	): Promise<boolean> => {
 		if (!settings.saveConversations) return false;
-		if (updatedMessage) {
-			// Allow time for scrolling, etc. to complete, which this can interrupt
-			setTimeout(async () => {
-				const filename = await vaultUtils.appendLatestMessageToFile(
-					getConversationId(),
-					updatedMessage
-				);
-				if (!filename) return false;
-			}, 1500);
-			return true;
-		} else {
-			return false;
-		}
+		if (!updatedMessage) return false;
+		// Allow time for scrolling, etc. to complete, which this can interrupt
+		// setTimeout(async () => {
+		const appended = await vaultUtils.appendLatestMessageToFile(
+			getConversationId(),
+			updatedMessage
+		);
+		return appended;
+		// }, 1500);
 	};
 
 	// NEW MESSAGE ==============================================================
@@ -115,7 +106,7 @@ const Messages: React.FC = () => {
 			prevScrollTop.current = containerElem.scrollTop;
 			scrollToMessage(messages.length - 1);
 			if (role === "user") saveConversation(newMessage);
-			if (role === "assistant") setIsStreaming(true);
+			if (role === "assistant") setIsResponding(true);
 		};
 
 		emitter.on("newMessage", handleNewMessage);
@@ -158,8 +149,7 @@ const Messages: React.FC = () => {
 	// STREAM END ===============================================================
 	useEffect(() => {
 		const handleStreamEnd = () => {
-			setIsStreaming(false);
-			// enableSend();
+			setIsResponding(false);
 			clearHighlights("oq-message-streaming");
 			scrollToMessage(messages.length - 1);
 			saveConversation(messages[messages.length - 1]);
@@ -284,16 +274,23 @@ const Messages: React.FC = () => {
 		const message = getMessageElem(index);
 		if (!containerElem || !message) return;
 
-		// If the message is taller than the viewable area,
+		// If the response is taller than the viewable area,
 		// scroll the message to the top of the view port
-		if (message.offsetHeight >= containerElem.offsetHeight) {
+		if (
+			message.role === "assistant" &&
+			message.offsetHeight >= containerElem.offsetHeight
+		) {
 			const messagePos = getMessagePos(containerElem, message);
 			const scrollToPosition = messagePos - 16;
 			containerElem.scrollTo({
 				top: scrollToPosition,
 				behavior: "smooth",
 			});
+			// This alleviates the issue where if the user message is
+			// taller than the viewable area, scrolling would stop.
+			// if (message.role === "assistant") {
 			stopScrolling.current = true;
+			// }
 		}
 		// Otherwise, scroll the message into view, centered
 		else {
@@ -340,12 +337,6 @@ const Messages: React.FC = () => {
 			message.classList.remove(msgClassName);
 		});
 	};
-
-	// const enableSend = () => {
-	// 	const messagePad = document.getElementById(ELEM_IDS.messagePad);
-	// 	const inputElem = messagePad?.querySelector("button") as HTMLButtonElement;
-	// 	inputElem.disabled = false;
-	// };
 
 	// Render the messages
 	return (

@@ -33,7 +33,7 @@ export default function PluginContextProvider({
 	vault,
 }: PluginContextProviderProps) {
 	const vaultUtils = new VaultUtils(pluginServices, vault, settings);
-	const [isStreaming, setIsStreaming] = useState(false);
+	const [isResponding, setIsResponding] = useState(false);
 
 	return (
 		<PluginContext.Provider
@@ -43,8 +43,8 @@ export default function PluginContextProvider({
 				apiService,
 				vault,
 				vaultUtils,
-				isResponding: isStreaming,
-				setIsResponding: setIsStreaming,
+				isResponding,
+				setIsResponding,
 			}}
 		>
 			<StrictMode>{children}</StrictMode>

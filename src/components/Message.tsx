@@ -57,7 +57,10 @@ const Message: React.FC<MessageProps> = ({
 	return (
 		<>
 			{message ? (
-				<div className={`oq-message oq-message-${role}`} conv-idx={convIdx}>
+				<div
+					className={`oq-message oq-message-${role}`}
+					data-conv-idx={convIdx}
+				>
 					{role === "user" && <p className="oq-message-user-icon"></p>}
 					<div
 						className={`oq-message-content ${

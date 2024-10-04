@@ -117,8 +117,8 @@ class VaultUtils {
 	async appendLatestMessageToFile(
 		conversationId: string,
 		latestMessage: MessageType
-	): Promise<string | null> {
-		if (!latestMessage.content.length) return null;
+	): Promise<boolean> {
+		if (!latestMessage.content.length) return false;
 		try {
 			// Get conversation folder
 			const folder = this.settings.conversationsFolder;
@@ -139,15 +139,15 @@ class VaultUtils {
 			);
 			if (!messageText.length) {
 				this.pluginServices.notifyError("saveError");
-				return null;
+				return false;
 			}
 			// Append the latest message
 			await this.vault.append(file, messageText);
-			return filename;
+			return true;
 		} catch (e) {
 			new Notice(e);
 			console.log(e);
-			return null;
+			return false;
 		}
 	}
 
