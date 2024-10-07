@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { ELEM_IDS } from "@/constants";
 import { ExecutionOptions } from "@/executeFeature";
-import PromptContent from "@/components/PromptContent";
 import { usePluginContext } from "@/components/PluginContext";
+import PromptContent from "@/components/PromptContent";
 
 interface MessagePadProps {
 	executeFeature: (options: ExecutionOptions) => void;
