@@ -135,7 +135,11 @@ const Messages: React.FC = () => {
 					contentLength >=
 					prevContentLengthRef.current + SCROLL_CHARS_LIMIT
 				) {
-					await scrollToMessage(messages.length - 1);
+					await scrollToMessage(
+						messages.length - 1,
+						false,
+						latestMessageRef.current.role
+					);
 					prevContentLengthRef.current = contentLength;
 				}
 			}
@@ -267,7 +271,8 @@ const Messages: React.FC = () => {
 	// Scroll to a specific message
 	const scrollToMessage = async (
 		index: number,
-		isMsgNav?: boolean
+		isMsgNav?: boolean,
+		role?: Role
 	): Promise<void> => {
 		if (!isMsgNav && stopScrolling.current) return;
 		const containerElem = getContainerElem();
@@ -277,7 +282,7 @@ const Messages: React.FC = () => {
 		// If the response is taller than the viewable area,
 		// scroll the message to the top of the view port
 		if (
-			message.role === "assistant" &&
+			role === "assistant" &&
 			message.offsetHeight >= containerElem.offsetHeight
 		) {
 			const messagePos = getMessagePos(containerElem, message);
