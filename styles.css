@@ -21,8 +21,8 @@
 		grid-gap: 0.5rem;
 		grid-template-columns: 1fr 33%;
 	}
-	input,
-	select {
+	& input,
+	& select {
 		width: 100%;
 	}
 }
@@ -99,6 +99,7 @@
 	}
 }
 
+/* Messages */
 #oq-messages {
 	display: grid;
 	grid-auto-rows: min-content;
@@ -119,14 +120,14 @@
 	user-select: text;
 	-webkit-user-select: text;
 	transition: border-color 1.5s ease;
-	p {
+	& p {
 		white-space: pre-wrap; /* Respect line breaks */
 	}
-	pre {
+	& pre {
 		white-space: pre-wrap;
 		background: var(--background-secondary);
 	}
-	code[class*="language-"] {
+	& code[class*="language-"] {
 		white-space: pre;
 		font-size: smaller;
 	}
@@ -137,8 +138,20 @@
 }
 .oq-message-user {
 	grid-template-columns: 1rem 1fr;
-	pre {
+	& pre {
 		border: 1px solid var(--code-background);
+	}
+	& code[class*="language-"] {
+		opacity: 0.8;
+		display: block;
+		--max-lines: 5;
+		overflow: scroll;
+		max-height: 2rem;
+		position: relative;
+		mask-image: linear-gradient(to top, transparent, black 2rem);
+		-webkit-mask-image: linear-gradient(to top, transparent, black 2rem);
+		/* cursor: pointer; */
+		transition: opacity 0.15s ease;
 	}
 }
 .oq-message-user-icon::before {
@@ -197,6 +210,53 @@
 	padding: 0.25rem 1rem 0.25rem 1rem;
 	margin: 0.75rem 0;
 }
+
+/* Start WDS technique */
+/* https://youtu.be/OhCzEjXvY9A?si=AKxDg-pzGHF5VAeK&t=214 */
+.oq-message-selectedtext-content {
+	opacity: 0.4;
+	display: block;
+	--max-lines: 5;
+	line-height: var(--line-height-tight);
+	max-height: 5rem;
+	overflow: hidden;
+	position: relative;
+	mask-image: linear-gradient(to top, transparent, black 2rem);
+	-webkit-mask-image: linear-gradient(to top, transparent, black 2rem);
+	cursor: pointer;
+	transition: opacity 0.5s ease;
+	:hover {
+		opacity: 0.8;
+	}
+}
+.oq-message-selectedtext-content > *:first-child {
+	margin: 0 auto;
+	margin-block-start: 0;
+}
+.oq-message-selectedtext-checkbox {
+	display: none;
+}
+.oq-message-selectedtext-content:has(
+		+ .oq-message-selectedtext-checkbox:checked
+	) {
+	opacity: 0.8;
+	max-height: none;
+	mask-image: none;
+	-webkit-mask-image: none;
+	transition: max-height 0.5s ease;
+	/* cursor: auto; */ /* <- Not sure about this. Has trade offs. */
+}
+/* End WDS technique */
+
+/* AI model used for response */
+.oq-message-model {
+	font-size: smaller;
+	text-align: right;
+	user-select: none;
+	color: var(--oq-app-faint-color);
+}
+
+/* Message Pad */
 #oq-message-pad {
 	z-index: 1000;
 	width: 100%;
@@ -209,12 +269,6 @@
 	display: grid;
 	grid-gap: 0.75rem;
 	grid-template-columns: 1fr 2.5rem;
-}
-.oq-prompt-model {
-	padding: 0.2rem 0 0 1rem;
-	font-size: x-small;
-	font-weight: normal;
-	color: var(--oq-app-faint-color);
 }
 .oq-prompt-container {
 	&:focus-within,
@@ -289,65 +343,10 @@ button.oq-prompt-send {
 		}
 	}
 }
-
-/* Start WDS technique */
-/* https://youtu.be/OhCzEjXvY9A?si=AKxDg-pzGHF5VAeK&t=214 */
-.oq-message-selectedtext-content {
-	opacity: 0.4;
-	display: block;
-	--max-lines: 5;
-	line-height: var(--line-height-tight);
-	max-height: 5rem;
-	overflow: hidden;
-	position: relative;
-	mask-image: linear-gradient(to top, transparent, black 2rem);
-	-webkit-mask-image: linear-gradient(to top, transparent, black 2rem);
-	cursor: pointer;
-	transition: opacity 0.5s ease;
-	:hover {
-		opacity: 0.8;
-	}
-}
-.oq-message-user {
-	code[class*="language-"] {
-		opacity: 0.8;
-		display: block;
-		--max-lines: 5;
-		max-height: 10rem;
-		position: relative;
-		mask-image: linear-gradient(to top, transparent, black 2rem);
-		-webkit-mask-image: linear-gradient(to top, transparent, black 2rem);
-		cursor: pointer;
-		transition: opacity 0.15s ease;
-	}
-	code[class*="language-"] {
-		opacity: 1;
-	}
-}
-.oq-message-selectedtext-content > *:first-child {
-	margin: 0 auto;
-	margin-block-start: 0;
-}
-.oq-message-selectedtext-checkbox {
-	display: none;
-}
-.oq-message-selectedtext-content:has(
-		+ .oq-message-selectedtext-checkbox:checked
-	) {
-	opacity: 0.8;
-	max-height: none;
-	mask-image: none;
-	-webkit-mask-image: none;
-	transition: max-height 0.5s ease;
-	/* cursor: auto; */ /* <- Not sure about this. Has trade offs. */
-}
-/* End WDS technique */
-
-/* AI model used for response */
-.oq-message-model {
-	font-size: smaller;
-	text-align: right;
-	user-select: none;
+.oq-prompt-model {
+	padding: 0.2rem 0 0 1rem;
+	font-size: x-small;
+	font-weight: normal;
 	color: var(--oq-app-faint-color);
 }
 
@@ -356,14 +355,14 @@ button.oq-prompt-send {
 	display: grid;
 	padding-right: 1.25rem;
 	grid-row-gap: 1rem;
-	h5 {
+	& h5 {
 		margin: 0;
 		color: var(--text-normal);
 	}
-	label {
+	& label {
 		font-size: 0.8rem;
 	}
-	button {
+	& button {
 		width: fit-content;
 		justify-self: end;
 		background-color: var(--interactive-accent);
