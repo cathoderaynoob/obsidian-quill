@@ -4,7 +4,6 @@
 [id="oq-saveas-form"] {
 	--oq-app-bright-color: var(--text-accent);
 	--oq-app-faint-color: var(--text-faint);
-	--oq-app-blur-color: var(--text-selection);
 	--oq-view-title-height: 2.5rem;
 	--oq-message-pad-height: 6.25rem;
 	--oq-highlight-width: 3px;
@@ -12,7 +11,7 @@
 	--oq-transition-opacity: opacity 0.2s ease;
 }
 
-/* Settings */
+/* Settings ================================================================ */
 .oq-settings {
 	display: grid;
 	height: auto;
@@ -27,7 +26,7 @@
 	}
 }
 
-/* Editor */
+/* Editor ================================================================== */
 .cm-editor#oq-streaming {
 	pointer-events: none;
 }
@@ -54,8 +53,8 @@
 	}
 }
 
-/* View */
-.view-content:focus-within {
+/* View ==================================================================== */
+[data-type="quill-chat-view"]:focus-within {
 	#oq-view-title,
 	#oq-message-pad {
 		border-color: var(--oq-app-bright-color);
@@ -99,7 +98,7 @@
 	}
 }
 
-/* Messages */
+/* Messages ================================================================ */
 #oq-messages {
 	display: grid;
 	grid-auto-rows: min-content;
@@ -124,6 +123,8 @@
 		white-space: pre-wrap; /* Respect line breaks */
 	}
 	& pre {
+		padding: 0.5rem;
+		border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 		white-space: pre-wrap;
 		background: var(--background-secondary);
 	}
@@ -150,7 +151,6 @@
 		position: relative;
 		mask-image: linear-gradient(to top, transparent, black 2rem);
 		-webkit-mask-image: linear-gradient(to top, transparent, black 2rem);
-		/* cursor: pointer; */
 		transition: opacity 0.15s ease;
 	}
 }
@@ -206,7 +206,6 @@
 }
 .oq-message-selectedtext {
 	border-left: 3px solid var(--background-modifier-border);
-	/* border-left: 3px solid var(--oq-app-faint-color); */
 	padding: 0.25rem 1rem 0.25rem 1rem;
 	margin: 0.75rem 0;
 }
@@ -225,7 +224,7 @@
 	-webkit-mask-image: linear-gradient(to top, transparent, black 2rem);
 	cursor: pointer;
 	transition: opacity 0.5s ease;
-	:hover {
+	&:hover {
 		opacity: 0.8;
 	}
 }
@@ -256,7 +255,7 @@
 	color: var(--oq-app-faint-color);
 }
 
-/* Message Pad */
+/* Message Pad ============================================================= */
 #oq-message-pad {
 	z-index: 1000;
 	width: 100%;
@@ -264,6 +263,8 @@
 	background: var(--background-primary);
 	border-top: 2px solid var(--oq-app-faint-color);
 }
+
+/* Prompt Container (for both modals and message pad ======================= */
 .oq-prompt-container {
 	position: relative;
 	display: grid;
@@ -271,8 +272,7 @@
 	grid-template-columns: 1fr 2.5rem;
 }
 .oq-prompt-container {
-	&:focus-within,
-	&:hover {
+	&:focus-within {
 		.oq-prompt-input {
 			outline-color: var(--oq-app-bright-color);
 			transition: outline-color 0.2s ease;
@@ -350,7 +350,7 @@ button.oq-prompt-send {
 	color: var(--oq-app-faint-color);
 }
 
-/* Modals */
+/* Modals ================================================================== */
 #oq-saveas-form {
 	display: grid;
 	padding-right: 1.25rem;
