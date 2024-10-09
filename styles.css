@@ -299,6 +299,7 @@
 	opacity: 0.6;
 	transition: outline-color 0.2s ease;
 	&:hover {
+		border-color: transparent;
 		box-shadow: none;
 		outline-color: var(--oq-app-bright-color);
 		transition: outline-color 0.2s ease;
@@ -307,6 +308,7 @@
 		}
 	}
 	&:focus {
+		border-color: transparent;
 		opacity: 1;
 	}
 	&::placeholder {
