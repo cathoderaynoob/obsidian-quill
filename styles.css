@@ -274,6 +274,7 @@
 .oq-prompt-container {
 	&:focus-within {
 		.oq-prompt-input {
+			box-shadow: none;
 			outline-color: var(--oq-app-bright-color);
 			transition: outline-color 0.2s ease, var(--oq-transition-opacity);
 		}
