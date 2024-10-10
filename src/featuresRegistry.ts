@@ -104,7 +104,7 @@ export const FeaturesRegistry = (
 export const getFeatureProperties = (
 	app: App,
 	id: string
-): FeatureProperties | null => {
+): FeatureProperties => {
 	const registry = FeaturesRegistry(app);
-	return registry[id] || null;
+	return registry[id];
 };

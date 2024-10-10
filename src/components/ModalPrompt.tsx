@@ -2,14 +2,14 @@ import { App, Modal } from "obsidian";
 import { Root, createRoot } from "react-dom/client";
 import { ELEM_IDS } from "@/constants";
 import { QuillPluginSettings } from "@/settings";
-import { getFeatureProperties } from "@/featuresRegistry";
+import { FeatureProperties, getFeatureProperties } from "@/featuresRegistry";
 import PromptContent from "@/components/PromptContent";
 
 interface ModalPromptParams {
 	app: App;
 	settings: QuillPluginSettings;
 	onSend: (prompt: string) => void;
-	featureId?: string;
+	featureId: string;
 }
 
 // GET PROMPT FROM USER MODAL =================================================
@@ -18,7 +18,8 @@ class ModalPrompt extends Modal {
 	private promptValue: string;
 	private settings: QuillPluginSettings;
 	private onSend: (prompt: string) => void;
-	private featureId?: string | null;
+	private featureId: string;
+	private feature: FeatureProperties;
 	private rows = 6;
 
 	constructor({ app, settings, onSend, featureId }: ModalPromptParams) {
@@ -26,13 +27,11 @@ class ModalPrompt extends Modal {
 		this.settings = settings;
 		this.onSend = onSend;
 		this.featureId = featureId;
+		this.feature = getFeatureProperties(this.app, featureId);
 	}
 
 	onOpen() {
-		const feature = this.featureId
-			? getFeatureProperties(this.app, this.featureId)
-			: null;
-		const model = feature?.model || this.settings.openaiModel;
+		const model = this.feature.model || this.settings.openaiModel;
 
 		const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
 			this.promptValue = e.target.value;
@@ -56,7 +55,7 @@ class ModalPrompt extends Modal {
 		// Need to pass target to handleSend so MessagePad can disable the button
 		const handleSend = () => {
 			this.close();
-			if (feature?.outputTarget === "view") {
+			if (this.feature?.outputTarget === "view") {
 				const button = document
 					.getElementById(ELEM_IDS.messagePad)
 					?.querySelector("button") as HTMLButtonElement;

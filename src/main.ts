@@ -133,6 +133,7 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 							inputText: userEntry,
 						});
 					},
+					featureId: "newPrompt",
 				});
 				this.openModals.push(modal);
 				modal.open();
@@ -159,6 +160,7 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 									selectedText: selectedText,
 								});
 							},
+							featureId: "sendPromptWithSelectedText",
 						});
 						this.openModals.push(modal);
 						modal.open();
