@@ -8,6 +8,10 @@ export const ELEM_IDS = {
 	messages: "oq-messages",
 	newConversation: "oq-btn-new-conv",
 };
+export const ELEM_CLASSES = {
+	promptInput: "oq-prompt-input",
+	promptSend: "oq-prompt-send",
+};
 export const ERROR_MESSAGES = {
 	noApiKey:
 		"Your OpenAI API key is missing. Please enter it in the " +
@@ -43,7 +47,7 @@ export const PROMPTS = {
 	onThisDate: {
 		role: "user",
 		content:
-			"Tell me one thing from history in one paragraph that happened on this date, " +
+			"Tell me one thing from history in five paragraphs that happened on this date, " +
 			"interesting, significant, or funny. Start with `On **<MMMM D, YYYY>**,`." +
 			"Make sure the date is bold. Italicize important or prominent persons, " +
 			"places, events, etc. This response is going into a note, so to create a " +
