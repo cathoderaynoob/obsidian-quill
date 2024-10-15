@@ -9,6 +9,7 @@ export const ELEM_IDS = {
 	newConversation: "oq-btn-new-conv",
 };
 export const ELEM_CLASSES = {
+	message: "oq-message",
 	promptInput: "oq-prompt-input",
 	promptSend: "oq-prompt-send",
 };

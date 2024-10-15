@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { usePluginContext } from "@/components/PluginContext";
 import { Role } from "@/interfaces";
-import { ELEM_IDS, SCROLL_CHARS_LIMIT } from "@/constants";
+import { ELEM_CLASSES, ELEM_IDS, SCROLL_CHARS_LIMIT } from "@/constants";
 import emitter from "@/customEmitter";
 import Message, { MessageType } from "@/components/Message";
 import PayloadMessages from "@/PayloadMessages";
@@ -27,7 +27,7 @@ const Messages: React.FC = () => {
 	};
 
 	const focusPrompt = (): void => {
-		(document.querySelector(".oq-prompt-input") as HTMLElement)?.focus();
+		(document.querySelector(ELEM_CLASSES.promptInput) as HTMLElement)?.focus();
 	};
 
 	const clearMessages = (): void => {
@@ -213,7 +213,7 @@ const Messages: React.FC = () => {
 	// Keyboard navigation for messages
 	const handleMessagesKeypress = (event: KeyboardEvent) => {
 		const promptElem = document.querySelector(
-			".oq-prompt-input"
+			ELEM_CLASSES.promptInput
 		) as HTMLElement;
 		if (document.activeElement !== promptElem) {
 			switch (event.key) {
@@ -347,7 +347,7 @@ const Messages: React.FC = () => {
 	return (
 		<>
 			<TitleBar newConversation={newConversation} />
-			<div id="oq-messages">
+			<div id={ELEM_IDS.messages}>
 				{messages.map((message, index) => (
 					<Message
 						key={message.id}

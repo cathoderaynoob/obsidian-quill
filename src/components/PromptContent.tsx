@@ -1,6 +1,6 @@
 import { setIcon } from "obsidian";
 import React, { useEffect, useRef } from "react";
-import { APP_PROPS } from "@/constants";
+import { APP_PROPS, ELEM_CLASSES } from "@/constants";
 
 interface PromptContentProps {
 	value: string;
@@ -24,8 +24,8 @@ const PromptContent: React.FC<PromptContentProps> = ({
 	disabled = false,
 }) => {
 	const promptContentRef = useRef<HTMLDivElement>(null);
-	const textareaClass = "oq-prompt-input";
-	const buttonClass = "oq-prompt-send";
+	const textareaClass = ELEM_CLASSES.promptInput;
+	const buttonClass = ELEM_CLASSES.promptSend;
 
 	useEffect(() => {
 		setTimeout(() => {
@@ -48,7 +48,7 @@ const PromptContent: React.FC<PromptContentProps> = ({
 	return (
 		<div
 			className={`oq-prompt-container
-				${disabled ? "oq-message-pad-disabled" : ""}`}
+				${disabled ? "oq-disabled" : ""}`}
 			ref={promptContentRef}
 		>
 			<textarea
