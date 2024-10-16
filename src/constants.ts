@@ -4,8 +4,8 @@ export const APP_PROPS = {
 	sendIcon: "bird",
 };
 export const ELEM_IDS = {
-	messagePad: "oq-message-pad",
 	messages: "oq-messages",
+	messagePad: "oq-message-pad",
 	newConversation: "oq-btn-new-conv",
 };
 export const ELEM_CLASSES = {

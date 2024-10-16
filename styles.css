@@ -292,12 +292,13 @@
 	border-color: transparent;
 	border-radius: 0.5rem;
 	padding: 0.75rem 1rem;
+	height: auto;
 	overflow-y: auto;
 	resize: none;
 	box-shadow: none;
 	outline: 1px solid var(--oq-app-faint-color);
 	opacity: 0.6;
-	transition: outline-color 0.2s ease;
+	transition: outline-color 0.2s ease, height 0.2s ease;
 	&:hover {
 		border-color: transparent;
 		box-shadow: none;

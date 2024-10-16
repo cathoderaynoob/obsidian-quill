@@ -27,7 +27,9 @@ const Messages: React.FC = () => {
 	};
 
 	const focusPrompt = (): void => {
-		(document.querySelector(ELEM_CLASSES.promptInput) as HTMLElement)?.focus();
+		(
+			document.querySelector(`.${ELEM_CLASSES.promptInput}`) as HTMLElement
+		)?.focus();
 	};
 
 	const clearMessages = (): void => {
@@ -65,14 +67,11 @@ const Messages: React.FC = () => {
 	): Promise<boolean> => {
 		if (!settings.saveConversations) return false;
 		if (!updatedMessage) return false;
-		// Allow time for scrolling, etc. to complete, which this can interrupt
-		// setTimeout(async () => {
 		const appended = await vaultUtils.appendLatestMessageToFile(
 			getConversationId(),
 			updatedMessage
 		);
 		return appended;
-		// }, 1500);
 	};
 
 	// NEW MESSAGE ==============================================================
@@ -213,7 +212,7 @@ const Messages: React.FC = () => {
 	// Keyboard navigation for messages
 	const handleMessagesKeypress = (event: KeyboardEvent) => {
 		const promptElem = document.querySelector(
-			ELEM_CLASSES.promptInput
+			`.${ELEM_CLASSES.promptInput}`
 		) as HTMLElement;
 		if (document.activeElement !== promptElem) {
 			switch (event.key) {
@@ -291,11 +290,9 @@ const Messages: React.FC = () => {
 				top: scrollToPosition,
 				behavior: "smooth",
 			});
-			// This alleviates the issue where if the user message is
+			// This alleviates an issue where if the user message is
 			// taller than the viewable area, scrolling would stop.
-			// if (message.role === "assistant") {
 			stopScrolling.current = true;
-			// }
 		}
 		// Otherwise, scroll the message into view, centered
 		else {

@@ -75,6 +75,7 @@ export const FeaturesRegistry = (
 			stream: true,
 			model: "gpt-4o",
 			temperature: 0.2,
+			// outputTarget: ,
 		},
 
 		// NEW PROMPT

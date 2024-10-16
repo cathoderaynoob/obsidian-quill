@@ -46,11 +46,7 @@ const PromptContent: React.FC<PromptContentProps> = ({
 	}, []);
 
 	return (
-		<div
-			className={`oq-prompt-container
-				${disabled ? "oq-disabled" : ""}`}
-			ref={promptContentRef}
-		>
+		<div className={`oq-prompt-container`} ref={promptContentRef}>
 			<textarea
 				className={textareaClass}
 				placeholder="» return to send / shift+return for new line"
