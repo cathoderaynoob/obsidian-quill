@@ -37,6 +37,7 @@
 	.cm-active {
 		padding: 0.5rem 0 0.5rem 0.75rem !important;
 		border-radius: 0.33rem;
+		/* --oq-app-bright-color doesn't work here */
 		background-color: var(--text-accent);
 		color: var(--text-on-accent);
 		transition: background-color 1s ease;
@@ -69,18 +70,21 @@
 	padding: 0;
 }
 #oq-view-title {
+	display: flex;
+	align-items: center;
 	height: var(--oq-view-title-height);
 	width: 100%;
 	z-index: 1000;
 	color: var(--oq-app-faint-color);
 	transition: var(--oq-transition-color), border-color 0.2s ease;
 	border-bottom: 2px solid var(--oq-app-faint-color);
-	padding: 0.66rem 1rem 0;
+	padding: 0 1rem;
 	font-weight: 400;
 	--icon-size: var(--icon-m);
 	background: var(--background-primary);
 }
 #oq-btn-new-conv {
+	line-height: 0.66;
 	width: fit-content;
 	cursor: pointer;
 	&:after {
@@ -171,7 +175,7 @@
 	grid-template-columns: 1fr 1fr;
 }
 .oq-message-actions {
-	opacity: 0.2;
+	opacity: 0.4;
 	transition: var(--oq-transition-opacity);
 }
 .oq-message:hover .oq-message-actions {
@@ -292,13 +296,12 @@
 	border-color: transparent;
 	border-radius: 0.5rem;
 	padding: 0.75rem 1rem;
-	height: auto;
 	overflow-y: auto;
 	resize: none;
 	box-shadow: none;
 	outline: 1px solid var(--oq-app-faint-color);
 	opacity: 0.6;
-	transition: outline-color 0.2s ease, height 0.2s ease;
+	transition: outline-color 0.2s ease;
 	&:hover {
 		border-color: transparent;
 		box-shadow: none;

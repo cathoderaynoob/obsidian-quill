@@ -38,9 +38,7 @@ const MessagePad: React.FC<MessagePadProps> = ({ executeFeature }) => {
 
 	const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
 		setPromptValue(e.target.value);
-		// setTimeout(() => {
 		setTextareaSize();
-		// }, 0);
 	};
 
 	const handleBlur = (e: React.ChangeEvent<HTMLTextAreaElement>) => {

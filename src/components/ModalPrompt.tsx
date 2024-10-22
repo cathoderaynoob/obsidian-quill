@@ -1,8 +1,8 @@
-import { App, Editor, Modal } from "obsidian";
+import { App, Modal } from "obsidian";
 import { Root, createRoot } from "react-dom/client";
-import { ELEM_CLASSES } from "@/constants";
 import { QuillPluginSettings } from "@/settings";
 import { FeatureProperties, getFeatureProperties } from "@/featuresRegistry";
+import emitter from "@/customEmitter";
 import PromptContent from "@/components/PromptContent";
 
 interface ModalPromptParams {
@@ -18,20 +18,34 @@ class ModalPrompt extends Modal {
 	private promptValue: string;
 	private settings: QuillPluginSettings;
 	private onSend: (prompt: string) => void;
-	private featureId: string;
 	private feature: FeatureProperties;
 	private rows = 6;
+	private disabled = false;
 
 	constructor({ app, settings, onSend, featureId }: ModalPromptParams) {
 		super(app);
 		this.settings = settings;
 		this.onSend = onSend;
-		this.featureId = featureId;
 		this.feature = getFeatureProperties(this.app, featureId);
+		this.handleStreamEnd = this.handleStreamEnd.bind(this);
+		emitter.on("modalStreamEnd", this.handleStreamEnd);
 	}
+
+	handleStreamEnd = () => {
+		console.log("Stream ended");
+		this.enableSend();
+	};
+
+	enableSend = (): void => {
+		this.disabled = false;
+	};
 
 	onOpen() {
 		const model = this.feature.model || this.settings.openaiModel;
+
+		const disableSend = (): void => {
+			this.disabled = true;
+		};
 
 		const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
 			this.promptValue = e.target.value;
@@ -41,15 +55,15 @@ class ModalPrompt extends Modal {
 			e.target.value = e.target.value.trim();
 		};
 
+		const handleSend = () => {
+			if (this.disabled) return;
+			this.close();
+			this.onSend(this.promptValue.trim());
+			disableSend();
+		};
+
 		const handleKeyPress = (e: React.KeyboardEvent) => {
-			if (this.feature?.outputTarget === "view") {
-				const button = this.contentEl.querySelector(
-					`.${ELEM_CLASSES.promptSend}`
-				) as HTMLButtonElement;
-				button.disabled = true;
-			} else if (this.feature?.outputTarget instanceof Editor) {
-				console.log(this.feature?.outputTarget);
-			}
+			if (this.disabled) disableSend();
 			if (e.key === "Enter" && e.shiftKey) {
 				return;
 			} else if (e.key === "Enter") {
@@ -58,12 +72,6 @@ class ModalPrompt extends Modal {
 				this.close();
 				handleSend();
 			}
-		};
-
-		// Need to pass target to handleSend so MessagePad can disable the button
-		const handleSend = () => {
-			this.close();
-			this.onSend(this.promptValue.trim());
 		};
 
 		this.modalRoot = createRoot(this.contentEl);
@@ -77,7 +85,7 @@ class ModalPrompt extends Modal {
 					handleKeyPress={handleKeyPress}
 					handleSend={handleSend}
 					handleBlur={handleBlur}
-					disabled={false}
+					disabled={this.disabled} // Update this to disable sending
 				/>
 			</div>
 		);
