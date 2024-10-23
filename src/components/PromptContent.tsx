@@ -1,6 +1,6 @@
 import { setIcon } from "obsidian";
 import React, { useEffect, useRef } from "react";
-import { APP_PROPS } from "@/constants";
+import { APP_PROPS, ELEM_CLASSES } from "@/constants";
 
 interface PromptContentProps {
 	value: string;
@@ -22,18 +22,20 @@ const PromptContent: React.FC<PromptContentProps> = ({
 	handleBlur,
 }) => {
 	const promptContentRef = useRef<HTMLDivElement>(null);
+	const textareaClass = ELEM_CLASSES.promptInput;
+	const buttonClass = ELEM_CLASSES.promptSend;
 
 	useEffect(() => {
 		setTimeout(() => {
 			if (promptContentRef?.current) {
 				(
 					promptContentRef.current.querySelector(
-						"#oq-prompt-input"
+						`textarea.${textareaClass}`
 					) as HTMLElement
 				)?.focus();
 				setIcon(
 					promptContentRef.current.querySelector(
-						"button#oq-prompt-send"
+						`button.${buttonClass}`
 					) as HTMLElement,
 					APP_PROPS.sendIcon
 				);

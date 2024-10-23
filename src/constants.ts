@@ -3,6 +3,16 @@ export const APP_PROPS = {
 	appIcon: "feather",
 	sendIcon: "bird",
 };
+export const ELEM_CLASSES = {
+	message: "oq-message",
+	promptInput: "oq-prompt-input",
+	promptSend: "oq-prompt-send",
+};
+export const ELEM_IDS = {
+	messagePad: "oq-message-pad",
+	messages: "oq-messages",
+	newConversation: "oq-btn-new-conv",
+};
 export const ERROR_MESSAGES = {
 	noApiKey:
 		"Your OpenAI API key is missing. Please enter it in the " +
