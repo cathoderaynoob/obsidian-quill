@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { usePluginContext } from "@/components/PluginContext";
 import { Role } from "@/interfaces";
-import { SCROLL_CHARS_LIMIT } from "@/constants";
+import { ELEM_CLASSES, ELEM_IDS, SCROLL_CHARS_LIMIT } from "@/constants";
 import emitter from "@/customEmitter";
 import Message, { MessageType } from "@/components/Message";
 import PayloadMessages from "@/PayloadMessages";
@@ -23,7 +23,11 @@ const Messages: React.FC = () => {
 	};
 
 	const getMessageElem = (index: number): HTMLElement | null => {
-		return document.querySelector(`[conv-idx="${index}"]`);
+		return document.querySelector(`[data-conv-idx="${index}"]`);
+	};
+
+	const focusPrompt = (): void => {
+		(document.querySelector(ELEM_CLASSES.promptInput) as HTMLElement)?.focus();
 	};
 
 	const clearMessages = (): void => {
@@ -47,7 +51,7 @@ const Messages: React.FC = () => {
 		apiService.cancelStream(); // When new convo started during a response
 		clearMessages();
 		// }
-		(document.querySelector("#oq-prompt-input") as HTMLElement)?.focus();
+		focusPrompt();
 	};
 
 	const getConversationId = (): string => {
@@ -206,7 +210,9 @@ const Messages: React.FC = () => {
 
 	// Keyboard navigation for messages
 	const handleMessagesKeypress = (event: KeyboardEvent) => {
-		const promptElem = document.getElementById("oq-prompt-input");
+		const promptElem = document.querySelector(
+			ELEM_CLASSES.promptInput
+		) as HTMLElement;
 		if (document.activeElement !== promptElem) {
 			switch (event.key) {
 				case "j":
@@ -330,7 +336,7 @@ const Messages: React.FC = () => {
 	return (
 		<>
 			<TitleBar newConversation={newConversation} />
-			<div id="oq-messages">
+			<div id={ELEM_IDS.messages}>
 				{messages.map((message, index) => (
 					<Message
 						key={message.id}

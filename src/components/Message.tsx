@@ -4,6 +4,7 @@ import ReactMarkdown from "react-markdown";
 import { Copy, FilePlus } from "lucide-react";
 import { Role } from "@/interfaces";
 import { usePluginContext } from "@/components/PluginContext";
+import { ELEM_CLASSES } from "@/constants";
 
 export interface MessageType {
 	conversationId: string | null;
@@ -57,7 +58,10 @@ const Message: React.FC<MessageProps> = ({
 	return (
 		<>
 			{message ? (
-				<div className={`oq-message oq-message-${role}`} conv-idx={convIdx}>
+				<div
+					className={`${ELEM_CLASSES.message} oq-message-${role}`}
+					data-conv-idx={convIdx}
+				>
 					{role === "user" && <p className="oq-message-user-icon"></p>}
 					<div
 						className={`oq-message-content ${
