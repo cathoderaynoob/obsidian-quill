@@ -1,4 +1,5 @@
-import { Notice, TFile, TFolder, Vault } from "obsidian";
+import { normalizePath, Notice, TFile, TFolder, Vault } from "obsidian";
+import { join } from "path";
 import { format } from "date-fns";
 import { IPluginServices } from "@/interfaces";
 import { MessageType } from "@/components/Message";
@@ -69,13 +70,9 @@ class VaultUtils {
 	}
 
 	private sanitizeFilename(filename: string) {
-		const isWindows = navigator.platform.startsWith("Win");
-		let sanitized = filename
+		const sanitized = normalizePath(filename)
 			.replace(/[/\\]/g, "_") // Replace slashes with underscores
 			.replace(/[^\w\s.-]/g, ""); // Remove disallowed characters
-		if (isWindows) {
-			sanitized = sanitized.replace(/"/g, ""); // Remove `"` if Windows
-		}
 		return sanitized;
 	}
 
@@ -175,7 +172,7 @@ class VaultUtils {
 					const filename = this.sanitizeFilename(
 						fileName.endsWith(".md") ? fileName : fileName + ".md"
 					);
-					const filepath = `${folderPath}/${filename}`;
+					const filepath = normalizePath(join(folderPath, filename));
 					try {
 						await this.vault.create(filepath, fileText);
 						new Notice(`${filename}\n  saved to\n${folderPath}`);
