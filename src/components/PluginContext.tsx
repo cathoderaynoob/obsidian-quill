@@ -1,5 +1,5 @@
 import { Vault } from "obsidian";
-import { StrictMode, createContext, useContext, useState } from "react";
+import { createContext, useContext, useState } from "react";
 import { QuillPluginSettings } from "@/settings";
 import { IPluginServices } from "@/interfaces";
 import ApiService from "@/ApiService";
@@ -47,8 +47,8 @@ export default function PluginContextProvider({
 				setIsResponding,
 			}}
 		>
-			<StrictMode>{children}</StrictMode>
-			{/* {children} */}
+			{/* <StrictMode>{children}</StrictMode> */}
+			{children}
 		</PluginContext.Provider>
 	);
 }

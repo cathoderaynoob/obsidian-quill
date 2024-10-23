@@ -136,8 +136,8 @@ const Messages: React.FC = () => {
 				) {
 					await scrollToMessage(
 						messages.length - 1,
-						false,
-						latestMessageRef.current.role
+						false
+						// latestMessageRef.current.role
 					);
 					prevContentLengthRef.current = contentLength;
 				}
@@ -262,7 +262,11 @@ const Messages: React.FC = () => {
 		if (!containerElem) return messagePos;
 		const containerRect = containerElem.getBoundingClientRect();
 		const messageRect = message.getBoundingClientRect();
-
+		console.log(
+			`getMessagePos:
+			 Container: ${containerRect.top},
+			 Message: ${messageRect.top}`
+		);
 		messagePos = messageRect.top - containerRect.top + containerElem.scrollTop;
 		return messagePos;
 	};
@@ -270,22 +274,34 @@ const Messages: React.FC = () => {
 	// Scroll to a specific message
 	const scrollToMessage = async (
 		index: number,
-		isMsgNav?: boolean,
-		role?: Role
+		isMsgNav?: boolean
 	): Promise<void> => {
-		if (!isMsgNav && stopScrolling.current) return;
+		console.log(index);
+		if (
+			index < 0 ||
+			index >= messages.length ||
+			(!isMsgNav && stopScrolling.current)
+		) {
+			console.log("returning");
+			return;
+		}
+		const { role } = messages[index];
 		const containerElem = getContainerElem();
 		const message = getMessageElem(index);
 		if (!containerElem || !message) return;
 
 		// If the response is taller than the viewable area,
 		// scroll the message to the top of the view port
+		console.log(
+			`Message: ${message.offsetHeight}, Container: ${containerElem.offsetHeight}`
+		);
 		if (
 			role === "assistant" &&
 			message.offsetHeight >= containerElem.offsetHeight
 		) {
 			const messagePos = getMessagePos(containerElem, message);
 			const scrollToPosition = messagePos - 16;
+			console.log("Scrolling to scroll position", scrollToPosition);
 			containerElem.scrollTo({
 				top: scrollToPosition,
 				behavior: "smooth",
@@ -296,6 +312,7 @@ const Messages: React.FC = () => {
 		}
 		// Otherwise, scroll the message into view, centered
 		else {
+			console.log("Scrolling into view", message.dataset.convIdx);
 			message.scrollIntoView({
 				block: "center",
 				behavior: "smooth",

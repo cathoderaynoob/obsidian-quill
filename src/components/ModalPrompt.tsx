@@ -32,7 +32,7 @@ class ModalPrompt extends Modal {
 	}
 
 	handleStreamEnd = () => {
-		console.log("Stream ended");
+		// console.log("Stream ended");
 		this.enableSend();
 	};
 
