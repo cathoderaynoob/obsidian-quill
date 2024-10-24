@@ -7,8 +7,8 @@ export const handleEditorKeypress = (
 	event: KeyboardEvent,
 	apiService?: ApiService
 ) => {
+	event.preventDefault();
 	if (event.key === "Escape") {
-		event.preventDefault();
 		apiService?.cancelStream();
 	}
 };
@@ -17,8 +17,11 @@ export const activateEditorKeypress = (
 	editorElem: HTMLElement,
 	apiService: ApiService
 ): void => {
-	editorElem.addEventListener("keydown", (event: KeyboardEvent) =>
-		handleEditorKeypress(event, apiService)
+	editorElem.addEventListener(
+		"keydown",
+		(keypressHandler = (event) => {
+			handleEditorKeypress(event, apiService);
+		})
 	);
 };
 
