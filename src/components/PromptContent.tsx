@@ -44,18 +44,17 @@ const PromptContent: React.FC<PromptContentProps> = ({
 	}, []);
 
 	return (
-		<div className="oq-prompt-container" ref={promptContentRef}>
+		<div className={`oq-prompt-container`} ref={promptContentRef}>
 			<textarea
-				id="oq-prompt-input"
+				className={textareaClass}
 				placeholder="» return to send / shift+return for new line"
 				rows={rows}
 				value={value}
+				onBlur={handleBlur}
 				onInput={handleInput}
 				onKeyDown={handleKeyPress}
-				onBlur={handleBlur}
 			/>
-			{/* TODO: Disable unless text entered */}
-			<button id="oq-prompt-send" onClick={handleSend} />
+			<button className={buttonClass} onClick={handleSend} />
 			<div className="oq-prompt-model">{model}</div>
 		</div>
 	);
