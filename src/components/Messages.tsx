@@ -211,7 +211,7 @@ const Messages: React.FC = () => {
 	// Keyboard navigation for messages
 	const handleMessagesKeypress = (event: KeyboardEvent) => {
 		const promptElem = document.querySelector(
-			ELEM_CLASSES.promptInput
+			`.${ELEM_CLASSES.promptInput}`
 		) as HTMLElement;
 		if (document.activeElement !== promptElem) {
 			switch (event.key) {

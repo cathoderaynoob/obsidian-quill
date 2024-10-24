@@ -33,21 +33,23 @@
 .cm-active {
 	transition: background-color 1.5s ease;
 }
-#oq-streaming .cm-active {
-	padding: 0.5rem 0 0.5rem 0.75rem !important;
-	border-radius: 0.33rem;
-	/* --oq-app-bright-color doesn't work here */
-	background-color: var(--text-accent);
-	color: var(--text-on-accent);
-	transition: background-color 1s ease;
-	&::before {
-		content: "» ";
-	}
-	&.cm-line {
-		text-indent: 0 !important;
-		.list-number,
-		.list-bullet {
-			color: var(--text-on-accent);
+#oq-streaming {
+	.cm-active {
+		padding: 0.5rem 0 0.5rem 0.75rem !important;
+		border-radius: 0.33rem;
+		/* --oq-app-bright-color doesn't work here */
+		background-color: var(--text-accent);
+		color: var(--text-on-accent);
+		transition: background-color 1s ease;
+		&::before {
+			content: "» ";
+		}
+		&.cm-line {
+			text-indent: 0 !important;
+			.list-number,
+			.list-bullet {
+				color: var(--text-on-accent);
+			}
 		}
 	}
 }
@@ -231,12 +233,6 @@
 		opacity: 0.8;
 	}
 }
-
-/* TODO: This is probably not needed, and is not in disable-send change */
-/* .oq-message-user code[class*="language-"] {
-	opacity: 1;
-} */
-
 .oq-message-selectedtext-content > *:first-child {
 	margin: 0 auto;
 	margin-block-start: 0;
@@ -266,34 +262,66 @@
 
 /* Message Pad ============================================================= */
 #oq-message-pad {
-	z-index: 1000; /* Ensures the header is above other content */
+	z-index: 1000;
 	width: 100%;
 	padding: 1rem;
 	background: var(--background-primary);
 	border-top: 2px solid var(--oq-app-faint-color);
 }
 
-/* Prompt Container (for both modal and message pad ======================== */
+/* Prompt Container (for both modal and message pad ======================= */
 .oq-prompt-container {
 	position: relative;
 	display: grid;
 	grid-gap: 0.75rem;
 	grid-template-columns: 1fr 2.5rem;
 }
-#oq-prompt-input {
+.oq-prompt-container {
+	&:focus-within {
+		.oq-prompt-input {
+			box-shadow: none;
+			outline-color: var(--oq-app-bright-color);
+			transition: outline-color 0.2s ease, var(--oq-transition-opacity);
+		}
+		.oq-prompt-send {
+			color: var(--oq-app-bright-color);
+			transition: var(--oq-transition-opacity), var(--oq-transition-color);
+			&:hover {
+				opacity: 1;
+				transition: var(--oq-transition-opacity);
+			}
+		}
+	}
+}
+.oq-prompt-input {
+	border-color: transparent;
 	border-radius: 0.5rem;
 	padding: 0.75rem 1rem;
 	overflow-y: auto;
 	resize: none;
+	box-shadow: none;
+	outline: 1px solid var(--oq-app-faint-color);
+	opacity: 0.6;
+	transition: outline-color 0.2s ease;
+	&:hover {
+		border-color: transparent;
+		box-shadow: none;
+		outline-color: var(--oq-app-bright-color);
+		transition: outline-color 0.2s ease;
+		+ button.oq-prompt-send {
+			color: var(--oq-app-bright-color);
+		}
+	}
+	&:focus {
+		border-color: transparent;
+		opacity: 1;
+	}
+	&::placeholder {
+		white-space: nowrap;
+		overflow-x: hidden;
+	}
 }
-textarea#oq-prompt-input::placeholder {
-	white-space: nowrap;
-	overflow-x: hidden;
-	/* This doesn't work for some reason, but leaving here for now. */
-	text-overflow: ellipsis;
-}
-/* Also needs to be a class instead. */
-button#oq-prompt-send {
+button.oq-prompt-send {
 	--icon-size: 22px; /* btwn --icon-m & lg */
 	position: relative;
 	border: none;
