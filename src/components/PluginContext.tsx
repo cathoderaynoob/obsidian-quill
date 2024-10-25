@@ -1,5 +1,5 @@
 import { Vault } from "obsidian";
-import { StrictMode, createContext, useContext } from "react";
+import { StrictMode, createContext, useContext, useState } from "react";
 import { QuillPluginSettings } from "@/settings";
 import { IPluginServices } from "@/interfaces";
 import ApiService from "@/ApiService";
@@ -11,6 +11,8 @@ interface PluginContextProps {
 	apiService: ApiService;
 	vault: Vault;
 	vaultUtils: VaultUtils;
+	isResponding: boolean;
+	setIsResponding: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 type PluginContextProviderProps = {
@@ -31,10 +33,19 @@ export default function PluginContextProvider({
 	vault,
 }: PluginContextProviderProps) {
 	const vaultUtils = new VaultUtils(pluginServices, vault, settings);
+	const [isResponding, setIsResponding] = useState(false);
 
 	return (
 		<PluginContext.Provider
-			value={{ settings, pluginServices, apiService, vault, vaultUtils }}
+			value={{
+				settings,
+				pluginServices,
+				apiService,
+				vault,
+				vaultUtils,
+				isResponding,
+				setIsResponding,
+			}}
 		>
 			<StrictMode>{children}</StrictMode>
 			{/* {children} */}

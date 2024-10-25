@@ -2,6 +2,7 @@ import { App, Modal } from "obsidian";
 import { Root, createRoot } from "react-dom/client";
 import { QuillPluginSettings } from "@/settings";
 import { getFeatureProperties } from "@/featuresRegistry";
+import emitter from "@/customEmitter";
 import PromptContent from "@/components/PromptContent";
 
 interface ModalPromptParams {
@@ -19,13 +20,25 @@ class ModalPrompt extends Modal {
 	private onSend: (prompt: string) => void;
 	private featureId?: string | null;
 	private rows = 6;
+	private disabled = false;
 
 	constructor({ app, settings, onSend, featureId }: ModalPromptParams) {
 		super(app);
 		this.settings = settings;
 		this.onSend = onSend;
 		this.featureId = featureId;
+		this.handleStreamEnd = this.handleStreamEnd.bind(this);
+		emitter.on("modalStreamEnd", this.handleStreamEnd);
 	}
+
+	handleStreamEnd = () => {
+		// console.log("Stream ended");
+		this.enableSend();
+	};
+
+	enableSend = (): void => {
+		this.disabled = false;
+	};
 
 	onOpen() {
 		const feature = this.featureId
@@ -33,11 +46,27 @@ class ModalPrompt extends Modal {
 			: null;
 		const model = feature?.model || this.settings.openaiModel;
 
+		const disableSend = (): void => {
+			this.disabled = true;
+		};
+
 		const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
 			this.promptValue = e.target.value;
 		};
 
+		const handleBlur = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+			e.target.value = e.target.value.trim();
+		};
+
+		const handleSend = () => {
+			if (this.disabled) return;
+			this.close();
+			this.onSend(this.promptValue.trim());
+			disableSend();
+		};
+
 		const handleKeyPress = (e: React.KeyboardEvent) => {
+			if (this.disabled) disableSend();
 			if (e.key === "Enter" && e.shiftKey) {
 				return;
 			} else if (e.key === "Enter") {
@@ -46,15 +75,6 @@ class ModalPrompt extends Modal {
 				this.close();
 				handleSend();
 			}
-		};
-
-		const handleSend = () => {
-			this.close();
-			this.onSend(this.promptValue.trim());
-		};
-
-		const handleBlur = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-			e.target.value = e.target.value.trim();
 		};
 
 		this.modalRoot = createRoot(this.contentEl);
@@ -68,6 +88,7 @@ class ModalPrompt extends Modal {
 					handleKeyPress={handleKeyPress}
 					handleSend={handleSend}
 					handleBlur={handleBlur}
+					disabled={this.disabled} // Update this to disable sending
 				/>
 			</div>
 		);
