@@ -84,6 +84,7 @@ export default class ApiService {
 			// Give completedMessage time to be return before emitting streamEnd
 			setTimeout(() => {
 				emitter.emit("streamEnd");
+				emitter.emit("modalStreamEnd");
 			}, 150);
 		}
 		return completedMessage;

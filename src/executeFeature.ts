@@ -67,7 +67,6 @@ export const executeFeature = async (
 			});
 		};
 		await emitEvent("newMessage", "user", inputText, selectedText);
-		await pluginServices.toggleView();
 		if (payloadMessages.getAll().length === 0) {
 			const today = new Date().toLocaleDateString("en-US", {
 				month: "long",

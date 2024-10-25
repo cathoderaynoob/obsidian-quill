@@ -9,8 +9,8 @@ export const ELEM_CLASSES = {
 	promptSend: "oq-prompt-send",
 };
 export const ELEM_IDS = {
-	messagePad: "oq-message-pad",
 	messages: "oq-messages",
+	messagePad: "oq-message-pad",
 	newConversation: "oq-btn-new-conv",
 };
 export const ERROR_MESSAGES = {
@@ -60,10 +60,10 @@ export const PROMPTS = {
 		content:
 			"<= [Define this term in the format of the following example.\n" +
 			"If proper noun, use title case. Otherwise always use lower case.\n" +
-			"Please provide multiple definitions, but only if there is more than one.\n\n" +
+			"Please provide multiple definitions when appropriate.\n\n" +
 			"###### term\n" +
 			"`/tɜrm/`\n\n" +
-			"1. A word or phrase used to describe a thing or to express " +
+			"1. *[part of speech]* A word or phrase used to describe a thing or to express " +
 			"a concept, especially in a particular kind of language or " +
 			"branch of study.\n" +
 			"   - *Example*: \"The term 'photosynthesis' is commonly used " +

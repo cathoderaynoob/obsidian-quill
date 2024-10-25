@@ -1,7 +1,7 @@
 import { ItemView, setIcon, Vault, WorkspaceLeaf } from "obsidian";
 import { Root, createRoot } from "react-dom/client";
 import { IPluginServices } from "@/interfaces";
-import { QUILL_VIEW_TYPE, APP_PROPS } from "@/constants";
+import { QUILL_VIEW_TYPE, APP_PROPS, ELEM_IDS } from "@/constants";
 import { QuillPluginSettings } from "@/settings";
 import ApiService from "@/ApiService";
 import Features from "@/Features";
@@ -63,7 +63,7 @@ export default class QuillView extends ItemView {
 		// Add the New Chat icon
 		setTimeout(() => {
 			const newChatButton = document.getElementById(
-				"oq-btn-new-conv"
+				ELEM_IDS.newConversation
 			) as HTMLElement;
 			setIcon(newChatButton, APP_PROPS.appIcon);
 		}, 0);

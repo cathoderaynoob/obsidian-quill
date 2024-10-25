@@ -1,33 +1,52 @@
 import { useState } from "react";
+import { ELEM_CLASSES, ELEM_IDS } from "@/constants";
 import { ExecutionOptions } from "@/executeFeature";
-import PromptContent from "@/components/PromptContent";
 import { usePluginContext } from "@/components/PluginContext";
+import PromptContent from "@/components/PromptContent";
 
 interface MessagePadProps {
 	executeFeature: (options: ExecutionOptions) => void;
 }
 
 const MessagePad: React.FC<MessagePadProps> = ({ executeFeature }) => {
-	const { settings } = usePluginContext();
+	const { isResponding, settings } = usePluginContext();
 	const [promptValue, setPromptValue] = useState<string>("");
 	const [rows] = useState<number>(1);
 
-	const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-		const textarea = e.target;
-		setTextareaSize(textarea);
-		setPromptValue(e.target.value);
+	// Setting dynamic height for textarea as number of rows change
+	const setTextareaSize = () => {
+		setTimeout(() => {
+			const textarea = document.querySelector(
+				`.${ELEM_CLASSES.promptInput}`
+			) as HTMLElement;
+			textarea.style.height = "auto";
+			if (textarea.textContent) {
+				const { borderTopWidth, borderBottomWidth, lineHeight } =
+					window.getComputedStyle(textarea);
+				const borderWidth =
+					parseFloat(borderTopWidth) + parseFloat(borderBottomWidth);
+				const rowHeight = parseInt(lineHeight) + borderWidth;
+				const maxHeight = rowHeight * 6;
+				const newHeight = Math.min(
+					textarea.scrollHeight + borderWidth,
+					maxHeight
+				);
+				textarea.style.height = `${newHeight}px`;
+			}
+		}, 0);
 	};
 
-	const setTextareaSize = (textarea: HTMLTextAreaElement) => {
-		textarea.style.height = "auto";
-		const { borderTopWidth, borderBottomWidth, lineHeight } =
-			window.getComputedStyle(textarea);
-		const borderWidth =
-			parseFloat(borderTopWidth) + parseFloat(borderBottomWidth);
-		const rowHeight = parseInt(lineHeight) + borderWidth;
-		const maxHeight = rowHeight * 6;
-		const newHeight = Math.min(textarea.scrollHeight + borderWidth, maxHeight);
-		textarea.style.height = `${newHeight}px`;
+	const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+		setPromptValue(e.target.value);
+		setTextareaSize();
+	};
+
+	const handleBlur = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+		if (/^\s*$/.test(promptValue)) {
+			const trimmedValue = promptValue.trim();
+			setPromptValue(trimmedValue);
+		}
+		setTextareaSize();
 	};
 
 	const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -36,17 +55,8 @@ const MessagePad: React.FC<MessagePadProps> = ({ executeFeature }) => {
 		} else if (e.key === "Enter") {
 			e.stopPropagation();
 			e.preventDefault();
-			handleSend();
+			if (!isResponding) handleSend();
 		}
-	};
-
-	const handleBlur = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-		const textarea = e.target;
-		if (/^\s*$/.test(promptValue)) {
-			const trimmedValue = promptValue.trim();
-			setPromptValue(trimmedValue);
-		}
-		setTextareaSize(textarea);
 	};
 
 	const handleSend = () => {
@@ -60,15 +70,16 @@ const MessagePad: React.FC<MessagePadProps> = ({ executeFeature }) => {
 	};
 
 	return (
-		<div id="oq-message-pad">
+		<div id={ELEM_IDS.messagePad}>
 			<PromptContent
 				value={promptValue}
 				rows={rows}
 				model={settings.openaiModel}
+				handleBlur={handleBlur}
 				handleInput={handleInput}
 				handleKeyPress={handleKeyPress}
 				handleSend={handleSend}
-				handleBlur={handleBlur}
+				disabled={isResponding}
 			/>
 		</div>
 	);

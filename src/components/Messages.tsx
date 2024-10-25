@@ -8,7 +8,7 @@ import PayloadMessages from "@/PayloadMessages";
 import TitleBar from "@/components/TitleBar";
 
 const Messages: React.FC = () => {
-	const { settings, apiService, pluginServices, vaultUtils } =
+	const { settings, apiService, pluginServices, vaultUtils, setIsResponding } =
 		usePluginContext();
 	const [messages, setMessages] = useState<MessageType[]>([]);
 	const [, setCurrentIndex] = useState(0);
@@ -19,7 +19,7 @@ const Messages: React.FC = () => {
 	const payloadMessages = PayloadMessages.getInstance();
 
 	const getContainerElem = (): HTMLElement | null => {
-		return document.getElementById("oq-messages");
+		return document.getElementById(ELEM_IDS.messages);
 	};
 
 	const getMessageElem = (index: number): HTMLElement | null => {
@@ -27,7 +27,7 @@ const Messages: React.FC = () => {
 	};
 
 	const focusPrompt = (): void => {
-		(document.querySelector(ELEM_CLASSES.promptInput) as HTMLElement)?.focus();
+		document.querySelector(`.${ELEM_CLASSES.promptInput}`) as HTMLElement;
 	};
 
 	const clearMessages = (): void => {
@@ -110,6 +110,7 @@ const Messages: React.FC = () => {
 			prevScrollTop.current = containerElem.scrollTop;
 			scrollToMessage(messages.length - 1);
 			if (role === "user") saveConversation(newMessage);
+			if (role === "assistant") setIsResponding(true);
 		};
 
 		emitter.on("newMessage", handleNewMessage);
@@ -138,7 +139,11 @@ const Messages: React.FC = () => {
 					contentLength >=
 					prevContentLengthRef.current + SCROLL_CHARS_LIMIT
 				) {
-					await scrollToMessage(messages.length - 1);
+					await scrollToMessage(
+						messages.length - 1,
+						false
+						// latestMessageRef.current.role
+					);
 					prevContentLengthRef.current = contentLength;
 				}
 			}
@@ -152,6 +157,7 @@ const Messages: React.FC = () => {
 	// STREAM END ===============================================================
 	useEffect(() => {
 		const handleStreamEnd = () => {
+			setIsResponding(false);
 			clearHighlights("oq-message-streaming");
 			scrollToMessage(messages.length - 1);
 			saveConversation(messages[messages.length - 1]);
@@ -240,6 +246,7 @@ const Messages: React.FC = () => {
 		if (event.key === "Escape") {
 			event.preventDefault();
 			apiService.cancelStream();
+			focusPrompt();
 		}
 	};
 
@@ -275,7 +282,7 @@ const Messages: React.FC = () => {
 		const message = getMessageElem(index);
 		if (!containerElem || !message) return;
 
-		// If the message is taller than the viewable area,
+		// If the response is taller than the viewable area,
 		// scroll the message to the top of the view port
 		if (message.offsetHeight >= containerElem.offsetHeight) {
 			const messagePos = getMessagePos(containerElem, message);
