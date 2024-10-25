@@ -1,5 +1,5 @@
 {
-	"name": "obsidian-quill-plugin",
+	"name": "obsidian-quill",
 	"version": "0.0.1",
 	"description": "A plugin for Obsidian that uses OpenAI's GPT to generate text based on user purposes.",
 	"main": "main.js",
