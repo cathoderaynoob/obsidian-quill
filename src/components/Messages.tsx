@@ -343,7 +343,7 @@ const Messages: React.FC = () => {
 	return (
 		<>
 			<TitleBar newConversation={newConversation} />
-			<div id={ELEM_IDS.messages}>
+			<div id={ELEM_IDS.messages} tabIndex={0}>
 				{messages.map((message, index) => (
 					<Message
 						key={message.id}
