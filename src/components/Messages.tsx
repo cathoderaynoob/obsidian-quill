@@ -108,9 +108,12 @@ const Messages: React.FC = () => {
 				return [...prevMessages, newMessage];
 			});
 			prevScrollTop.current = containerElem.scrollTop;
-			scrollToMessage(messages.length - 1);
 			if (role === "user") saveConversation(newMessage);
-			if (role === "assistant") setIsResponding(true);
+			if (role === "assistant") {
+				// Immediately scroll to the new message, regardless of the length
+				scrollToMessage(messages.length - 1);
+				setIsResponding(true);
+			}
 		};
 
 		emitter.on("newMessage", handleNewMessage);
@@ -139,11 +142,7 @@ const Messages: React.FC = () => {
 					contentLength >=
 					prevContentLengthRef.current + SCROLL_CHARS_LIMIT
 				) {
-					await scrollToMessage(
-						messages.length - 1,
-						false
-						// latestMessageRef.current.role
-					);
+					await scrollToMessage(messages.length - 1);
 					prevContentLengthRef.current = contentLength;
 				}
 			}
@@ -159,6 +158,8 @@ const Messages: React.FC = () => {
 		const handleStreamEnd = () => {
 			setIsResponding(false);
 			clearHighlights("oq-message-streaming");
+			// Scroll to the last message when the stream ends,
+			// even if the requisite chars haven't been added
 			scrollToMessage(messages.length - 1);
 			saveConversation(messages[messages.length - 1]);
 		};
@@ -278,6 +279,7 @@ const Messages: React.FC = () => {
 		isMsgNav?: boolean
 	): Promise<void> => {
 		if (!isMsgNav && stopScrolling.current) return;
+
 		const containerElem = getContainerElem();
 		const message = getMessageElem(index);
 		if (!containerElem || !message) return;
@@ -291,7 +293,6 @@ const Messages: React.FC = () => {
 				top: scrollToPosition,
 				behavior: "smooth",
 			});
-			stopScrolling.current = true;
 		}
 		// Otherwise, scroll the message into view, centered
 		else {
