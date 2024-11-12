@@ -67,6 +67,7 @@ const MessagePad: React.FC<MessagePadProps> = ({ executeFeature }) => {
 			inputText: trimmedValue,
 		});
 		setPromptValue("");
+		setTextareaSize();
 	};
 
 	return (
