@@ -27,7 +27,10 @@ const Messages: React.FC = () => {
 	};
 
 	const focusPrompt = (): void => {
-		document.querySelector(`.${ELEM_CLASSES.promptInput}`) as HTMLElement;
+		const promptInput = document.querySelector(
+			`.${ELEM_CLASSES.promptInput}`
+		) as HTMLElement;
+		promptInput.focus();
 	};
 
 	const clearMessages = (): void => {
