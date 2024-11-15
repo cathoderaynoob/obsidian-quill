@@ -1,4 +1,5 @@
 import { App, PluginSettingTab, Setting, TFolder } from "obsidian";
+import { Commands } from "@/interfaces";
 import QuillPlugin from "@/main";
 
 // Export the settings interface
@@ -10,7 +11,9 @@ export interface QuillPluginSettings {
 	saveConversations: boolean;
 	conversationsFolder: string;
 	messagesFolder: string;
+	templatesFolder: string;
 	openSavedFile: boolean;
+	commands: Commands;
 }
 
 const openaiBaseUrl = "https://api.openai.com/v1";
@@ -25,6 +28,8 @@ export const DEFAULT_SETTINGS: QuillPluginSettings = {
 	conversationsFolder: "Quill",
 	messagesFolder: "Quill",
 	openSavedFile: false,
+	templatesFolder: "Quill/Templates",
+	commands: {},
 };
 
 interface OpenAIModels {
@@ -151,6 +156,33 @@ export class QuillSettingsTab extends PluginSettingTab {
 				dropdown.setValue(this.plugin.settings.messagesFolder);
 				dropdown.onChange(async (folder) => {
 					this.plugin.settings.messagesFolder = folder;
+					await this.plugin.saveSettings();
+				});
+			});
+
+		// Template Preferences
+		this.containerEl.createEl("h4", {
+			text: "Templates Folder",
+		});
+		// Template Folder
+		new Setting(containerEl)
+			.setName("Load Templates From...")
+			.setDesc(
+				"Templates are Obsidian notes you write, each of which define a " +
+					"prompt that a Quill command of your making will send. " +
+					"Select the folder where you'd like to store them."
+			)
+			.addDropdown((dropdown) => {
+				const folders = this.app.vault
+					.getAllLoadedFiles()
+					.filter((folder) => folder instanceof TFolder) as TFolder[];
+				const folderPaths = folders.map((folder) => folder.path).sort();
+				folderPaths.forEach((folderPath) =>
+					dropdown.addOption(folderPath, folderPath)
+				);
+				dropdown.setValue(this.plugin.settings.templatesFolder);
+				dropdown.onChange(async (folder) => {
+					this.plugin.settings.templatesFolder = folder;
 					await this.plugin.saveSettings();
 				});
 			});

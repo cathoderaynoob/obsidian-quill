@@ -32,7 +32,7 @@ export default function PluginContextProvider({
 	apiService,
 	vault,
 }: PluginContextProviderProps) {
-	const vaultUtils = new VaultUtils(pluginServices, vault, settings);
+	const vaultUtils = new VaultUtils(pluginServices, settings);
 	const [isResponding, setIsResponding] = useState(false);
 
 	return (

@@ -4,7 +4,7 @@ import { QuillPluginSettings } from "@/settings";
 class ModalSaveMessageAs extends Modal {
 	private content: string;
 	private folderPaths: string[];
-	private selectedFolderPath: string;
+	// private selectedFolderPath: string;
 	private onSubmit: (name: string, path: string, openFile: boolean) => void;
 	private settings: QuillPluginSettings;
 
@@ -57,9 +57,9 @@ class ModalSaveMessageAs extends Modal {
 			selectFolderField.appendChild(option);
 			selectFolderField.value = this.settings.messagesFolder;
 		});
-		selectFolderField.onchange = (event) => {
-			this.selectedFolderPath = (event.target as HTMLSelectElement).value;
-		};
+		// selectFolderField.onchange = (event) => {
+		// 	this.selectedFolderPath = (event.target as HTMLSelectElement).value;
+		// };
 
 		// Modal Footer
 		const footer = saveAsForm.createDiv({
