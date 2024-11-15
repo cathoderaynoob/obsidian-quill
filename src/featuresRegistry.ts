@@ -16,6 +16,7 @@ export interface FeatureProperties {
 	model?: string;
 	temperature?: number;
 	stream?: boolean;
+	filePath?: string;
 	outputTarget?: OutputTarget;
 }
 
@@ -85,6 +86,17 @@ export const FeaturesRegistry = (
 				emitter.emit("updateResponseMessage", response),
 			stream: true,
 			outputTarget: "view",
+		},
+
+		// Test file upload
+		testUpload: {
+			id: "testUpload",
+			prompt: (inputText: string) => inputText,
+			processResponse: (response: string) =>
+				emitter.emit("updateResponseMessage", response),
+			stream: true,
+			outputTarget: "view",
+			model: "gpt-4o-mini",
 		},
 
 		// SEND SELECTED TEXT WITH PROMPT

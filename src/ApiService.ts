@@ -1,4 +1,6 @@
-import OpenAI from "openai";
+import fs from "fs";
+import OpenAI, { toFile } from "openai";
+import { FileLike } from "openai/uploads";
 import { Editor, EditorPosition } from "obsidian";
 import { GptRequestPayload, IPluginServices, OutputTarget } from "@/interfaces";
 import { QuillPluginSettings } from "@/settings";
@@ -115,6 +117,34 @@ export default class ApiService {
 			}
 		} catch (error) {
 			this.pluginServices.notifyError("unknown", error);
+		}
+	}
+
+	// FILES ====================================================================
+	async uploadFileFromVault(
+		filePath: string,
+		purpose: OpenAI.FilePurpose
+	): Promise<string | undefined> {
+		if (!filePath) return;
+
+		const file = (await toFile(fs.createReadStream(filePath))) as FileLike;
+		if (file) {
+			try {
+				const uploadResponse = await this.openai.files.create({
+					file: file,
+					purpose: purpose,
+				});
+				console.log(`File uploaded with ID: ${uploadResponse.id}`);
+				return uploadResponse.id;
+			} catch (error) {
+				console.error("Error uploading file:", error);
+			}
+		} else {
+			this.pluginServices.notifyError(
+				"fileUploadError",
+				`Error reading file ${filePath}`
+			);
+			return undefined;
 		}
 	}
 }

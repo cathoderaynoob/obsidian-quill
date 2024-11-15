@@ -16,11 +16,13 @@ import {
 import ApiService from "@/ApiService";
 import emitter from "@/customEmitter";
 import PayloadMessages from "@/PayloadMessages";
+import VaultUtils from "@/VaultUtils";
 
 export interface ExecutionOptions {
 	id: string;
 	inputText?: string;
 	selectedText?: string;
+	filePath?: string;
 	formattingGuidance?: string;
 	outputTarget?: OutputTarget;
 }
@@ -33,12 +35,24 @@ export const executeFeature = async (
 	payloadMessages: PayloadMessages,
 	pluginServices: IPluginServices
 ): Promise<void> => {
-	const { id, inputText, selectedText, formattingGuidance, outputTarget } =
-		options;
+	const {
+		id,
+		inputText,
+		selectedText,
+		filePath,
+		formattingGuidance,
+		outputTarget,
+	} = options;
+
+	const vaultUtils = VaultUtils.getInstance(pluginServices, settings);
 	const feature = featureRegistry[id];
 	if (!feature) {
 		pluginServices.notifyError("noFeature");
 		return;
+	}
+	if (filePath) {
+		console.log(vaultUtils.getBasePath(filePath));
+		// await apiService.uploadFileFromVault(filePath, "assistants");
 	}
 
 	const payloadPrompt = buildPrompt({
@@ -59,7 +73,8 @@ export const executeFeature = async (
 			event: string,
 			role: string,
 			prompt?: string,
-			selectedText?: string
+			selectedText?: string,
+			filePath?: string
 		): Promise<void> => {
 			return new Promise<void>((resolve) => {
 				emitter.emit(event, role, prompt, selectedText);

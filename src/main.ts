@@ -1,4 +1,4 @@
-import { Editor, Notice, Plugin, Vault, WorkspaceLeaf } from "obsidian";
+import { Editor, Notice, Plugin, WorkspaceLeaf } from "obsidian";
 import {
 	ErrorCode,
 	APP_PROPS,
@@ -15,13 +15,15 @@ import ApiService from "@/ApiService";
 import Features from "@/Features";
 import ModalPrompt from "@/components/ModalPrompt";
 import QuillView from "@/components/view";
+import VaultUtils from "@/VaultUtils";
 
 export default class QuillPlugin extends Plugin implements IPluginServices {
 	settings: QuillPluginSettings;
 	apiService: ApiService;
 	features: Features;
 	pluginServices: IPluginServices;
-	vault: Vault;
+	// vault: Vault;
+	vaultUtils: VaultUtils;
 	openModals: ModalPrompt[] = [];
 
 	async onload(): Promise<void> {
@@ -36,7 +38,6 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 			notifyError: this.notifyError.bind(this),
 			saveSettings: this.saveSettings.bind(this),
 		};
-		this.vault = this.app.vault;
 
 		this.addSettingTab(new QuillSettingsTab(this.app, this));
 		this.registerView(
@@ -138,6 +139,30 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 				modal.open();
 			},
 		});
+
+		// Test upload command ====================================================
+		// We don't know yet what the filePath will be. Get it from the modal.
+		this.addCommand({
+			id: "test-upload",
+			name: "Test Upload",
+			callback: async () => {
+				this.toggleView();
+				const modal = new ModalPrompt({
+					app: this.app,
+					settings: this.settings,
+					onSend: async (userEntry, filePath) => {
+						await this.features.executeFeature({
+							id: "testUpload",
+							inputText: userEntry,
+							filePath: filePath,
+						});
+					},
+				});
+				this.openModals.push(modal);
+				modal.open();
+			},
+		});
+		// ========================================================================
 
 		// Send selected text with instruction from modal
 		this.addCommand({

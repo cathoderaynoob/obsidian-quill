@@ -14,6 +14,8 @@ export const ELEM_IDS = {
 	newConversation: "oq-btn-new-conv",
 };
 export const ERROR_MESSAGES = {
+	fileUploadError:
+		"Error uploading file. Please check the console for details.",
 	noApiKey:
 		"Your OpenAI API key is missing. Please enter it in the " +
 		"community plugin settings for Quill.",

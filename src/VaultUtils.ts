@@ -1,4 +1,11 @@
-import { normalizePath, Notice, TFile, TFolder, Vault } from "obsidian";
+import {
+	FileSystemAdapter,
+	normalizePath,
+	Notice,
+	TFile,
+	TFolder,
+	Vault,
+} from "obsidian";
 import { join } from "path";
 import { format } from "date-fns";
 import { IPluginServices } from "@/interfaces";
@@ -8,29 +15,32 @@ import ModalSaveMessageAs from "@/components/ModalSaveMessageAs";
 
 class VaultUtils {
 	private static instance: VaultUtils;
+	private fsAdapter: FileSystemAdapter;
 	private pluginServices: IPluginServices;
-	private vault: Vault;
 	private settings: QuillPluginSettings;
+	private vault: Vault;
 
-	constructor(
-		pluginServices: IPluginServices,
-		vault: Vault,
-		settings: QuillPluginSettings
-	) {
+	constructor(pluginServices: IPluginServices, settings: QuillPluginSettings) {
 		this.pluginServices = pluginServices;
-		this.vault = vault;
 		this.settings = settings;
 	}
 
 	public static getInstance(
 		pluginServices: IPluginServices,
-		vault: Vault,
 		settings: QuillPluginSettings
 	): VaultUtils {
 		if (!VaultUtils.instance) {
-			VaultUtils.instance = new VaultUtils(pluginServices, vault, settings);
+			VaultUtils.instance = new VaultUtils(pluginServices, settings);
 		}
 		return VaultUtils.instance;
+	}
+
+	getFileByPath(filepath: string) {
+		return this.vault.getAbstractFileByPath(filepath) as TFile;
+	}
+
+	getBasePath(filePath: string) {
+		return this.fsAdapter.getBasePath();
 	}
 
 	getAllFolders() {

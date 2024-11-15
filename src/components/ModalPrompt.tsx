@@ -8,7 +8,7 @@ import PromptContent from "@/components/PromptContent";
 interface ModalPromptParams {
 	app: App;
 	settings: QuillPluginSettings;
-	onSend: (prompt: string) => void;
+	onSend: (prompt: string, filePath?: string) => void;
 	featureId?: string;
 }
 
@@ -16,8 +16,9 @@ interface ModalPromptParams {
 class ModalPrompt extends Modal {
 	private modalRoot: Root | null = null;
 	private promptValue: string;
+	private filePath?: string;
 	private settings: QuillPluginSettings;
-	private onSend: (prompt: string) => void;
+	private onSend: (prompt: string, filePath?: string) => void;
 	private featureId?: string | null;
 	private rows = 6;
 	private disabled = false;
@@ -32,7 +33,6 @@ class ModalPrompt extends Modal {
 	}
 
 	handleStreamEnd = () => {
-		// console.log("Stream ended");
 		this.enableSend();
 	};
 
@@ -45,6 +45,8 @@ class ModalPrompt extends Modal {
 			? getFeatureProperties(this.app, this.featureId)
 			: null;
 		const model = feature?.model || this.settings.openaiModel;
+
+		this.filePath = "test.md"; // Testing filePath ============================
 
 		const disableSend = (): void => {
 			this.disabled = true;
@@ -61,7 +63,7 @@ class ModalPrompt extends Modal {
 		const handleSend = () => {
 			if (this.disabled) return;
 			this.close();
-			this.onSend(this.promptValue.trim());
+			this.onSend(this.promptValue.trim(), this.filePath);
 			disableSend();
 		};
 
