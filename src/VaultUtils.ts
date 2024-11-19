@@ -23,6 +23,7 @@ class VaultUtils {
 	constructor(pluginServices: IPluginServices, settings: QuillPluginSettings) {
 		this.pluginServices = pluginServices;
 		this.settings = settings;
+		this.vault = pluginServices.app.vault;
 	}
 
 	public static getInstance(
