@@ -43,7 +43,6 @@ export const executeFeature = async (
 		formattingGuidance,
 		outputTarget,
 	} = options;
-
 	const vaultUtils = VaultUtils.getInstance(pluginServices, settings);
 	const feature = featureRegistry[id];
 	if (!feature) {
@@ -51,8 +50,8 @@ export const executeFeature = async (
 		return;
 	}
 	if (filePath) {
-		console.log(vaultUtils.getBasePath(filePath));
-		// await apiService.uploadFileFromVault(filePath, "assistants");
+		const file = vaultUtils.getFileByPath(filePath);
+		await apiService.uploadFileFromVault(file, "assistants");
 	}
 
 	const payloadPrompt = buildPrompt({

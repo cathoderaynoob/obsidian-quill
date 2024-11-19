@@ -36,12 +36,8 @@ class VaultUtils {
 		return VaultUtils.instance;
 	}
 
-	getFileByPath(filepath: string) {
-		return this.vault.getAbstractFileByPath(filepath) as TFile;
-	}
-
-	getBasePath(filePath: string) {
-		return this.fsAdapter.getBasePath();
+	getFileByPath(filePath: string) {
+		return this.vault.getAbstractFileByPath(filePath) as TFile;
 	}
 
 	getAllFolders() {

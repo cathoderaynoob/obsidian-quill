@@ -1,7 +1,5 @@
-import fs from "fs";
-import OpenAI, { toFile } from "openai";
-import { FileLike } from "openai/uploads";
-import { Editor, EditorPosition } from "obsidian";
+import OpenAI from "openai";
+import { Editor, EditorPosition, TFile, Vault } from "obsidian";
 import { GptRequestPayload, IPluginServices, OutputTarget } from "@/interfaces";
 import { QuillPluginSettings } from "@/settings";
 import { STREAM_BUFFER_LIMIT } from "@/constants";
@@ -15,6 +13,7 @@ export default class ApiService {
 	payloadMessages: PayloadMessages;
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	streamingContent: any | null = null;
+	vault: Vault;
 
 	constructor(pluginServices: IPluginServices, settings: QuillPluginSettings) {
 		this.pluginServices = pluginServices;
@@ -24,6 +23,7 @@ export default class ApiService {
 			dangerouslyAllowBrowser: true,
 		});
 		this.payloadMessages = PayloadMessages.getInstance();
+		this.vault = pluginServices.app.vault;
 	}
 
 	hasApiKey(): boolean {
@@ -122,16 +122,20 @@ export default class ApiService {
 
 	// FILES ====================================================================
 	async uploadFileFromVault(
-		filePath: string,
+		file: TFile,
 		purpose: OpenAI.FilePurpose
 	): Promise<string | undefined> {
-		if (!filePath) return;
+		if (!file.path) return;
 
-		const file = (await toFile(fs.createReadStream(filePath))) as FileLike;
-		if (file) {
+		const fileContent = await this.vault.adapter.read(file.path);
+		const uploadableFile = new File([fileContent], file.name, {
+			type: "text/markdown",
+		});
+
+		if (uploadableFile) {
 			try {
 				const uploadResponse = await this.openai.files.create({
-					file: file,
+					file: uploadableFile,
 					purpose: purpose,
 				});
 				console.log(`File uploaded with ID: ${uploadResponse.id}`);
@@ -142,7 +146,7 @@ export default class ApiService {
 		} else {
 			this.pluginServices.notifyError(
 				"fileUploadError",
-				`Error reading file ${filePath}`
+				`Error reading file ${file.path}`
 			);
 			return undefined;
 		}

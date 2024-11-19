@@ -15,7 +15,6 @@ import ApiService from "@/ApiService";
 import Features from "@/Features";
 import ModalPrompt from "@/components/ModalPrompt";
 import QuillView from "@/components/view";
-import VaultUtils from "@/VaultUtils";
 
 export default class QuillPlugin extends Plugin implements IPluginServices {
 	settings: QuillPluginSettings;
@@ -23,7 +22,6 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 	features: Features;
 	pluginServices: IPluginServices;
 	// vault: Vault;
-	vaultUtils: VaultUtils;
 	openModals: ModalPrompt[] = [];
 
 	async onload(): Promise<void> {
