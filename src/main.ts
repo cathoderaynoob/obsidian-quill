@@ -21,7 +21,6 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 	apiService: ApiService;
 	features: Features;
 	pluginServices: IPluginServices;
-	// vault: Vault;
 	openModals: ModalPrompt[] = [];
 
 	async onload(): Promise<void> {
