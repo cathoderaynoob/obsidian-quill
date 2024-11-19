@@ -1,11 +1,4 @@
-import {
-	FileSystemAdapter,
-	normalizePath,
-	Notice,
-	TFile,
-	TFolder,
-	Vault,
-} from "obsidian";
+import { normalizePath, Notice, TFile, TFolder, Vault } from "obsidian";
 import { join } from "path";
 import { format } from "date-fns";
 import { IPluginServices } from "@/interfaces";
@@ -15,7 +8,6 @@ import ModalSaveMessageAs from "@/components/ModalSaveMessageAs";
 
 class VaultUtils {
 	private static instance: VaultUtils;
-	private fsAdapter: FileSystemAdapter;
 	private pluginServices: IPluginServices;
 	private settings: QuillPluginSettings;
 	private vault: Vault;
