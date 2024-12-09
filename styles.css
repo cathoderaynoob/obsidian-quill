@@ -145,14 +145,16 @@
 .oq-message-user {
 	grid-template-columns: 1rem 1fr;
 	& pre {
-		border: 1px solid var(--code-background);
+		border-radius: 0.5rem;
+		border: 1px solid var(--background-modifier-border-hover);
+		background: var(--code-background);
 	}
 	& code[class*="language-"] {
 		opacity: 0.8;
 		display: block;
 		--max-lines: 5;
 		overflow: scroll;
-		max-height: 2rem;
+		max-height: 12rem;
 		position: relative;
 		mask-image: linear-gradient(to top, transparent, black 2rem);
 		-webkit-mask-image: linear-gradient(to top, transparent, black 2rem);

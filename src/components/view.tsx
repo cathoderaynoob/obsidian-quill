@@ -26,7 +26,7 @@ export default class QuillView extends ItemView {
 		this.apiService = plugin.apiService;
 		this.features = plugin.features;
 		this.pluginServices = plugin.pluginServices;
-		this.vault = plugin.vault;
+		this.vault = this.pluginServices.app.vault;
 		QuillView.instance = this;
 	}
 

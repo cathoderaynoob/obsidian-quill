@@ -138,7 +138,7 @@ export default class ApiService {
 					file: uploadableFile,
 					purpose: purpose,
 				});
-				console.log(`File uploaded:`, uploadResponse);
+				console.log("File uploaded:", uploadResponse);
 				return uploadResponse.id;
 			} catch (error) {
 				console.error("Error uploading file:", error);

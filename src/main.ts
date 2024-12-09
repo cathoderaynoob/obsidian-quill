@@ -15,6 +15,7 @@ import ApiService from "@/ApiService";
 import Features from "@/Features";
 import ModalPrompt from "@/components/ModalPrompt";
 import QuillView from "@/components/view";
+import ModalPromptFile from "./components/ModalPromptFile";
 
 export default class QuillPlugin extends Plugin implements IPluginServices {
 	settings: QuillPluginSettings;
@@ -42,6 +43,11 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 			(leaf: WorkspaceLeaf) => new QuillView(leaf, this)
 		);
 
+		// This works but is not in the public API
+		// const setting = (this.app as any).setting;
+		// setting.open();
+		// setting.openTabById("obsidian-quill");
+		// this.app.commands.executeCommandById('app:open-settings');
 		// RIBBON AND COMMANDS
 
 		// App icon
@@ -77,7 +83,10 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 			id: "tell-a-joke",
 			name: "Tell me a joke",
 			callback: async () => {
-				await this.features.executeFeature({ id: "tellAJoke" });
+				await this.features.executeFeature({
+					id: "tellAJoke",
+					outputTarget: "modal",
+				});
 			},
 		});
 
@@ -91,6 +100,12 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 					outputTarget: editor,
 				});
 			},
+			hotkeys: [
+				{
+					modifiers: ["Ctrl"],
+					key: "K",
+				},
+			],
 		});
 
 		// "Define..." command
@@ -129,6 +144,7 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 						await this.features.executeFeature({
 							id: "newPrompt",
 							inputText: userEntry,
+							outputTarget: "view",
 						});
 					},
 				});
@@ -144,7 +160,7 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 			name: "Test Upload",
 			callback: async () => {
 				this.toggleView();
-				const modal = new ModalPrompt({
+				const modal = new ModalPromptFile({
 					app: this.app,
 					settings: this.settings,
 					onSend: async (userEntry, filePath) => {
@@ -179,6 +195,7 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 									id: "sendPromptWithSelectedText",
 									inputText: userEntry,
 									selectedText: selectedText,
+									outputTarget: "view",
 								});
 							},
 						});
