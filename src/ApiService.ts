@@ -125,8 +125,13 @@ export default class ApiService {
 		file: TFile,
 		purpose: OpenAI.FilePurpose
 	): Promise<string | undefined> {
-		if (!file.path) return;
-
+		if (!file) {
+			this.pluginServices.notifyError(
+				"fileUploadError",
+				"No file provided to upload."
+			);
+			return;
+		}
 		const fileContent = await this.vault.adapter.read(file.path);
 		const uploadableFile = new File([fileContent], file.name, {
 			type: "text/markdown",

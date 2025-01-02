@@ -14,6 +14,7 @@ export const ELEM_IDS = {
 	newConversation: "oq-btn-new-conv",
 };
 export const ERROR_MESSAGES = {
+	fileNotFound: "Cannot find file at path provided. See console for details.",
 	fileUploadError:
 		"Error uploading file. Please check the console for details.",
 	noApiKey:

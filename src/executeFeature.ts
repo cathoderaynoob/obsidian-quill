@@ -51,6 +51,7 @@ export const executeFeature = async (
 	}
 	if (filePath) {
 		const file = vaultUtils.getFileByPath(filePath);
+		if (!file) return;
 		await apiService.uploadFileFromVault(file, "assistants");
 	}
 

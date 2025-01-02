@@ -28,8 +28,16 @@ class VaultUtils {
 		return VaultUtils.instance;
 	}
 
-	getFileByPath(filePath: string) {
-		return this.vault.getAbstractFileByPath(filePath) as TFile;
+	getFileByPath(filePath: string): TFile | undefined {
+		const file = this.vault.getAbstractFileByPath(filePath) as TFile;
+		if (!file) {
+			this.pluginServices.notifyError(
+				"fileNotFound",
+				`File not found at \`${filePath}\`.`
+			);
+			return;
+		}
+		return file;
 	}
 
 	getAllFolders() {
