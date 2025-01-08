@@ -9,6 +9,7 @@ class ModalPromptFile extends ModalPrompt {
 	constructor(params: ModalPromptFileParams) {
 		super(params);
 		this.featureId = params.featureId;
+		console.log(this.featureId);
 		this.filePath = "test.md";
 	}
 

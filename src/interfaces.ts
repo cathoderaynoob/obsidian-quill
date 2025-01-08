@@ -1,5 +1,21 @@
 import { App, Editor } from "obsidian";
 
+export interface CommandTemplate {
+	filename: string;
+	file_id: string;
+}
+
+export interface Command {
+	name: string;
+	target: "view" | "modal" | "editor";
+	prompt: boolean;
+	template: CommandTemplate;
+}
+
+export interface Commands {
+	[key: string]: Command;
+}
+
 export interface IPluginServices {
 	app: App;
 	toggleView(): Promise<void>;

@@ -10,7 +10,7 @@ import {
 	QuillPluginSettings,
 	QuillSettingsTab,
 } from "@/settings";
-import { IPluginServices } from "@/interfaces";
+import { Command, Commands, IPluginServices } from "@/interfaces";
 import ApiService from "@/ApiService";
 import Features from "@/Features";
 import ModalPrompt from "@/components/ModalPrompt";
@@ -36,6 +36,25 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 			notifyError: this.notifyError.bind(this),
 			saveSettings: this.saveSettings.bind(this),
 		};
+		const commands: Commands = this.settings.commands;
+
+		for (const commandId in commands) {
+			const command = commands[commandId];
+			console.log(command);
+			this.addCommand({
+				id: commandId,
+				name: command.name,
+				editorCallback:
+					command.target === "editor"
+						? (editor: Editor) =>
+								this.executeCommand(command, commandId, editor)
+						: undefined,
+				callback:
+					command.target !== "editor"
+						? () => this.executeCommand(command, commandId)
+						: undefined,
+			});
+		}
 
 		this.addSettingTab(new QuillSettingsTab(this.app, this));
 		this.registerView(
@@ -155,26 +174,26 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 
 		// Test upload command ====================================================
 		// We don't know yet what the filePath will be. Get it from the modal.
-		this.addCommand({
-			id: "test-upload",
-			name: "Test Upload",
-			callback: async () => {
-				this.toggleView();
-				const modal = new ModalPromptFile({
-					app: this.app,
-					settings: this.settings,
-					onSend: async (userEntry, filePath) => {
-						await this.features.executeFeature({
-							id: "testUpload",
-							inputText: userEntry,
-							filePath: filePath,
-						});
-					},
-				});
-				this.openModals.push(modal);
-				modal.open();
-			},
-		});
+		// this.addCommand({
+		// 	id: "test-upload",
+		// 	name: "Test Upload",
+		// 	callback: async () => {
+		// 		this.toggleView();
+		// 		const modal = new ModalPromptFile({
+		// 			app: this.app,
+		// 			settings: this.settings,
+		// 			onSend: async (userEntry, filePath) => {
+		// 				await this.features.executeFeature({
+		// 					id: "testUpload",
+		// 					inputText: userEntry,
+		// 					filePath: filePath,
+		// 				});
+		// 			},
+		// 		});
+		// 		this.openModals.push(modal);
+		// 		modal.open();
+		// 	},
+		// });
 		// ========================================================================
 
 		// Send selected text with instruction from modal
@@ -207,6 +226,58 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 				return false;
 			},
 		});
+	}
+
+	// COMMANDS LOADER
+	async loadCommands(): Promise<Commands> {
+		// PluginManifest.dir Property - Developer Documentation
+		// https://docs.obsidian.md/Reference/TypeScript+API/PluginManifest/dir
+		const response = await fetch(this.manifest.dir + "/data.json");
+		const data: Commands = await response.json();
+		return data;
+	}
+
+	executeCommand(command: Command, commandId: string, editor?: Editor) {
+		console.log(command, commandId);
+		switch (command.target) {
+			// case "editor": {
+			// 	if (editor) {
+			// 		this.features.executeFeature({
+			// 			id: command.template.file_id,
+			// 			outputTarget: editor,
+			// 		});
+			// 	}
+			// 	break;
+			// }
+			case "view": {
+				// Implement logic for view target
+				this.toggleView();
+
+				const modal = new ModalPromptFile({
+					app: this.app,
+					settings: this.settings,
+					onSend: async (userEntry, filePath) => {
+						await this.features.executeFeature({
+							id: commandId,
+							inputText: userEntry,
+							filePath: filePath,
+						});
+					},
+				});
+				this.openModals.push(modal);
+				modal.open();
+				console.log(`Executing command: ${command.name} in view.`);
+				break;
+			}
+			case "modal": {
+				// Implement logic for modal target
+				console.log(`Executing command: ${command.name} in modal.`);
+				break;
+			}
+			default: {
+				console.error(`Unknown target for command: ${command.name}`);
+			}
+		}
 	}
 
 	// VIEW
