@@ -22,7 +22,7 @@ export interface ExecutionOptions {
 	id: string;
 	inputText?: string;
 	selectedText?: string;
-	filePath?: string;
+	templateFilePath?: string;
 	formattingGuidance?: string;
 	outputTarget?: OutputTarget;
 }
@@ -39,7 +39,7 @@ export const executeFeature = async (
 		id,
 		inputText,
 		selectedText,
-		filePath,
+		templateFilePath: filePath,
 		formattingGuidance,
 		outputTarget,
 	} = options;

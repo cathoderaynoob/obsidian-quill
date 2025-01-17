@@ -4,7 +4,7 @@ import { getFeatureProperties } from "@/featuresRegistry";
 
 class ModalPromptFile extends ModalPrompt {
 	filePath: string;
-	override onSend: (prompt: string, filePath?: string) => void;
+	override onSend: (prompt: string, templateFilePath?: string) => void;
 
 	constructor(params: ModalPromptFileParams) {
 		super(params);

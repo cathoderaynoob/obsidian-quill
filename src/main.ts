@@ -36,25 +36,6 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 			notifyError: this.notifyError.bind(this),
 			saveSettings: this.saveSettings.bind(this),
 		};
-		const commands: Commands = this.settings.commands;
-
-		for (const commandId in commands) {
-			const command = commands[commandId];
-			console.log(command);
-			this.addCommand({
-				id: commandId,
-				name: command.name,
-				editorCallback:
-					command.target === "editor"
-						? (editor: Editor) =>
-								this.executeCommand(command, commandId, editor)
-						: undefined,
-				callback:
-					command.target !== "editor"
-						? () => this.executeCommand(command, commandId)
-						: undefined,
-			});
-		}
 
 		this.addSettingTab(new QuillSettingsTab(this.app, this));
 		this.registerView(
@@ -62,6 +43,7 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 			(leaf: WorkspaceLeaf) => new QuillView(leaf, this)
 		);
 
+		// QUILL COMMANDS	========================================================
 		// This works but is not in the public API
 		// const setting = (this.app as any).setting;
 		// setting.open();
@@ -87,16 +69,6 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 			},
 		});
 
-		// Show Quill view command
-		// this.addCommand({
-		// 	id: "new-conversation",
-		// 	name: "New Conversation",
-		// 	callback: () => {
-		// 		this.toggleView();
-		// 		// Call `newConversation`
-		// 	},
-		// });
-
 		// "Tell me a joke" command
 		this.addCommand({
 			id: "tell-a-joke",
@@ -119,36 +91,30 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 					outputTarget: editor,
 				});
 			},
-			hotkeys: [
-				{
-					modifiers: ["Ctrl"],
-					key: "K",
-				},
-			],
 		});
 
-		// "Define..." command
-		this.addCommand({
-			id: "define",
-			name: "Define the word...",
-			editorCallback: async (editor: Editor) => {
-				const featureId = "define";
-				const modal = new ModalPrompt({
-					app: this.app,
-					settings: this.settings,
-					onSend: async (userEntry) => {
-						await this.features.executeFeature({
-							id: featureId,
-							inputText: userEntry,
-							outputTarget: editor,
-						});
-					},
-					featureId: featureId,
-				});
-				this.openModals.push(modal);
-				modal.open();
-			},
-		});
+		// "Define..." command - REPLACED WITH CUSTOM COMMAND
+		// this.addCommand({
+		// 	id: "define",
+		// 	name: "Define the word...",
+		// 	editorCallback: async (editor: Editor) => {
+		// 		const featureId = "define";
+		// 		const modal = new ModalPrompt({
+		// 			app: this.app,
+		// 			settings: this.settings,
+		// 			onSend: async (userEntry) => {
+		// 				await this.features.executeFeature({
+		// 					id: featureId,
+		// 					inputText: userEntry,
+		// 					outputTarget: editor,
+		// 				});
+		// 			},
+		// 			featureId: featureId,
+		// 		});
+		// 		this.openModals.push(modal);
+		// 		modal.open();
+		// 	},
+		// });
 
 		// Open modal to get prompt
 		this.addCommand({
@@ -171,30 +137,6 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 				modal.open();
 			},
 		});
-
-		// Test upload command ====================================================
-		// We don't know yet what the filePath will be. Get it from the modal.
-		// this.addCommand({
-		// 	id: "test-upload",
-		// 	name: "Test Upload",
-		// 	callback: async () => {
-		// 		this.toggleView();
-		// 		const modal = new ModalPromptFile({
-		// 			app: this.app,
-		// 			settings: this.settings,
-		// 			onSend: async (userEntry, filePath) => {
-		// 				await this.features.executeFeature({
-		// 					id: "testUpload",
-		// 					inputText: userEntry,
-		// 					filePath: filePath,
-		// 				});
-		// 			},
-		// 		});
-		// 		this.openModals.push(modal);
-		// 		modal.open();
-		// 	},
-		// });
-		// ========================================================================
 
 		// Send selected text with instruction from modal
 		this.addCommand({
@@ -226,29 +168,68 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 				return false;
 			},
 		});
+
+		/* Test upload command ====================================================
+		// We don't know yet what the filePath will be. Get it from the modal.
+		// this.addCommand({
+		// 	id: "test-upload",
+		// 	name: "Test Upload",
+		// 	callback: async () => {
+		// 		this.toggleView();
+		// 		const modal = new ModalPromptFile({
+		// 			app: this.app,
+		// 			settings: this.settings,
+		// 			onSend: async (userEntry, filePath) => {
+		// 				await this.features.executeFeature({
+		// 					id: "testUpload",
+		// 					inputText: userEntry,
+		// 					filePath: filePath,
+		// 				});
+		// 			},
+		// 		});
+		// 		this.openModals.push(modal);
+		// 		modal.open();
+		// 	},
+		// });
+		   ======================================================================== */
+
+		// CUSTOM COMMANDS ========================================================
+		const commands: Commands = this.settings.commands;
+		for (const commandId in commands) {
+			const command = commands[commandId];
+			console.log(command);
+
+			let editorCallback: ((editor: Editor) => void) | undefined = undefined;
+			let callback: (() => void) | undefined = undefined;
+
+			if (command.target === "editor") {
+				editorCallback = (editor: Editor) =>
+					this.executeCustomCommand(command, commandId, editor);
+			} else {
+				callback = () => this.executeCustomCommand(command, commandId);
+			}
+
+			this.addCommand({
+				id: commandId,
+				name: command.name,
+				editorCallback: editorCallback,
+				callback: callback,
+			});
+		}
 	}
 
-	// COMMANDS LOADER
-	async loadCommands(): Promise<Commands> {
-		// PluginManifest.dir Property - Developer Documentation
-		// https://docs.obsidian.md/Reference/TypeScript+API/PluginManifest/dir
-		const response = await fetch(this.manifest.dir + "/data.json");
-		const data: Commands = await response.json();
-		return data;
-	}
-
-	executeCommand(command: Command, commandId: string, editor?: Editor) {
+	executeCustomCommand(command: Command, commandId: string, editor?: Editor) {
 		console.log(command, commandId);
 		switch (command.target) {
-			// case "editor": {
-			// 	if (editor) {
-			// 		this.features.executeFeature({
-			// 			id: command.template.file_id,
-			// 			outputTarget: editor,
-			// 		});
-			// 	}
-			// 	break;
-			// }
+			case "editor": {
+				if (editor) {
+					this.features.executeFeature({
+						id: command.template.file_id,
+						outputTarget: editor,
+					});
+				}
+				break;
+			}
 			case "view": {
 				// Implement logic for view target
 				this.toggleView();
@@ -256,11 +237,12 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 				const modal = new ModalPromptFile({
 					app: this.app,
 					settings: this.settings,
-					onSend: async (userEntry, filePath) => {
+					onSend: async (userEntry, templateFilePath) => {
 						await this.features.executeFeature({
 							id: commandId,
+							outputTarget: "view",
 							inputText: userEntry,
-							filePath: filePath,
+							templateFilePath: templateFilePath,
 						});
 					},
 				});
