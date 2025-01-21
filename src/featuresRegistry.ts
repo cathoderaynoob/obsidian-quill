@@ -16,7 +16,7 @@ export interface FeatureProperties {
 	model?: string;
 	temperature?: number;
 	stream?: boolean;
-	filePath?: string;
+	fileName?: string;
 	outputTarget?: OutputTarget;
 }
 
@@ -89,12 +89,13 @@ export const FeaturesRegistry = (
 		},
 
 		// Custom command
-		customCommand: {
+		runCustomCommand: {
 			id: "customCommand",
 			prompt: (inputText: string) => inputText,
 			processResponse: (response: string) =>
 				emitter.emit("updateResponseMessage", response),
 			stream: true,
+			fileName: "test.md",
 			outputTarget: "view",
 		},
 

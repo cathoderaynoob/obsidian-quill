@@ -8,7 +8,7 @@ import {
 import { buildPrompt } from "@/promptBuilder";
 import { FeatureProperties } from "@/featuresRegistry";
 import { QuillPluginSettings } from "@/settings";
-import { IPluginServices } from "@/interfaces";
+import { CommandTemplate, IPluginServices } from "@/interfaces";
 import {
 	activateEditorKeypress,
 	deactivateEditorKeypress,
@@ -22,7 +22,7 @@ export interface ExecutionOptions {
 	id: string;
 	inputText?: string;
 	selectedText?: string;
-	templateFilePath?: string;
+	commandTemplate?: CommandTemplate;
 	formattingGuidance?: string;
 	outputTarget?: OutputTarget;
 }
@@ -39,7 +39,7 @@ export const executeFeature = async (
 		id,
 		inputText,
 		selectedText,
-		templateFilePath: filePath,
+		commandTemplate,
 		formattingGuidance,
 		outputTarget,
 	} = options;
@@ -49,8 +49,10 @@ export const executeFeature = async (
 		pluginServices.notifyError("noFeature");
 		return;
 	}
-	if (filePath) {
-		const file = vaultUtils.getFileByPath(filePath);
+	// Upload template file
+	if (commandTemplate?.file_id) {
+		console.log(commandTemplate);
+		const file = vaultUtils.getFileByPath(commandTemplate.filename);
 		if (!file) return;
 		await apiService.uploadFileFromVault(file, "assistants");
 	}

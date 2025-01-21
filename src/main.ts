@@ -98,8 +98,8 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 		// 	id: "define",
 		// 	name: "Define the word...",
 		// 	editorCallback: async (editor: Editor) => {
-		// 		const featureId = "define";
-		// 		const modal = new ModalPrompt({
+		// 		const featureId = "define"; // CC: Don't need this, it's always `runCustomCommand`
+		// 		const modal = new ModalPrompt({ // CC:
 		// 			app: this.app,
 		// 			settings: this.settings,
 		// 			onSend: async (userEntry) => {
@@ -194,17 +194,42 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 		   ======================================================================== */
 
 		// CUSTOM COMMANDS ========================================================
+
+		// Command Loader .........................................................
 		const commands: Commands = this.settings.commands;
 		for (const commandId in commands) {
 			const command = commands[commandId];
 			console.log(command);
 
+			// TODO: Get the basic stuff done first before handling selected text
+			// let editorCheckCallback:
+			// 	| ((checking: boolean, editor: Editor) => boolean)
+			// 	| undefined = undefined;
+
 			let editorCallback: ((editor: Editor) => void) | undefined = undefined;
 			let callback: (() => void) | undefined = undefined;
+			const featureId = "runCustomCommand";
 
 			if (command.target === "editor") {
-				editorCallback = (editor: Editor) =>
-					this.executeCustomCommand(command, commandId, editor);
+				editorCallback = (editor: Editor) => {
+					const modal = new ModalPrompt({
+						app: this.app,
+						settings: this.settings,
+						onSend: async (userEntry) => {
+							await this.features.executeFeature({
+								id: featureId,
+								commandTemplate: command.template,
+								inputText: userEntry,
+								outputTarget: editor,
+							});
+						},
+						featureId: featureId,
+					});
+					this.openModals.push(modal);
+					modal.open();
+				};
+
+				// this.executeCustomCommand(command, commandId, editor);
 			} else {
 				callback = () => this.executeCustomCommand(command, commandId);
 			}
@@ -218,13 +243,14 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 		}
 	}
 
+	// Command Runner ...........................................................
 	executeCustomCommand(command: Command, commandId: string, editor?: Editor) {
-		console.log(command, commandId);
+		console.log(command);
 		switch (command.target) {
 			case "editor": {
 				if (editor) {
 					this.features.executeFeature({
-						id: command.template.file_id,
+						id: "runCustomCommand",
 						outputTarget: editor,
 					});
 				}
@@ -242,7 +268,6 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 							id: commandId,
 							outputTarget: "view",
 							inputText: userEntry,
-							templateFilePath: templateFilePath,
 						});
 					},
 				});
@@ -262,7 +287,7 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 		}
 	}
 
-	// VIEW
+	// VIEW ========================================================
 	// TODO: Add activate and deactivate, and then use them in the toggleView method
 	viewIsActive = false;
 
@@ -306,7 +331,7 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 		this.openModals = [];
 	}
 
-	// DATA STORAGE
+	// SETTINGS AND DATA STORAGE
 	// Loads the default settings, and then overrides them with
 	// any saved settings
 	async loadSettings(): Promise<void> {

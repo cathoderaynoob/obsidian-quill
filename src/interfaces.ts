@@ -9,6 +9,7 @@ export interface Command {
 	name: string;
 	target: "view" | "modal" | "editor";
 	prompt: boolean;
+	sendSelectedText: boolean;
 	template: CommandTemplate;
 }
 
