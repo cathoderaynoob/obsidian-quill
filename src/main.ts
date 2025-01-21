@@ -98,7 +98,7 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 		// 	id: "define",
 		// 	name: "Define the word...",
 		// 	editorCallback: async (editor: Editor) => {
-		// 		const featureId = "define"; // CC: Don't need this, it's always `runCustomCommand`
+		// 		const featureId = "define"; // CC: Always `runCustomCommand`
 		// 		const modal = new ModalPrompt({ // CC:
 		// 			app: this.app,
 		// 			settings: this.settings,

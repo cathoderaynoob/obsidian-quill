@@ -121,6 +121,22 @@ export default class ApiService {
 	}
 
 	// FILES ====================================================================
+	async retrieveFileInfoFromOpenAI(
+		file_id: string
+	): Promise<OpenAI.FileObject | false> {
+		if (!file_id) {
+			this.pluginServices.notifyError(
+				"fileNotFound",
+				"Unable to check for file: no `file_id` value provided."
+			);
+			return false;
+		}
+
+		const fileInfo = await this.openai.files.retrieve(file_id);
+		console.log(fileInfo);
+		return fileInfo || false;
+	}
+
 	async uploadFileFromVault(
 		file: TFile,
 		purpose: OpenAI.FilePurpose
@@ -153,7 +169,7 @@ export default class ApiService {
 				"fileUploadError",
 				`Error reading file ${file.path}`
 			);
-			return undefined;
+			return;
 		}
 	}
 }

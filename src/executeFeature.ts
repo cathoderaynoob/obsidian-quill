@@ -50,11 +50,17 @@ export const executeFeature = async (
 		return;
 	}
 	// Upload template file
-	if (commandTemplate?.file_id) {
+	if (commandTemplate?.filename) {
 		console.log(commandTemplate);
-		const file = vaultUtils.getFileByPath(commandTemplate.filename);
-		if (!file) return;
-		await apiService.uploadFileFromVault(file, "assistants");
+		// Check for uploaded file
+		const uploadedFile = await apiService.retrieveFileInfoFromOpenAI(
+			commandTemplate.file_id
+		);
+		if (!uploadedFile) {
+			const file = vaultUtils.getFileByPath(commandTemplate.filename);
+			if (!file) return;
+			await apiService.uploadFileFromVault(file, "assistants");
+		}
 	}
 
 	const payloadPrompt = buildPrompt({
