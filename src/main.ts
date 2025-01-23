@@ -216,9 +216,10 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 						app: this.app,
 						settings: this.settings,
 						onSend: async (userEntry) => {
+							console.log(userEntry);
 							await this.features.executeFeature({
 								id: featureId,
-								commandTemplate: command.template,
+								templateFilename: command.template,
 								inputText: userEntry,
 								outputTarget: editor,
 							});

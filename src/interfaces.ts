@@ -1,16 +1,11 @@
 import { App, Editor } from "obsidian";
 
-export interface CommandTemplate {
-	filename: string;
-	file_id: string;
-}
-
 export interface Command {
 	name: string;
 	target: "view" | "modal" | "editor";
 	prompt: boolean;
 	sendSelectedText: boolean;
-	template: CommandTemplate;
+	template: string;
 }
 
 export interface Commands {

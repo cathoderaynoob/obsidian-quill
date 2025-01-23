@@ -15,6 +15,7 @@ export const ELEM_IDS = {
 };
 export const ERROR_MESSAGES = {
 	fileNotFound: "Cannot find file at path provided. See console for details.",
+	fileReadError: "Error reading file. Please check the console for details.",
 	fileUploadError:
 		"Error uploading file. Please check the console for details.",
 	noApiKey:

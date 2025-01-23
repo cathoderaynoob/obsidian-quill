@@ -1,4 +1,4 @@
-import { Editor } from "obsidian";
+import { Editor, normalizePath, TFile } from "obsidian";
 import { PROMPTS } from "@/constants";
 import {
 	GptRequestPayload,
@@ -8,7 +8,7 @@ import {
 import { buildPrompt } from "@/promptBuilder";
 import { FeatureProperties } from "@/featuresRegistry";
 import { QuillPluginSettings } from "@/settings";
-import { CommandTemplate, IPluginServices } from "@/interfaces";
+import { IPluginServices } from "@/interfaces";
 import {
 	activateEditorKeypress,
 	deactivateEditorKeypress,
@@ -22,7 +22,7 @@ export interface ExecutionOptions {
 	id: string;
 	inputText?: string;
 	selectedText?: string;
-	commandTemplate?: CommandTemplate;
+	templateFilename?: string;
 	formattingGuidance?: string;
 	outputTarget?: OutputTarget;
 }
@@ -39,7 +39,7 @@ export const executeFeature = async (
 		id,
 		inputText,
 		selectedText,
-		commandTemplate,
+		templateFilename,
 		formattingGuidance,
 		outputTarget,
 	} = options;
@@ -49,22 +49,24 @@ export const executeFeature = async (
 		pluginServices.notifyError("noFeature");
 		return;
 	}
-	// Upload template file
-	if (commandTemplate?.filename) {
-		console.log(commandTemplate);
-		// Check for uploaded file
-		const uploadedFile = await apiService.retrieveFileInfoFromOpenAI(
-			commandTemplate.file_id
+	// Read template file
+	let commandTemplateContent: string | undefined;
+
+	if (templateFilename) {
+		console.log(templateFilename);
+
+		// Read from template file ................................................
+		const templateFilePath = normalizePath(
+			`${settings.templatesFolder}/${templateFilename}`
 		);
-		if (!uploadedFile) {
-			const file = vaultUtils.getFileByPath(commandTemplate.filename);
-			if (!file) return;
-			await apiService.uploadFileFromVault(file, "assistants");
-		}
+		const templateFile: TFile = vaultUtils.getFileByPath(templateFilePath);
+		commandTemplateContent = await vaultUtils.getFileContent(templateFile);
+		console.dir(commandTemplateContent);
 	}
 
 	const payloadPrompt = buildPrompt({
 		inputText: feature.prompt(inputText) || undefined,
+		templateText: commandTemplateContent || undefined,
 		selectedText: selectedText || undefined,
 		formattingGuidance: formattingGuidance || undefined,
 	});

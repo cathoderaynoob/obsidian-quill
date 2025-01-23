@@ -1,14 +1,25 @@
 export interface Prompt {
 	inputText?: string;
+	templateText?: string;
 	selectedText?: string;
 	formattingGuidance?: string;
 }
 
 export const buildPrompt = ({
 	inputText,
+	templateText,
 	selectedText,
 	formattingGuidance,
 }: Prompt): string => {
+	if (templateText) {
+		inputText = inputText ? `**User Prompt:**\n\n${inputText}` : "";
+		templateText = templateText
+			? `**Instruction for custom command:**\n*The user has selected the following 
+				command template from a note in Obsidian. Follow the instruction in the
+				user prompt with regard to the following text. If asked to ignore, simply respond 
+				with some kind expression of understanding.*\n\n${templateText}`
+			: "";
+	}
 	if (selectedText) {
 		inputText = inputText ? `**User Prompt:**\n\n${inputText}` : "";
 		selectedText = selectedText

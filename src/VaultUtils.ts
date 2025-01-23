@@ -28,14 +28,13 @@ class VaultUtils {
 		return VaultUtils.instance;
 	}
 
-	getFileByPath(filePath: string): TFile | undefined {
+	getFileByPath(filePath: string): TFile {
 		const file = this.vault.getAbstractFileByPath(filePath) as TFile;
 		if (!file) {
 			this.pluginServices.notifyError(
 				"fileNotFound",
 				`File not found at \`${filePath}\`.`
 			);
-			return;
 		}
 		return file;
 	}
@@ -45,6 +44,19 @@ class VaultUtils {
 			.getAllLoadedFiles()
 			.filter((file) => file instanceof TFolder) as TFolder[];
 		return folders.map((folder) => folder.path).sort();
+	}
+
+	async getFileContent(file: TFile): Promise<string> {
+		try {
+			const content = this.vault.cachedRead(file);
+			return content;
+		} catch (e) {
+			this.pluginServices.notifyError(
+				"fileReadError",
+				`Error reading file: ${file.path}`
+			);
+			return "";
+		}
 	}
 
 	openFile(filepath: string) {

@@ -7,7 +7,7 @@ import ModalTextOutput from "@/components/ModalTextOutput";
 
 export interface FeatureProperties {
 	id: string;
-	prompt: (inputText?: string) => string;
+	prompt: (inputText?: string, commandTemplate?: string) => string;
 	processResponse: (
 		response: string,
 		outputTarget?: OutputTarget,
@@ -16,7 +16,6 @@ export interface FeatureProperties {
 	model?: string;
 	temperature?: number;
 	stream?: boolean;
-	fileName?: string;
 	outputTarget?: OutputTarget;
 }
 
@@ -88,14 +87,20 @@ export const FeaturesRegistry = (
 			outputTarget: "view",
 		},
 
-		// Custom command
+		// CUSTOM COMMAND
 		runCustomCommand: {
 			id: "customCommand",
-			prompt: (inputText: string) => inputText,
+			prompt: (inputText: string, commandTemplate: string) => {
+				return (
+					`[USER PROMPT INPUT]\n` +
+					`"${inputText}"\n\n` +
+					`[RELATED INSTRUCTION/TEMPLATE]\n` +
+					`${commandTemplate}`
+				);
+			},
 			processResponse: (response: string) =>
 				emitter.emit("updateResponseMessage", response),
 			stream: true,
-			fileName: "test.md",
 			outputTarget: "view",
 		},
 
