@@ -7,7 +7,7 @@ import ModalTextOutput from "@/components/ModalTextOutput";
 
 export interface FeatureProperties {
 	id: string;
-	prompt: (inputText?: string, commandTemplate?: string) => string;
+	prompt: (inputText?: string) => string;
 	processResponse: (
 		response: string,
 		outputTarget?: OutputTarget,
@@ -77,27 +77,34 @@ export const FeaturesRegistry = (
 			temperature: 0.2,
 		},
 
-		// NEW PROMPT
-		newPrompt: {
-			id: "newPrompt",
+		// CUSTOM COMMAND
+		runCustomViewCommand: {
+			id: "runCustomViewCommand",
 			prompt: (inputText: string) => inputText,
 			processResponse: (response: string) =>
 				emitter.emit("updateResponseMessage", response),
 			stream: true,
-			outputTarget: "view",
 		},
 
-		// CUSTOM COMMAND
-		runCustomCommand: {
-			id: "customCommand",
-			prompt: (inputText: string, commandTemplate: string) => {
-				return (
-					`[USER PROMPT INPUT]\n` +
-					`"${inputText}"\n\n` +
-					`[RELATED INSTRUCTION/TEMPLATE]\n` +
-					`${commandTemplate}`
-				);
+		runCustomEditorCommand: {
+			id: "runCustomEditorCommand",
+			prompt: (inputText: string) => inputText,
+			processResponse: async (
+				response: string,
+				editor: Editor,
+				editorPos: EditorPosition
+			) => {
+				if (response.length) {
+					await renderToEditor(response, editor, editorPos);
+				}
 			},
+			stream: true,
+		},
+
+		// NEW PROMPT
+		newPrompt: {
+			id: "newPrompt",
+			prompt: (inputText: string) => inputText,
 			processResponse: (response: string) =>
 				emitter.emit("updateResponseMessage", response),
 			stream: true,

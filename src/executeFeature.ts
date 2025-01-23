@@ -22,7 +22,7 @@ export interface ExecutionOptions {
 	id: string;
 	inputText?: string;
 	selectedText?: string;
-	templateFilename?: string;
+	templateFilename?: string; // template =====================================
 	formattingGuidance?: string;
 	outputTarget?: OutputTarget;
 }
@@ -35,11 +35,12 @@ export const executeFeature = async (
 	payloadMessages: PayloadMessages,
 	pluginServices: IPluginServices
 ): Promise<void> => {
+	// options
 	const {
 		id,
 		inputText,
 		selectedText,
-		templateFilename,
+		templateFilename, // template < ============================================
 		formattingGuidance,
 		outputTarget,
 	} = options;
@@ -49,24 +50,22 @@ export const executeFeature = async (
 		pluginServices.notifyError("noFeature");
 		return;
 	}
-	// Read template file
+	// TEMPLATE FILE ============================================================
 	let commandTemplateContent: string | undefined;
-
 	if (templateFilename) {
-		console.log(templateFilename);
-
-		// Read from template file ................................................
+		// Read from template file
 		const templateFilePath = normalizePath(
 			`${settings.templatesFolder}/${templateFilename}`
 		);
 		const templateFile: TFile = vaultUtils.getFileByPath(templateFilePath);
 		commandTemplateContent = await vaultUtils.getFileContent(templateFile);
-		console.dir(commandTemplateContent);
+		console.log(commandTemplateContent);
 	}
+	// ^ =========================================================================
 
 	const payloadPrompt = buildPrompt({
 		inputText: feature.prompt(inputText) || undefined,
-		templateText: commandTemplateContent || undefined,
+		templateText: commandTemplateContent || undefined, // < ====================
 		selectedText: selectedText || undefined,
 		formattingGuidance: formattingGuidance || undefined,
 	});

@@ -10,12 +10,11 @@ import {
 	QuillPluginSettings,
 	QuillSettingsTab,
 } from "@/settings";
-import { Command, Commands, IPluginServices } from "@/interfaces";
+import { Commands, IPluginServices, OutputTarget } from "@/interfaces";
 import ApiService from "@/ApiService";
 import Features from "@/Features";
 import ModalPrompt from "@/components/ModalPrompt";
 import QuillView from "@/components/view";
-import ModalPromptFile from "./components/ModalPromptFile";
 
 export default class QuillPlugin extends Plugin implements IPluginServices {
 	settings: QuillPluginSettings;
@@ -147,21 +146,26 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 				if (selectedText) {
 					if (!checking) {
 						this.toggleView();
-						const modal = new ModalPrompt({
-							app: this.app,
-							settings: this.settings,
-							onSend: async (userEntry) => {
-								// Now I have the selected text and prompt
-								await this.features.executeFeature({
-									id: "sendPromptWithSelectedText",
-									inputText: userEntry,
-									selectedText: selectedText,
-									outputTarget: "view",
-								});
-							},
+						this.openModalPrompt({
+							featureId: "sendPromptWithSelectedText",
+							selectedText: selectedText,
+							outputTarget: "view",
 						});
-						this.openModals.push(modal);
-						modal.open();
+						// const modal = new ModalPrompt({
+						// 	app: this.app,
+						// 	settings: this.settings,
+						// 	onSend: async (userEntry) => {
+						// 		// Now I have the selected text and prompt
+						// 		await this.features.executeFeature({
+						// 			id: "sendPromptWithSelectedText",
+						// 			inputText: userEntry,
+						// 			selectedText: selectedText,
+						// 			outputTarget: "view",
+						// 		});
+						// 	},
+						// });
+						// this.openModals.push(modal);
+						// modal.open();
 					}
 					return true;
 				}
@@ -199,7 +203,8 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 		const commands: Commands = this.settings.commands;
 		for (const commandId in commands) {
 			const command = commands[commandId];
-			console.log(command);
+
+			// let callback: (() => void) | undefined = undefined;
 
 			// TODO: Get the basic stuff done first before handling selected text
 			// let editorCheckCallback:
@@ -207,86 +212,115 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 			// 	| undefined = undefined;
 
 			let editorCallback: ((editor: Editor) => void) | undefined = undefined;
-			let callback: (() => void) | undefined = undefined;
-			const featureId = "runCustomCommand";
 
-			if (command.target === "editor") {
-				editorCallback = (editor: Editor) => {
-					const modal = new ModalPrompt({
-						app: this.app,
-						settings: this.settings,
-						onSend: async (userEntry) => {
-							console.log(userEntry);
-							await this.features.executeFeature({
-								id: featureId,
-								templateFilename: command.template,
-								inputText: userEntry,
+			switch (command.target) {
+				case "editor": {
+					const featureId = "runCustomEditorCommand";
+					editorCallback = (editor: Editor) => {
+						if (command.prompt) {
+							this.openModalPrompt({
+								featureId: featureId,
+								templateFilename: command.templateFilename,
+								// selectedText: command.sendSelectedText
+								// 	? this.app.workspace
+								// 			.getActiveViewOfType(Editor)
+								// 			.getSelection()
+								// 	: undefined,
 								outputTarget: editor,
 							});
-						},
-						featureId: featureId,
-					});
-					this.openModals.push(modal);
-					modal.open();
-				};
-
-				// this.executeCustomCommand(command, commandId, editor);
-			} else {
-				callback = () => this.executeCustomCommand(command, commandId);
+						}
+					};
+					break;
+				}
+				// case "view": {
+				// 	callback = () => this.executeCustomCommand(command, commandId);
+				// 	break;
+				// }
+				// case: "modal": {
+				// 	break;
+				// }
 			}
 
 			this.addCommand({
 				id: commandId,
 				name: command.name,
 				editorCallback: editorCallback,
-				callback: callback,
+				// callback: callback,
 			});
 		}
 	}
 
-	// Command Runner ...........................................................
-	executeCustomCommand(command: Command, commandId: string, editor?: Editor) {
-		console.log(command);
-		switch (command.target) {
-			case "editor": {
-				if (editor) {
-					this.features.executeFeature({
-						id: "runCustomCommand",
-						outputTarget: editor,
-					});
-				}
-				break;
-			}
-			case "view": {
-				// Implement logic for view target
-				this.toggleView();
-
-				const modal = new ModalPromptFile({
-					app: this.app,
-					settings: this.settings,
-					onSend: async (userEntry, templateFilePath) => {
-						await this.features.executeFeature({
-							id: commandId,
-							outputTarget: "view",
-							inputText: userEntry,
-						});
-					},
+	openModalPrompt({
+		featureId,
+		templateFilename,
+		selectedText,
+		outputTarget = "view",
+	}: {
+		featureId: string;
+		templateFilename?: string;
+		selectedText?: string;
+		outputTarget?: OutputTarget;
+	}): void {
+		const modal = new ModalPrompt({
+			app: this.app,
+			settings: this.settings,
+			onSend: async (userEntry) => {
+				await this.features.executeFeature({
+					id: featureId,
+					inputText: userEntry || undefined,
+					templateFilename: templateFilename || undefined,
+					selectedText: selectedText || undefined,
+					outputTarget: outputTarget || "view",
 				});
-				this.openModals.push(modal);
-				modal.open();
-				console.log(`Executing command: ${command.name} in view.`);
-				break;
-			}
-			case "modal": {
-				// Implement logic for modal target
-				console.log(`Executing command: ${command.name} in modal.`);
-				break;
-			}
-			default: {
-				console.error(`Unknown target for command: ${command.name}`);
-			}
-		}
+			},
+		});
+		this.openModals.push(modal);
+		modal.open();
 	}
+
+	// Command Runner ...........................................................
+	// executeCustomCommand(command: Command, commandId: string, editor?: Editor) {
+	// 	console.log(command);
+	// 	switch (command.target) {
+	// 		case "editor": {
+	// 			if (editor) {
+	// 				this.features.executeFeature({
+	// 					id: "runCustomCommand",
+	// 					outputTarget: editor,
+	// 				});
+	// 			}
+	// 			break;
+	// 		}
+	// 		case "view": {
+	// 			// Implement logic for view target
+	// 			this.toggleView();
+
+	// 			const modal = new ModalPromptFile({
+	// 				app: this.app,
+	// 				settings: this.settings,
+	// 				onSend: async (userEntry, templateFilePath) => {
+	// 					await this.features.executeFeature({
+	// 						id: commandId,
+	// 						outputTarget: "view",
+	// 						inputText: userEntry,
+	// 					});
+	// 				},
+	// 			});
+	// 			this.openModals.push(modal);
+	// 			modal.open();
+	// 			console.log(`Executing command: ${command.name} in view.`);
+	// 			break;
+	// 		}
+	// 		case "modal": {
+	// 			// Implement logic for modal target
+	// 			console.log(`Executing command: ${command.name} in modal.`);
+	// 			break;
+	// 		}
+	// 		default: {
+	// 			console.error(`Unknown target for command: ${command.name}`);
+	// 		}
+	// 	}
+	// }
 
 	// VIEW ========================================================
 	// TODO: Add activate and deactivate, and then use them in the toggleView method

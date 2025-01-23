@@ -5,7 +5,7 @@ export interface Command {
 	target: "view" | "modal" | "editor";
 	prompt: boolean;
 	sendSelectedText: boolean;
-	template: string;
+	templateFilename: string;
 }
 
 export interface Commands {
