@@ -9,6 +9,9 @@
 		"version": "node version-bump.mjs && git add manifest.json versions.json",
 		"lint": "eslint 'src/**/*.{js,jsx,ts,tsx}' --quiet"
 	},
+	"prettier": {
+		"useTabs": false,
+	},
 	"keywords": [],
 	"author": "",
 	"license": "MIT",

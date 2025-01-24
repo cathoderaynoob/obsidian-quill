@@ -78,16 +78,16 @@ export const FeaturesRegistry = (
 		},
 
 		// CUSTOM COMMAND
-		runCustomViewCommand: {
-			id: "runCustomViewCommand",
+		customCommandToView: {
+			id: "customCommandToView",
 			prompt: (inputText: string) => inputText,
 			processResponse: (response: string) =>
 				emitter.emit("updateResponseMessage", response),
 			stream: true,
 		},
 
-		runCustomEditorCommand: {
-			id: "runCustomEditorCommand",
+		customCommandToEditor: {
+			id: "customCommandToEditor",
 			prompt: (inputText: string) => inputText,
 			processResponse: async (
 				response: string,

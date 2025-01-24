@@ -46,6 +46,7 @@ export const executeFeature = async (
 	} = options;
 	const vaultUtils = VaultUtils.getInstance(pluginServices, settings);
 	const feature = featureRegistry[id];
+	console.log(feature);
 	if (!feature) {
 		pluginServices.notifyError("noFeature");
 		return;

@@ -121,19 +121,10 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 			name: "New prompt",
 			callback: async () => {
 				this.toggleView();
-				const modal = new ModalPrompt({
-					app: this.app,
-					settings: this.settings,
-					onSend: async (userEntry) => {
-						await this.features.executeFeature({
-							id: "newPrompt",
-							inputText: userEntry,
-							outputTarget: "view",
-						});
-					},
+				this.openModalPrompt({
+					featureId: "newPrompt",
+					outputTarget: "view",
 				});
-				this.openModals.push(modal);
-				modal.open();
 			},
 		});
 
@@ -151,21 +142,6 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 							selectedText: selectedText,
 							outputTarget: "view",
 						});
-						// const modal = new ModalPrompt({
-						// 	app: this.app,
-						// 	settings: this.settings,
-						// 	onSend: async (userEntry) => {
-						// 		// Now I have the selected text and prompt
-						// 		await this.features.executeFeature({
-						// 			id: "sendPromptWithSelectedText",
-						// 			inputText: userEntry,
-						// 			selectedText: selectedText,
-						// 			outputTarget: "view",
-						// 		});
-						// 	},
-						// });
-						// this.openModals.push(modal);
-						// modal.open();
 					}
 					return true;
 				}
@@ -203,6 +179,7 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 		const commands: Commands = this.settings.commands;
 		for (const commandId in commands) {
 			const command = commands[commandId];
+			console.log(command);
 
 			// let callback: (() => void) | undefined = undefined;
 
@@ -210,22 +187,22 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 			// let editorCheckCallback:
 			// 	| ((checking: boolean, editor: Editor) => boolean)
 			// 	| undefined = undefined;
+			// selectedText: command.sendSelectedText --- THIS SHOULD GO UNDER editorCheckCallback
+			// 	? this.app.workspace
+			// 			.getActiveViewOfType(Editor)
+			// 			.getSelection()
+			// 	: undefined,
 
 			let editorCallback: ((editor: Editor) => void) | undefined = undefined;
 
 			switch (command.target) {
 				case "editor": {
-					const featureId = "runCustomEditorCommand";
+					const featureId = "customCommandToEditor";
 					editorCallback = (editor: Editor) => {
 						if (command.prompt) {
 							this.openModalPrompt({
 								featureId: featureId,
 								templateFilename: command.templateFilename,
-								// selectedText: command.sendSelectedText
-								// 	? this.app.workspace
-								// 			.getActiveViewOfType(Editor)
-								// 			.getSelection()
-								// 	: undefined,
 								outputTarget: editor,
 							});
 						}
