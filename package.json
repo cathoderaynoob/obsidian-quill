@@ -10,7 +10,7 @@
 		"lint": "eslint 'src/**/*.{js,jsx,ts,tsx}' --quiet"
 	},
 	"prettier": {
-		"useTabs": false,
+		"useTabs": false
 	},
 	"keywords": [],
 	"author": "",
