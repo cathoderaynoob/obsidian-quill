@@ -6,129 +6,129 @@ import emitter from "@/customEmitter";
 import ModalTextOutput from "@/components/ModalTextOutput";
 
 export interface FeatureProperties {
-	id: string;
-	prompt: (inputText?: string) => string;
-	processResponse: (
-		response: string,
-		outputTarget?: OutputTarget,
-		editorPos?: EditorPosition
-	) => void;
-	model?: string;
-	temperature?: number;
-	stream?: boolean;
-	outputTarget?: OutputTarget;
+  id: string;
+  prompt: (inputText?: string) => string;
+  processResponse: (
+    response: string,
+    outputTarget?: OutputTarget,
+    editorPos?: EditorPosition
+  ) => void;
+  model?: string;
+  temperature?: number;
+  stream?: boolean;
+  outputTarget?: OutputTarget;
 }
 
 export const FeaturesRegistry = (
-	app: App
+  app: App
 ): Record<string, FeatureProperties> => {
-	const registry: Record<string, FeatureProperties> = {
-		// TELL A JOKE
-		tellAJoke: {
-			id: "tellAJoke",
-			prompt: () => PROMPTS.tellAJoke.content,
-			processResponse: (response: string) => {
-				if (response.length) new ModalTextOutput(app, response).open();
-			},
-			model: "gpt-4o-mini",
-		},
+  const registry: Record<string, FeatureProperties> = {
+    // TELL A JOKE
+    tellAJoke: {
+      id: "tellAJoke",
+      prompt: () => PROMPTS.tellAJoke.content,
+      processResponse: (response: string) => {
+        if (response.length) new ModalTextOutput(app, response).open();
+      },
+      model: "gpt-4o-mini",
+    },
 
-		// ON THIS DATE
-		onThisDate: {
-			id: "onThisDate",
-			prompt: () => {
-				const today = new Date().toLocaleDateString("en-US", {
-					month: "long",
-					day: "numeric",
-					year: "numeric",
-				});
-				return `${today}: ${PROMPTS.onThisDate.content}`;
-			},
-			processResponse: async (
-				response: string,
-				editor: Editor,
-				editorPos: EditorPosition
-			) => {
-				if (response.length) {
-					await renderToEditor(response, editor, editorPos);
-				}
-			},
-			stream: true,
-			model: "gpt-4o-mini",
-		},
+    // ON THIS DATE
+    // onThisDate: {
+    // 	id: "onThisDate",
+    // 	prompt: () => {
+    // 		const today = new Date().toLocaleDateString("en-US", {
+    // 			month: "long",
+    // 			day: "numeric",
+    // 			year: "numeric",
+    // 		});
+    // 		return `${today}: ${PROMPTS.onThisDate.content}`;
+    // 	},
+    // 	processResponse: async (
+    // 		response: string,
+    // 		editor: Editor,
+    // 		editorPos: EditorPosition
+    // 	) => {
+    // 		if (response.length) {
+    // 			await renderToEditor(response, editor, editorPos);
+    // 		}
+    // 	},
+    // 	stream: true,
+    // 	model: "gpt-4o-mini",
+    // },
 
-		// Define...
-		define: {
-			id: "define",
-			prompt: (inputText: string) => {
-				return `${inputText} ${PROMPTS.define.content}`;
-			},
-			processResponse: async (
-				response: string,
-				editor: Editor,
-				editorPos: EditorPosition
-			) => {
-				if (response.length) {
-					await renderToEditor(response, editor, editorPos);
-				}
-			},
-			stream: true,
-			model: "gpt-4o",
-			temperature: 0.2,
-		},
+    // Define...
+    // define: {
+    // 	id: "define",
+    // 	prompt: (inputText: string) => {
+    // 		return `${inputText} ${PROMPTS.define.content}`;
+    // 	},
+    // 	processResponse: async (
+    // 		response: string,
+    // 		editor: Editor,
+    // 		editorPos: EditorPosition
+    // 	) => {
+    // 		if (response.length) {
+    // 			await renderToEditor(response, editor, editorPos);
+    // 		}
+    // 	},
+    // 	stream: true,
+    // 	model: "gpt-4o",
+    // 	temperature: 0.2,
+    // },
 
-		// CUSTOM COMMAND
-		customCommandToView: {
-			id: "customCommandToView",
-			prompt: (inputText: string) => inputText,
-			processResponse: (response: string) =>
-				emitter.emit("updateResponseMessage", response),
-			stream: true,
-		},
+    // CUSTOM COMMAND
+    customCommandToView: {
+      id: "customCommandToView",
+      prompt: (inputText: string) => inputText,
+      processResponse: (response: string) =>
+        emitter.emit("updateResponseMessage", response),
+      stream: true,
+    },
 
-		customCommandToEditor: {
-			id: "customCommandToEditor",
-			prompt: (inputText: string) => inputText,
-			processResponse: async (
-				response: string,
-				editor: Editor,
-				editorPos: EditorPosition
-			) => {
-				if (response.length) {
-					await renderToEditor(response, editor, editorPos);
-				}
-			},
-			stream: true,
-		},
+    customCommandToEditor: {
+      id: "customCommandToEditor",
+      prompt: (inputText: string) => inputText,
+      processResponse: async (
+        response: string,
+        editor: Editor,
+        editorPos: EditorPosition
+      ) => {
+        if (response.length) {
+          await renderToEditor(response, editor, editorPos);
+        }
+      },
+      stream: true,
+    },
 
-		// NEW PROMPT
-		newPrompt: {
-			id: "newPrompt",
-			prompt: (inputText: string) => inputText,
-			processResponse: (response: string) =>
-				emitter.emit("updateResponseMessage", response),
-			stream: true,
-			outputTarget: "view",
-		},
+    // NEW PROMPT
+    newPrompt: {
+      id: "newPrompt",
+      prompt: (inputText: string) => inputText,
+      processResponse: (response: string) =>
+        emitter.emit("updateResponseMessage", response),
+      stream: true,
+      outputTarget: "view",
+    },
 
-		// SEND SELECTED TEXT WITH PROMPT
-		sendPromptWithSelectedText: {
-			id: "sendPromptWithSelectedText",
-			prompt: (inputText: string) => inputText,
-			processResponse: (response: string) =>
-				emitter.emit("updateResponseMessage", response),
-			stream: true,
-			outputTarget: "view",
-		},
-	};
+    // SEND SELECTED TEXT WITH PROMPT
+    sendPromptWithSelectedText: {
+      id: "sendPromptWithSelectedText",
+      prompt: (inputText: string) => inputText,
+      processResponse: (response: string) =>
+        emitter.emit("updateResponseMessage", response),
+      stream: true,
+      outputTarget: "view",
+    },
+  };
 
-	return registry;
+  return registry;
 };
 
 export const getFeatureProperties = (
-	app: App,
-	id: string
+  app: App,
+  id: string
 ): FeatureProperties | null => {
-	const registry = FeaturesRegistry(app);
-	return registry[id] || null;
+  const registry = FeaturesRegistry(app);
+  return registry[id] || null;
 };
