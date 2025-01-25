@@ -23,6 +23,7 @@ class ModalPrompt extends Modal {
   settings: QuillPluginSettings;
   onSend: (prompt: string) => void;
   featureId?: string | null;
+  model: string;
   rows = 6;
   disabled = false;
 
@@ -49,6 +50,7 @@ class ModalPrompt extends Modal {
 
   handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     this.promptValue = e.target.value;
+    this.updateModal(this.model);
   };
 
   handleBlur = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -56,9 +58,10 @@ class ModalPrompt extends Modal {
   };
 
   handleSend = () => {
-    if (this.disabled) return;
+    this.promptValue.trim();
+    if (this.disabled || this.promptValue === "") return;
     this.close();
-    this.onSend(this.promptValue.trim());
+    this.onSend(this.promptValue);
     this.disableSend();
   };
 
@@ -69,7 +72,6 @@ class ModalPrompt extends Modal {
     } else if (e.key === "Enter") {
       e.stopPropagation();
       e.preventDefault();
-      this.close();
       this.handleSend();
     }
   };
@@ -78,10 +80,14 @@ class ModalPrompt extends Modal {
     const feature = this.featureId
       ? getFeatureProperties(this.app, this.featureId)
       : null;
-    const model = feature?.model || this.settings.openaiModel;
+    this.model = feature?.model || this.settings.openaiModel;
 
     this.modalRoot = createRoot(this.contentEl);
-    this.modalRoot.render(
+    this.updateModal(this.model);
+  }
+
+  updateModal(model: string) {
+    this.modalRoot?.render(
       <div id="oq-prompt-modal">
         <PromptContent
           value={this.promptValue}
@@ -91,7 +97,7 @@ class ModalPrompt extends Modal {
           handleKeyPress={this.handleKeyPress}
           handleSend={this.handleSend}
           handleBlur={this.handleBlur}
-          disabled={this.disabled} // Update this to disable sending
+          disabled={this.disabled} // TODO: Update this to disable sending
         />
       </div>
     );

@@ -80,17 +80,17 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
       },
     });
 
-    // "On This Date..." command
-    this.addCommand({
-      id: "on-this-date",
-      name: "On This Date...",
-      editorCallback: async (editor: Editor) => {
-        await this.features.executeFeature({
-          id: "onThisDate",
-          outputTarget: editor,
-        });
-      },
-    });
+    // "On This Date..." command - REPLACED WITH CUSTOM COMMAND
+    // this.addCommand({
+    //   id: "on-this-date",
+    //   name: "On This Date...",
+    //   editorCallback: async (editor: Editor) => {
+    //     await this.features.executeFeature({
+    //       id: "onThisDate",
+    //       outputTarget: editor,
+    //     });
+    //   },
+    // });
 
     // "Define..." command - REPLACED WITH CUSTOM COMMAND
     // this.addCommand({
@@ -198,11 +198,17 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
       switch (command.target) {
         case "editor": {
           const featureId = "customCommandToEditor";
-          editorCallback = (editor: Editor) => {
+          editorCallback = async (editor: Editor) => {
             if (command.prompt) {
               this.openModalPrompt({
                 featureId: featureId,
                 templateFilename: command.templateFilename,
+                outputTarget: editor,
+              });
+            } else {
+              await this.features.executeFeature({
+                id: featureId,
+                templateFilename: command.templateFilename || undefined,
                 outputTarget: editor,
               });
             }

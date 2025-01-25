@@ -46,7 +46,6 @@ export const executeFeature = async (
   } = options;
   const vaultUtils = VaultUtils.getInstance(pluginServices, settings);
   const feature = featureRegistry[id];
-  console.log(feature);
   if (!feature) {
     pluginServices.notifyError("noFeature");
     return;
@@ -60,7 +59,6 @@ export const executeFeature = async (
     );
     const templateFile: TFile = vaultUtils.getFileByPath(templateFilePath);
     commandTemplateContent = await vaultUtils.getFileContent(templateFile);
-    console.log(commandTemplateContent);
   }
   // ^ =========================================================================
 

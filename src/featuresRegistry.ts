@@ -34,28 +34,28 @@ export const FeaturesRegistry = (
     },
 
     // ON THIS DATE
-    // onThisDate: {
-    // 	id: "onThisDate",
-    // 	prompt: () => {
-    // 		const today = new Date().toLocaleDateString("en-US", {
-    // 			month: "long",
-    // 			day: "numeric",
-    // 			year: "numeric",
-    // 		});
-    // 		return `${today}: ${PROMPTS.onThisDate.content}`;
-    // 	},
-    // 	processResponse: async (
-    // 		response: string,
-    // 		editor: Editor,
-    // 		editorPos: EditorPosition
-    // 	) => {
-    // 		if (response.length) {
-    // 			await renderToEditor(response, editor, editorPos);
-    // 		}
-    // 	},
-    // 	stream: true,
-    // 	model: "gpt-4o-mini",
-    // },
+    onThisDate: {
+      id: "onThisDate",
+      prompt: () => {
+        const today = new Date().toLocaleDateString("en-US", {
+          month: "long",
+          day: "numeric",
+          year: "numeric",
+        });
+        return `${today}: ${PROMPTS.onThisDate.content}`;
+      },
+      processResponse: async (
+        response: string,
+        editor: Editor,
+        editorPos: EditorPosition
+      ) => {
+        if (response.length) {
+          await renderToEditor(response, editor, editorPos);
+        }
+      },
+      stream: true,
+      model: "gpt-4o-mini",
+    },
 
     // Define...
     // define: {
