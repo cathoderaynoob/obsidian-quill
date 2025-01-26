@@ -10,7 +10,7 @@ import {
   QuillPluginSettings,
   QuillSettingsTab,
 } from "@/settings";
-import { Commands, IPluginServices, OutputTarget } from "@/interfaces";
+import { Command, Commands, IPluginServices, OutputTarget } from "@/interfaces";
 import ApiService from "@/ApiService";
 import Features from "@/Features";
 import ModalPrompt from "@/components/ModalPrompt";
@@ -80,41 +80,6 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
       },
     });
 
-    // "On This Date..." command - REPLACED WITH CUSTOM COMMAND
-    // this.addCommand({
-    //   id: "on-this-date",
-    //   name: "On This Date...",
-    //   editorCallback: async (editor: Editor) => {
-    //     await this.features.executeFeature({
-    //       id: "onThisDate",
-    //       outputTarget: editor,
-    //     });
-    //   },
-    // });
-
-    // "Define..." command - REPLACED WITH CUSTOM COMMAND
-    // this.addCommand({
-    // 	id: "define",
-    // 	name: "Define the word...",
-    // 	editorCallback: async (editor: Editor) => {
-    // 		const featureId = "define"; // CC: Always `runCustomCommand`
-    // 		const modal = new ModalPrompt({ // CC:
-    // 			app: this.app,
-    // 			settings: this.settings,
-    // 			onSend: async (userEntry) => {
-    // 				await this.features.executeFeature({
-    // 					id: featureId,
-    // 					inputText: userEntry,
-    // 					outputTarget: editor,
-    // 				});
-    // 			},
-    // 			featureId: featureId,
-    // 		});
-    // 		this.openModals.push(modal);
-    // 		modal.open();
-    // 	},
-    // });
-
     // Open modal to get prompt
     this.addCommand({
       id: "new-prompt",
@@ -181,7 +146,7 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
       const command = commands[commandId];
       console.log(command);
 
-      // let callback: (() => void) | undefined = undefined;
+      let callback: (() => void) | undefined = undefined;
 
       // TODO: Get the basic stuff done first before handling selected text
       // let editorCheckCallback:
@@ -202,23 +167,43 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
             if (command.prompt) {
               this.openModalPrompt({
                 featureId: featureId,
-                templateFilename: command.templateFilename,
+                // templateFilename: command.templateFilename,
+                command: command,
                 outputTarget: editor,
               });
             } else {
               await this.features.executeFeature({
                 id: featureId,
-                templateFilename: command.templateFilename || undefined,
+                // templateFilename: command.templateFilename,
+                command: command,
                 outputTarget: editor,
               });
             }
           };
           break;
         }
-        // case "view": {
-        // 	callback = () => this.executeCustomCommand(command, commandId);
-        // 	break;
-        // }
+        case "view": {
+          const featureId = "customCommandToView";
+          callback = async () => {
+            this.toggleView();
+            if (command.prompt) {
+              this.openModalPrompt({
+                featureId: featureId,
+                // templateFilename: command.templateFilename,
+                command: command,
+                outputTarget: "view",
+              });
+            } else {
+              await this.features.executeFeature({
+                id: featureId,
+                // templateFilename: command.templateFilename || undefined,
+                command: command,
+                outputTarget: "view",
+              });
+            }
+          };
+          break;
+        }
         // case: "modal": {
         // 	break;
         // }
@@ -228,19 +213,20 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
         id: commandId,
         name: command.name,
         editorCallback: editorCallback,
-        // callback: callback,
+        callback: callback,
       });
     }
   }
 
   openModalPrompt({
     featureId,
-    templateFilename,
+    // templateFilename,
+    command,
     selectedText,
     outputTarget = "view",
   }: {
     featureId: string;
-    templateFilename?: string;
+    command?: Command;
     selectedText?: string;
     outputTarget?: OutputTarget;
   }): void {
@@ -251,7 +237,8 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
         await this.features.executeFeature({
           id: featureId,
           inputText: userEntry || "",
-          templateFilename: templateFilename || undefined,
+          // templateFilename: templateFilename || undefined,
+          command: command || undefined,
           selectedText: selectedText || undefined,
           outputTarget: outputTarget || "view",
         });

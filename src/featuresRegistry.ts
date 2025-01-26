@@ -33,50 +33,6 @@ export const FeaturesRegistry = (
       model: "gpt-4o-mini",
     },
 
-    // ON THIS DATE
-    onThisDate: {
-      id: "onThisDate",
-      prompt: () => {
-        const today = new Date().toLocaleDateString("en-US", {
-          month: "long",
-          day: "numeric",
-          year: "numeric",
-        });
-        return `${today}: ${PROMPTS.onThisDate.content}`;
-      },
-      processResponse: async (
-        response: string,
-        editor: Editor,
-        editorPos: EditorPosition
-      ) => {
-        if (response.length) {
-          await renderToEditor(response, editor, editorPos);
-        }
-      },
-      stream: true,
-      model: "gpt-4o-mini",
-    },
-
-    // Define...
-    // define: {
-    // 	id: "define",
-    // 	prompt: (inputText: string) => {
-    // 		return `${inputText} ${PROMPTS.define.content}`;
-    // 	},
-    // 	processResponse: async (
-    // 		response: string,
-    // 		editor: Editor,
-    // 		editorPos: EditorPosition
-    // 	) => {
-    // 		if (response.length) {
-    // 			await renderToEditor(response, editor, editorPos);
-    // 		}
-    // 	},
-    // 	stream: true,
-    // 	model: "gpt-4o",
-    // 	temperature: 0.2,
-    // },
-
     // CUSTOM COMMAND
     customCommandToView: {
       id: "customCommandToView",
@@ -84,6 +40,7 @@ export const FeaturesRegistry = (
       processResponse: (response: string) =>
         emitter.emit("updateResponseMessage", response),
       stream: true,
+      outputTarget: "view",
     },
 
     customCommandToEditor: {

@@ -5,10 +5,10 @@ import {
   PayloadMessagesType,
   OutputTarget,
 } from "@/interfaces";
-import { buildPrompt } from "@/promptBuilder";
+import { buildPromptPayload } from "@/promptBuilder";
 import { FeatureProperties } from "@/featuresRegistry";
 import { QuillPluginSettings } from "@/settings";
-import { IPluginServices } from "@/interfaces";
+import { Command, IPluginServices } from "@/interfaces";
 import {
   activateEditorKeypress,
   deactivateEditorKeypress,
@@ -22,7 +22,8 @@ export interface ExecutionOptions {
   id: string;
   inputText?: string;
   selectedText?: string;
-  templateFilename?: string; // template =====================================
+  // templateFilename?: string; // template =====================================
+  command?: Command; // template =====================================
   formattingGuidance?: string;
   outputTarget?: OutputTarget;
 }
@@ -40,7 +41,8 @@ export const executeFeature = async (
     id,
     inputText,
     selectedText,
-    templateFilename, // template < ============================================
+    // templateFilename, // template < ============================================
+    command: command, // template < =======================================================
     formattingGuidance,
     outputTarget,
   } = options;
@@ -52,17 +54,18 @@ export const executeFeature = async (
   }
   // TEMPLATE FILE ============================================================
   let commandTemplateContent: string | undefined;
-  if (templateFilename) {
+  // if (templateFilename) {
+  if (command) {
     // Read from template file
     const templateFilePath = normalizePath(
-      `${settings.templatesFolder}/${templateFilename}`
+      `${settings.templatesFolder}/${command.templateFilename}`
     );
     const templateFile: TFile = vaultUtils.getFileByPath(templateFilePath);
     commandTemplateContent = await vaultUtils.getFileContent(templateFile);
   }
   // ^ =========================================================================
 
-  const payloadPrompt = buildPrompt({
+  const payloadPrompt = buildPromptPayload({
     inputText: feature.prompt(inputText) || undefined,
     templateText: commandTemplateContent || undefined, // < ====================
     selectedText: selectedText || undefined,
@@ -101,14 +104,20 @@ export const executeFeature = async (
       role: string,
       prompt?: string,
       selectedText?: string,
-      filePath?: string
+      commandName?: string
     ): Promise<void> => {
       return new Promise<void>((resolve) => {
-        emitter.emit(event, role, prompt, selectedText);
+        emitter.emit(event, role, prompt, selectedText, commandName);
         resolve();
       });
     };
-    await emitEvent("newMessage", "user", inputText, selectedText);
+    await emitEvent(
+      "newMessage",
+      "user",
+      inputText,
+      selectedText,
+      command?.name
+    );
     await emitEvent("newMessage", "assistant");
   }
 

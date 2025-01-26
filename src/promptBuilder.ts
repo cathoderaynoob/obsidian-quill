@@ -5,7 +5,7 @@ export interface Prompt {
   formattingGuidance?: string;
 }
 
-export const buildPrompt = ({
+export const buildPromptPayload = ({
   inputText,
   templateText,
   selectedText,
