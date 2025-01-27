@@ -167,14 +167,12 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
             if (command.prompt) {
               this.openModalPrompt({
                 featureId: featureId,
-                // templateFilename: command.templateFilename,
                 command: command,
                 outputTarget: editor,
               });
             } else {
               await this.features.executeFeature({
                 id: featureId,
-                // templateFilename: command.templateFilename,
                 command: command,
                 outputTarget: editor,
               });
@@ -189,14 +187,12 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
             if (command.prompt) {
               this.openModalPrompt({
                 featureId: featureId,
-                // templateFilename: command.templateFilename,
                 command: command,
                 outputTarget: "view",
               });
             } else {
               await this.features.executeFeature({
                 id: featureId,
-                // templateFilename: command.templateFilename || undefined,
                 command: command,
                 outputTarget: "view",
               });
@@ -220,7 +216,6 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 
   openModalPrompt({
     featureId,
-    // templateFilename,
     command,
     selectedText,
     outputTarget = "view",
@@ -237,12 +232,12 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
         await this.features.executeFeature({
           id: featureId,
           inputText: userEntry || "",
-          // templateFilename: templateFilename || undefined,
           command: command || undefined,
           selectedText: selectedText || undefined,
           outputTarget: outputTarget || "view",
         });
       },
+      command: command || undefined,
     });
     this.openModals.push(modal);
     modal.open();

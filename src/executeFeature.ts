@@ -22,8 +22,7 @@ export interface ExecutionOptions {
   id: string;
   inputText?: string;
   selectedText?: string;
-  // templateFilename?: string; // template =====================================
-  command?: Command; // template =====================================
+  command?: Command;
   formattingGuidance?: string;
   outputTarget?: OutputTarget;
 }
@@ -41,8 +40,7 @@ export const executeFeature = async (
     id,
     inputText,
     selectedText,
-    // templateFilename, // template < ============================================
-    command: command, // template < =======================================================
+    command: command,
     formattingGuidance,
     outputTarget,
   } = options;
@@ -54,7 +52,6 @@ export const executeFeature = async (
   }
   // TEMPLATE FILE ============================================================
   let commandTemplateContent: string | undefined;
-  // if (templateFilename) {
   if (command) {
     // Read from template file
     const templateFilePath = normalizePath(
@@ -67,7 +64,7 @@ export const executeFeature = async (
 
   const payloadPrompt = buildPromptPayload({
     inputText: feature.prompt(inputText) || undefined,
-    templateText: commandTemplateContent || undefined, // < ====================
+    templateText: commandTemplateContent || undefined,
     selectedText: selectedText || undefined,
     formattingGuidance: formattingGuidance || undefined,
   });

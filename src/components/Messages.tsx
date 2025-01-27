@@ -95,8 +95,7 @@ const Messages: React.FC = () => {
       selectedText: string,
       commandName?: string
     ): Promise<void> => {
-      // If running a custom command, preface the user message with
-      // the command name
+      // If custom command, preface the user message with the command name
       const content = commandName
         ? `*${commandName}*\n\n${inputText || ""}`
         : inputText || "";

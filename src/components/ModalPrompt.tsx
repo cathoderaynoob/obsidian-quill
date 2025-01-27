@@ -1,15 +1,18 @@
-import { App, Modal } from "obsidian";
+import { App, Modal, setIcon } from "obsidian";
 import { Root, createRoot } from "react-dom/client";
+import { Command } from "@/interfaces";
 import { QuillPluginSettings } from "@/settings";
 import { getFeatureProperties } from "@/featuresRegistry";
 import emitter from "@/customEmitter";
 import PromptContent from "@/components/PromptContent";
+import { APP_PROPS } from "@/constants";
 
 interface ModalPromptParams {
   app: App;
   settings: QuillPluginSettings;
   onSend: (prompt: string) => void;
   featureId?: string;
+  command?: Command;
 }
 
 export interface ModalPromptFileParams extends ModalPromptParams {
@@ -23,15 +26,23 @@ class ModalPrompt extends Modal {
   settings: QuillPluginSettings;
   onSend: (prompt: string) => void;
   featureId?: string | null;
+  command?: Command;
   model: string;
   rows = 6;
   disabled = false;
 
-  constructor({ app, settings, onSend, featureId }: ModalPromptParams) {
+  constructor({
+    app,
+    settings,
+    onSend,
+    featureId,
+    command,
+  }: ModalPromptParams) {
     super(app);
     this.settings = settings;
     this.onSend = onSend;
     this.featureId = featureId;
+    this.command = command;
     this.handleStreamEnd = this.handleStreamEnd.bind(this);
     emitter.on("modalStreamEnd", this.handleStreamEnd);
   }
@@ -89,10 +100,13 @@ class ModalPrompt extends Modal {
   updateModal(model: string) {
     this.modalRoot?.render(
       <div id="oq-prompt-modal">
+        {this.command && this.command.name && (
+          <span className="title">Quill: {this.command.name}</span>
+        )}
         <PromptContent
           value={this.promptValue}
           rows={this.rows}
-          model={model}
+          model={this.model}
           handleInput={this.handleInput}
           handleKeyPress={this.handleKeyPress}
           handleSend={this.handleSend}

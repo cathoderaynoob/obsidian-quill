@@ -2,6 +2,7 @@ export const APP_PROPS = {
   appName: "Quill",
   appIcon: "feather",
   sendIcon: "bird",
+  templateIcon: "file-cog",
 };
 export const ELEM_CLASSES = {
   message: "oq-message",
@@ -48,37 +49,6 @@ export const PROMPTS = {
       "Do not add conversation preamble, summaries, or labels when asked " +
       "for specific content, since the entire output will be copied directly " +
       "to a note. ALWAYS REPLY, EVEN WHEN TESTING.",
-  },
-  // onThisDate: {
-  // 	role: "user",
-  // 	content:
-  // 		"Tell me one thing from history in one paragraph that happened on this date, " +
-  // 		"interesting, significant, or funny. Start with `On **<MMMM D, YYYY>**,`." +
-  // 		"Make sure the date is bold. Italicize important or prominent persons, " +
-  // 		"places, events, etc. This response is going into a note, so to create a " +
-  // 		"separation from other text, append the response with 2 newline chars, " +
-  // 		"3 underscores, and 2 more newline chars, i.e. `\n\n___\n\n`.",
-  // },
-  define: {
-    role: "user",
-    content:
-      "<= [Define this term in the format of the following example.\n" +
-      "If proper noun, use title case. Otherwise always use lower case.\n" +
-      "Please provide multiple definitions when appropriate.\n\n" +
-      "###### term\n" +
-      "`/tɜrm/`\n\n" +
-      "1. *[part of speech]* A word or phrase used to describe a thing or to express " +
-      "a concept, especially in a particular kind of language or " +
-      "branch of study.\n" +
-      "   - *Example*: \"The term 'photosynthesis' is commonly used " +
-      '     in biology."\n' +
-      "2. A fixed or limited period for which something, such as " +
-      "an office, imprisonment, or investment, lasts or is " +
-      "intended to last.\n" +
-      "   - *Example*: \"The president's term in office is four " +
-      '     years."\n' +
-      "3. ...\n\n" +
-      "[Important: After last definition, include one newline character.]",
   },
   tellAJoke: {
     role: "user",
