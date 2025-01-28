@@ -1,6 +1,6 @@
 import { App, FuzzySuggestModal } from "obsidian";
 
-// SELECT FILE FROM VAULT =====================================================
+// SELECT FILE FROM VAULT -- NOT USED YET =====================================
 class ModalSelectFolder extends FuzzySuggestModal<string> {
 	private folderPaths: string[];
 	private onSelect: (folderPath: string) => void;

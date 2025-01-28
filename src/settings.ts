@@ -1,4 +1,5 @@
 import { App, PluginSettingTab, Setting, TFolder } from "obsidian";
+import { Commands } from "@/interfaces";
 import QuillPlugin from "@/main";
 
 // Export the settings interface
@@ -12,6 +13,7 @@ export interface QuillPluginSettings {
 	messagesFolder: string;
 	templatesFolder: string;
 	openSavedFile: boolean;
+	commands: Commands;
 }
 
 const openaiBaseUrl = "https://api.openai.com/v1";
@@ -27,6 +29,7 @@ export const DEFAULT_SETTINGS: QuillPluginSettings = {
 	messagesFolder: "Quill",
 	openSavedFile: false,
 	templatesFolder: "Quill/Templates",
+	commands: {},
 };
 
 interface OpenAIModels {
