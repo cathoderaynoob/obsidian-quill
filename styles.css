@@ -393,7 +393,7 @@ button.oq-prompt-send {
 }
 #oq-prompt-modal {
   padding-right: 1.25rem;
-  & .title {
+  & .oq-modal-title {
     font-size: var(--font-ui-medium);
     display: block;
     font-weight: bold;

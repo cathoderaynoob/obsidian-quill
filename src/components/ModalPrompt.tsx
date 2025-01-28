@@ -1,11 +1,11 @@
-import { App, Modal, setIcon } from "obsidian";
+import { App, Modal, TFile } from "obsidian";
 import { Root, createRoot } from "react-dom/client";
+import { APP_PROPS } from "@/constants";
 import { Command } from "@/interfaces";
 import { QuillPluginSettings } from "@/settings";
 import { getFeatureProperties } from "@/featuresRegistry";
 import emitter from "@/customEmitter";
 import PromptContent from "@/components/PromptContent";
-import { APP_PROPS } from "@/constants";
 
 interface ModalPromptParams {
   app: App;
@@ -27,6 +27,7 @@ class ModalPrompt extends Modal {
   onSend: (prompt: string) => void;
   featureId?: string | null;
   command?: Command;
+  commandTemplatePath?: string;
   model: string;
   rows = 6;
   disabled = false;
@@ -61,7 +62,7 @@ class ModalPrompt extends Modal {
 
   handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     this.promptValue = e.target.value;
-    this.updateModal(this.model);
+    this.updateModal();
   };
 
   handleBlur = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -87,21 +88,43 @@ class ModalPrompt extends Modal {
     }
   };
 
+  openFileInNewPane = (app: App, filePath: string) => {
+    const file = app.vault.getAbstractFileByPath(filePath);
+    if (file && file instanceof TFile) {
+      app.workspace.getLeaf(true).openFile(file);
+    }
+  };
+
   onOpen() {
     const feature = this.featureId
       ? getFeatureProperties(this.app, this.featureId)
       : null;
-    this.model = feature?.model || this.settings.openaiModel;
-
+    this.model =
+      this.command?.model || feature?.model || this.settings.openaiModel;
     this.modalRoot = createRoot(this.contentEl);
-    this.updateModal(this.model);
+    this.updateModal();
   }
 
-  updateModal(model: string) {
+  updateModal() {
     this.modalRoot?.render(
       <div id="oq-prompt-modal">
-        {this.command && this.command.name && (
-          <span className="title">Quill: {this.command.name}</span>
+        {this.command && (
+          <span className="oq-modal-title">
+            {APP_PROPS.appName}:{" "}
+            <a
+              href={`obsidian://open?file=${this.command.templateFilename}`}
+              onClick={(e) => {
+                e.preventDefault();
+                if (this.command?.templateFilename) {
+                  const filePath = `${this.settings.templatesFolder}/${this.command.templateFilename}`;
+                  this.openFileInNewPane(this.app, filePath);
+                }
+                this.close();
+              }}
+            >
+              {this.command.name}
+            </a>
+          </span>
         )}
         <PromptContent
           value={this.promptValue}
