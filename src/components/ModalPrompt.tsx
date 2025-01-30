@@ -1,32 +1,37 @@
-import { App, Modal, TFile } from "obsidian";
+import { App, ButtonComponent, Modal, Notice, TFile } from "obsidian";
 import { Root, createRoot } from "react-dom/client";
+import { Command, IPluginServices } from "@/interfaces";
 import { APP_PROPS } from "@/constants";
-import { Command } from "@/interfaces";
 import { QuillPluginSettings } from "@/settings";
 import { getFeatureProperties } from "@/featuresRegistry";
 import emitter from "@/customEmitter";
+import ModalCustomCommand from "./ModalCustomCommand";
 import PromptContent from "@/components/PromptContent";
 
 interface ModalPromptParams {
   app: App;
   settings: QuillPluginSettings;
+  pluginServices: IPluginServices;
   onSend: (prompt: string) => void;
   featureId?: string;
   command?: Command;
+  customCommandId?: string;
 }
 
-export interface ModalPromptFileParams extends ModalPromptParams {
-  onSend: (prompt: string, filePath?: string) => void;
-}
+// export interface ModalPromptFileParams extends ModalPromptParams {
+//   onSend: (prompt: string, filePath?: string) => void;
+// }
 
 // GET PROMPT FROM USER MODAL =================================================
 class ModalPrompt extends Modal {
-  modalRoot: Root | null = null;
-  promptValue = "";
-  settings: QuillPluginSettings;
+  private modalRoot: Root | null = null;
+  private promptValue = "";
+  private settings: QuillPluginSettings;
+  private pluginServices: IPluginServices;
   onSend: (prompt: string) => void;
   featureId?: string | null;
   command?: Command;
+  customCommandId?: string;
   commandTemplatePath?: string;
   model: string;
   rows = 6;
@@ -35,15 +40,19 @@ class ModalPrompt extends Modal {
   constructor({
     app,
     settings,
+    pluginServices,
     onSend,
     featureId,
     command,
+    customCommandId,
   }: ModalPromptParams) {
     super(app);
     this.settings = settings;
+    this.pluginServices = pluginServices;
     this.onSend = onSend;
     this.featureId = featureId;
     this.command = command;
+    this.customCommandId = customCommandId;
     this.handleStreamEnd = this.handleStreamEnd.bind(this);
     emitter.on("modalStreamEnd", this.handleStreamEnd);
   }
@@ -103,33 +112,87 @@ class ModalPrompt extends Modal {
       this.command?.model || feature?.model || this.settings.openaiModel;
     this.modalRoot = createRoot(this.contentEl);
     this.updateModal();
+
+    // Defer link generation logic to avoid slowing down modal rendering
+    setTimeout(() => {
+      if (this.command) {
+        const targetName =
+          this.command.target === "view"
+            ? "conversation"
+            : this.command.target === "editor"
+            ? "note"
+            : undefined;
+        const targetElement = this.contentEl.querySelector("#oq-prompt-footer");
+        if (targetElement) {
+          targetElement.textContent = `${this.model} ${
+            targetName && `• ${targetName}`
+          }`;
+          // Add a test link
+          targetElement.appendChild(this.generateFileButtonIcon(this.command));
+          if (this.customCommandId) {
+            targetElement.appendChild(
+              this.generateEditButtonIcon(this.customCommandId)
+            );
+          }
+        }
+      }
+    }, 0);
+  }
+
+  generateFileButtonIcon(command: Command) {
+    const button = new ButtonComponent(this.contentEl);
+    button
+      .setClass("clickable-icon")
+      .setIcon(APP_PROPS.fileIcon)
+      .setTooltip("Open template file")
+      .onClick(() => {
+        if (command?.templateFilename) {
+          const filePath = `${this.settings.templatesFolder}/${command.templateFilename}`;
+          this.openFileInNewPane(this.app, filePath);
+        }
+        this.close();
+      });
+    return button.buttonEl;
+  }
+
+  generateEditButtonIcon(customCommandId: string) {
+    const button = new ButtonComponent(this.contentEl);
+    button
+      .setClass("clickable-icon")
+      .setIcon(APP_PROPS.editIcon)
+      .setTooltip("Edit command")
+      .onClick(() => {
+        new ModalCustomCommand(
+          this.app,
+          this.settings,
+          this.pluginServices,
+          async (id: string, command: Command) => {
+            this.settings.commands[customCommandId] = command;
+            await this.pluginServices.saveSettings();
+            await this.pluginServices.loadCommands();
+            new Notice(`Updated command:\n${command.name}`);
+          },
+          customCommandId
+        ).open();
+        this.close();
+      });
+    return button.buttonEl;
   }
 
   updateModal() {
     this.modalRoot?.render(
       <div id="oq-prompt-modal">
         {this.command && (
-          <span className="oq-modal-title">
-            {APP_PROPS.appName}:{" "}
-            <a
-              href={`obsidian://open?file=${this.command.templateFilename}`}
-              onClick={(e) => {
-                e.preventDefault();
-                if (this.command?.templateFilename) {
-                  const filePath = `${this.settings.templatesFolder}/${this.command.templateFilename}`;
-                  this.openFileInNewPane(this.app, filePath);
-                }
-                this.close();
-              }}
-            >
-              {this.command.name}
-            </a>
-          </span>
+          <div className="oq-modal-title">
+            <div>Quill Custom Command</div>
+            <span>{this.command.name}</span>
+          </div>
         )}
         <PromptContent
           value={this.promptValue}
           rows={this.rows}
           model={this.model}
+          target={this.command?.target || "view"}
           handleInput={this.handleInput}
           handleKeyPress={this.handleKeyPress}
           handleSend={this.handleSend}

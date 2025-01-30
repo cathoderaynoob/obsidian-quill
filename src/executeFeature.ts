@@ -95,31 +95,35 @@ export const executeFeature = async (
   }
   payloadMessagesArray = payloadMessages.addMessage(newPayloadMessage);
 
+  const model = command?.model || feature.model || settings.openaiModel;
+
   if (feature.outputTarget === "view") {
     const emitEvent = (
       event: string,
       role: string,
+      model?: string,
       prompt?: string,
       selectedText?: string,
       commandName?: string
     ): Promise<void> => {
       return new Promise<void>((resolve) => {
-        emitter.emit(event, role, prompt, selectedText, commandName);
+        emitter.emit(event, role, model, prompt, selectedText, commandName);
         resolve();
       });
     };
     await emitEvent(
       "newMessage",
       "user",
+      model,
       inputText,
       selectedText,
       command?.name
     );
-    await emitEvent("newMessage", "assistant");
+    await emitEvent("newMessage", "assistant", model);
   }
 
   const payload: GptRequestPayload = {
-    model: feature.model || settings.openaiModel,
+    model: model,
     messages: payloadMessagesArray,
     temperature: feature.temperature || settings.openaiTemperature,
   };

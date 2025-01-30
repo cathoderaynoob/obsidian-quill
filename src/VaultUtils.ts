@@ -28,9 +28,33 @@ class VaultUtils {
     return VaultUtils.instance;
   }
 
-  getFileByPath(filePath: string): TFile {
+  // Returns a list of markdown files in a folder
+  async getListOfMarkdownFilesByPath(folderPath: string) {
+    const filesAndFolders = await this.vault.adapter.list(folderPath);
+    const markdownFiles = filesAndFolders.files.filter((file) =>
+      file.endsWith(".md")
+    );
+    return markdownFiles;
+  }
+
+  // Returns the filename of a file given its path
+  getFilenameByPath(filePath: string): string | null {
+    const file = this.vault.getAbstractFileByPath(filePath);
+    if (file && file instanceof TFile) {
+      return filePath.split("/").pop() || null;
+    } else {
+      this.pluginServices.notifyError(
+        "fileNotFound",
+        `File not found at \`${filePath}\`.`
+      );
+    }
+    return null;
+  }
+
+  // Returns the file object given its path
+  getFileByPath(filePath: string, suppressError?: boolean): TFile {
     const file = this.vault.getAbstractFileByPath(filePath) as TFile;
-    if (!file) {
+    if (!file && !suppressError) {
       this.pluginServices.notifyError(
         "fileNotFound",
         `File not found at \`${filePath}\`.`
@@ -39,6 +63,19 @@ class VaultUtils {
     return file;
   }
 
+  // Returns the folder object given its path
+  getFolderByPath(folderPath: string): TFolder | null {
+    const folder = this.vault.getFolderByPath(folderPath);
+    if (!folder) {
+      this.pluginServices.notifyError(
+        "folderNotFound",
+        `Folder not found at \`${folderPath}\`.`
+      );
+    }
+    return folder;
+  }
+
+  // Returns an alphabetically sorted list of all folders in the vault
   getAllFolders() {
     const folders = this.vault
       .getAllLoadedFiles()
@@ -46,6 +83,7 @@ class VaultUtils {
     return folders.map((folder) => folder.path).sort();
   }
 
+  // Returns the content of a given file
   async getFileContent(file: TFile): Promise<string> {
     try {
       const content = this.vault.read(file);
@@ -59,16 +97,22 @@ class VaultUtils {
     }
   }
 
-  openFile(filepath: string) {
+  // Opens a file in the editor and returns a boolean indicating success
+  async openFile(filepath: string, newLeaf?: boolean): Promise<boolean> {
     try {
-      const leaf = this.pluginServices.app.workspace.getLeaf();
+      const leaf = this.pluginServices.app.workspace.getLeaf(newLeaf || false);
       const file = this.vault.getAbstractFileByPath(filepath) as TFile;
       if (file) {
-        leaf?.openFile(file);
+        await leaf?.openFile(file); // Await the promise to ensure it completes
+        return true; // Return true if the file is successfully opened
+      } else {
+        new Notice(`File not found: ${filepath}`);
+        return false; // Return false if the file is not found
       }
     } catch (e) {
-      new Notice(e);
+      new Notice(`Error opening file: ${e.message}`);
       console.log(e);
+      return false; // Return false if an error occurs
     }
   }
 
@@ -82,6 +126,7 @@ class VaultUtils {
     return `Quill ${now}.${fileExt}`;
   }
 
+  // Returns the filename from the first heading in a markdown file
   createFilenameFromTitle(content: string) {
     const headingRegex = /^(#+)\s+(.*)$/m;
     const match = content.match(headingRegex);
@@ -199,7 +244,7 @@ class VaultUtils {
             this.settings.openSavedFile = openFile;
             await this.pluginServices.saveSettings();
             if (openFile) {
-              this.openFile(filepath);
+              this.openFile(filepath, true);
             }
             resolve({ filename, path: folderPath });
           } catch (e) {

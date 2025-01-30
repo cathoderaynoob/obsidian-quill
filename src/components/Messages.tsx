@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { usePluginContext } from "@/components/PluginContext";
 import { Role } from "@/interfaces";
-import { ELEM_CLASSES, ELEM_IDS, SCROLL_CHARS_LIMIT } from "@/constants";
+import { ELEM_CLASSES_IDS, SCROLL_CHARS_LIMIT } from "@/constants";
 import emitter from "@/customEmitter";
 import Message, { MessageType } from "@/components/Message";
 import PayloadMessages from "@/PayloadMessages";
@@ -17,9 +17,10 @@ const Messages: React.FC = () => {
   const prevScrollTop = useRef<number>(0);
   const stopScrolling = useRef<boolean>(false);
   const payloadMessages = PayloadMessages.getInstance();
+  const clsMessageHighlight = ELEM_CLASSES_IDS.msgHighlight;
 
   const getContainerElem = (): HTMLElement | null => {
-    return document.getElementById(ELEM_IDS.messages);
+    return document.getElementById(ELEM_CLASSES_IDS.messages);
   };
 
   const getMessageElem = (index: number): HTMLElement | null => {
@@ -28,7 +29,7 @@ const Messages: React.FC = () => {
 
   const focusPrompt = (): void => {
     const promptInput = document.querySelector(
-      `.${ELEM_CLASSES.promptInput}`
+      `.${ELEM_CLASSES_IDS.promptInput}`
     ) as HTMLElement;
     promptInput.focus();
   };
@@ -84,13 +85,14 @@ const Messages: React.FC = () => {
 
   // NEW MESSAGE ==============================================================
   // Adds a new message to the conversation, but
-  // does not include content of message (see `handleupdateResponseMessage`)
+  // does not include content of message (see `updateResponseMessage`)
   useEffect(() => {
     const containerElem = getContainerElem();
     if (!containerElem) return;
 
     const handleNewMessage = async (
       role: Role,
+      model: string,
       inputText: string,
       selectedText: string,
       commandName?: string
@@ -104,8 +106,8 @@ const Messages: React.FC = () => {
         convIdx: messages.length + 1,
         id: generateUniqueId(),
         role: role,
+        model: model,
         content: content,
-        model: settings.openaiModel,
         selectedText: selectedText,
       };
       latestMessageRef.current = newMessage;
@@ -165,7 +167,7 @@ const Messages: React.FC = () => {
   useEffect(() => {
     const handleStreamEnd = () => {
       setIsResponding(false);
-      clearHighlights("oq-message-streaming");
+      clearHighlights(ELEM_CLASSES_IDS.msgStreaming);
       // Scroll to the last message when the stream ends,
       // even if the requisite chars haven't been added
       scrollToMessage(messages.length - 1);
@@ -217,7 +219,7 @@ const Messages: React.FC = () => {
           break;
       }
       scrollToMessage(newIndex, true);
-      clearHighlights("oq-message-highlight");
+      clearHighlights(clsMessageHighlight);
       highlightMessage(newIndex);
       return newIndex;
     });
@@ -226,7 +228,7 @@ const Messages: React.FC = () => {
   // Keyboard navigation for messages
   const handleMessagesKeypress = (event: KeyboardEvent) => {
     const promptElem = document.querySelector(
-      `.${ELEM_CLASSES.promptInput}`
+      `.${ELEM_CLASSES_IDS.promptInput}`
     ) as HTMLElement;
     if (document.activeElement !== promptElem) {
       switch (event.key) {
@@ -334,9 +336,9 @@ const Messages: React.FC = () => {
   // Utility functions for highlighting messages ==============================
   const highlightMessage = (index: number) => {
     const messageElement = getMessageElem(index);
-    messageElement?.classList.add("oq-message-highlight");
+    messageElement?.classList.add(clsMessageHighlight);
     setTimeout(() => {
-      clearHighlights("oq-message-highlight");
+      clearHighlights(clsMessageHighlight);
     }, 100);
   };
 
@@ -352,7 +354,7 @@ const Messages: React.FC = () => {
   return (
     <>
       <TitleBar newConversation={newConversation} />
-      <div id={ELEM_IDS.messages} tabIndex={0}>
+      <div id={ELEM_CLASSES_IDS.messages} tabIndex={0}>
         {messages.map((message, index) => (
           <Message
             key={message.id}

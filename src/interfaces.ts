@@ -2,7 +2,7 @@ import { App, Editor } from "obsidian";
 
 export interface Command {
   name: string;
-  target: "view" | "modal" | "editor";
+  target: "view" | "editor";
   prompt: boolean;
   sendSelectedText: boolean;
   templateFilename: string;
@@ -19,6 +19,7 @@ export interface IPluginServices {
   getViewElem(): HTMLElement | null;
   notifyError(errorCode: string, consoleMsg?: string): void;
   saveSettings(): Promise<void>;
+  loadCommands(): Promise<void>;
 }
 
 export interface GptEngines {

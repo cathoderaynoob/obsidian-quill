@@ -1,11 +1,10 @@
 {
-	"id": "obsidian-quill",
-	"name": "Quill",
-	"version": "0.0.1",
-	"minAppVersion": "0.15.0",
-	"description": "A plugin for Obsidian that uses OpenAI's GPT to generate text based on user purposes.",
-	"author": "Paul Nauman",
-	"authorUrl": "https://obsidian.md",
-	"fundingUrl": "https://obsidian.md/pricing",
-	"isDesktopOnly": true
+  "id": "obsidian-quill",
+  "name": "Quill",
+  "version": "0.0.1",
+  "minAppVersion": "0.15.0",
+  "description": "A plugin for Obsidian that uses OpenAI's GPT to generate text based on user purposes.",
+  "author": "Paul Nauman",
+  "authorUrl": "https://obsidian.md",
+  "isDesktopOnly": true
 }

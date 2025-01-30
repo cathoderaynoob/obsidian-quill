@@ -1,17 +1,25 @@
 export const APP_PROPS = {
   appName: "Quill",
   appIcon: "feather",
+  editIcon: "settings",
+  fileIcon: "file",
+  fileMissingIcon: "file-question",
+  folderIcon: "folder",
   sendIcon: "bird",
+  trashIcon: "trash-2",
 };
-export const ELEM_CLASSES = {
+export const ELEM_CLASSES_IDS = {
+  cmdFooter: "oq-newcommand-footer",
+  cmdTarget: "oq-newcommand-target",
+  cmdTemplate: "oq-newcommand-template",
   message: "oq-message",
+  messagePad: "oq-message-pad",
+  messages: "oq-messages",
+  msgHighlight: "oq-message-highlight",
+  msgStreaming: "oq-message-streaming",
+  newConversation: "oq-btn-new-conv",
   promptInput: "oq-prompt-input",
   promptSend: "oq-prompt-send",
-};
-export const ELEM_IDS = {
-  messages: "oq-messages",
-  messagePad: "oq-message-pad",
-  newConversation: "oq-btn-new-conv",
 };
 export const ERROR_MESSAGES = {
   fileNotFound: "Cannot find file at path provided. See console for details.",
