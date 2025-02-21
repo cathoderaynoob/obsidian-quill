@@ -13,6 +13,7 @@ import {
 import { Command, Commands, IPluginServices, OutputTarget } from "@/interfaces";
 import ApiService from "@/ApiService";
 import Features from "@/Features";
+import ModalCustomCommand from "@/components/ModalCustomCommand";
 import ModalPrompt from "@/components/ModalPrompt";
 import QuillView from "@/components/view";
 
@@ -34,20 +35,17 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
       getViewElem: this.getViewElem.bind(this),
       notifyError: this.notifyError.bind(this),
       saveSettings: this.saveSettings.bind(this),
+      loadCommands: this.loadCommands.bind(this),
     };
 
-    this.addSettingTab(new QuillSettingsTab(this.app, this));
+    this.addSettingTab(
+      new QuillSettingsTab(this.app, this, this.pluginServices)
+    );
     this.registerView(
       QUILL_VIEW_TYPE,
       (leaf: WorkspaceLeaf) => new QuillView(leaf, this)
     );
 
-    // QUILL COMMANDS	========================================================
-    // This works but is not in the public API
-    // const setting = (this.app as any).setting;
-    // setting.open();
-    // setting.openTabById("obsidian-quill");
-    // this.app.commands.executeCommandById('app:open-settings');
     // RIBBON AND COMMANDS
 
     // App icon
@@ -65,18 +63,6 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
       name: "Show Quill",
       callback: () => {
         this.toggleView();
-      },
-    });
-
-    // "Tell me a joke" command
-    this.addCommand({
-      id: "tell-a-joke",
-      name: "Tell me a joke",
-      callback: async () => {
-        await this.features.executeFeature({
-          id: "tellAJoke",
-          outputTarget: "modal",
-        });
       },
     });
 
@@ -115,94 +101,44 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
     });
 
     // CUSTOM COMMANDS ========================================================
-
-    // Command Loader
-    const commands: Commands = this.settings.commands;
-    for (const commandId in commands) {
-      const command = commands[commandId];
-
-      let callback: (() => void) | undefined = undefined;
-
-      // TODO: Get the basic stuff done first before handling selected text
-      // let editorCheckCallback:
-      // 	| ((checking: boolean, editor: Editor) => boolean)
-      // 	| undefined = undefined;
-      // selectedText: command.sendSelectedText --- THIS SHOULD GO UNDER editorCheckCallback
-      // 	? this.app.workspace
-      // 			.getActiveViewOfType(Editor)
-      // 			.getSelection()
-      // 	: undefined,
-
-      let editorCallback: ((editor: Editor) => void) | undefined = undefined;
-
-      switch (command.target) {
-        case "editor": {
-          const featureId = "customCommandToEditor";
-          editorCallback = async (editor: Editor) => {
-            if (command.prompt) {
-              this.openModalPrompt({
-                featureId: featureId,
-                command: command,
-                outputTarget: editor,
-              });
-            } else {
-              await this.features.executeFeature({
-                id: featureId,
-                command: command,
-                outputTarget: editor,
-              });
-            }
-          };
-          break;
-        }
-        case "view": {
-          const featureId = "customCommandToView";
-          callback = async () => {
-            this.toggleView();
-            if (command.prompt) {
-              this.openModalPrompt({
-                featureId: featureId,
-                command: command,
-                outputTarget: "view",
-              });
-            } else {
-              await this.features.executeFeature({
-                id: featureId,
-                command: command,
-                outputTarget: "view",
-              });
-            }
-          };
-          break;
-        }
-        // case: "modal": {
-        // 	break;
-        // }
-      }
-
-      this.addCommand({
-        id: commandId,
-        name: command.name,
-        editorCallback: editorCallback,
-        callback: callback,
-      });
-    }
+    // "New Command" command
+    this.addCommand({
+      id: "new-command",
+      name: "New Command",
+      callback: async () => {
+        const modal = new ModalCustomCommand(
+          this.app,
+          this.settings,
+          this.pluginServices,
+          async (id: string, command: Command) => {
+            this.settings.commands[id] = command;
+            await this.saveSettings();
+            await this.loadCommands();
+          }
+        );
+        modal.open();
+      },
+    });
+    await this.loadCommands();
   }
 
   openModalPrompt({
     featureId,
     command,
+    customCommandId,
     selectedText,
     outputTarget = "view",
   }: {
     featureId: string;
     command?: Command;
+    customCommandId?: string;
     selectedText?: string;
     outputTarget?: OutputTarget;
   }): void {
     const modal = new ModalPrompt({
       app: this.app,
       settings: this.settings,
+      pluginServices: this.pluginServices,
       onSend: async (userEntry) => {
         await this.features.executeFeature({
           id: featureId,
@@ -213,6 +149,7 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
         });
       },
       command: command || undefined,
+      customCommandId: customCommandId || undefined,
     });
     this.openModals.push(modal);
     modal.open();
@@ -262,6 +199,87 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
     this.openModals = [];
   }
 
+  // CUSTOM COMMAND LOADER ====================================================
+  // Loads the user-created custom commands defined in the settings
+  loadCommands = async () => {
+    const commands: Commands = this.settings.commands;
+    for (const commandId in commands) {
+      const command = commands[commandId];
+
+      let callback: (() => void) | undefined = undefined;
+
+      // TODO: Get the basic stuff done first before handling selected text
+      // let editorCheckCallback:
+      // 	| ((checking: boolean, editor: Editor) => boolean)
+      // 	| undefined = undefined;
+      // selectedText: command.sendSelectedText --- THIS SHOULD GO UNDER editorCheckCallback
+      // 	? this.app.workspace
+      // 			.getActiveViewOfType(Editor)
+      // 			.getSelection()
+      // 	: undefined,
+
+      let cmdEditorCheckCallback:
+        | ((checking: boolean, editor: Editor) => void)
+        | undefined = undefined;
+
+      switch (command.target) {
+        case "editor": {
+          const featureId = "customCommandToEditor";
+          cmdEditorCheckCallback = async (
+            checking: boolean,
+            editor: Editor
+          ) => {
+            if (!checking) {
+              if (command.prompt) {
+                this.openModalPrompt({
+                  featureId: featureId,
+                  command: command,
+                  customCommandId: commandId,
+                  outputTarget: editor,
+                });
+              } else {
+                await this.features.executeFeature({
+                  id: featureId,
+                  command: command,
+                  outputTarget: editor,
+                });
+              }
+            }
+          };
+          break;
+        }
+        case "view": {
+          const featureId = "customCommandToView";
+          callback = async () => {
+            this.toggleView();
+            if (command.prompt) {
+              this.openModalPrompt({
+                featureId: featureId,
+                command: command,
+                customCommandId: commandId,
+                outputTarget: "view",
+              });
+            } else {
+              await this.features.executeFeature({
+                id: featureId,
+                command: command,
+                outputTarget: "view",
+              });
+            }
+          };
+          break;
+        }
+      }
+
+      this.addCommand({
+        id: commandId,
+        name: command.name,
+        editorCheckCallback: cmdEditorCheckCallback,
+        callback: callback,
+      });
+    }
+  };
+
   // SETTINGS AND DATA STORAGE
   // Loads the default settings, and then overrides them with
   // any saved settings
@@ -276,6 +294,7 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
   // Saves the current settings to the local storage
   async saveSettings(): Promise<void> {
     await this.saveData(this.settings);
+    await this.loadSettings();
   }
 
   // MISCELLANEOUS

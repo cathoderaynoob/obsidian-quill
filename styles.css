@@ -1,9 +1,10 @@
 /* Variables */
 [data-type="quill-chat-view"],
 [id="oq-prompt-modal"],
-[id="oq-saveas-form"] {
+[id="oq-saveas-form"],
+[id="oq-newcommand-form"] {
   --oq-app-bright-color: var(--text-accent);
-  --oq-app-faint-color: var(--text-faint);
+  --oq-app-muted-color: var(--text-muted);
   --oq-view-title-height: 2.5rem;
   --oq-message-pad-height: 6.25rem;
   --oq-highlight-width: 3px;
@@ -12,10 +13,8 @@
 }
 
 /* Settings ================================================================ */
-.oq-settings {
-  display: grid;
-  height: auto;
-  .setting-item {
+#oq-settings {
+  & .setting-item {
     display: grid;
     grid-gap: 0.5rem;
     grid-template-columns: 1fr 33%;
@@ -23,6 +22,29 @@
   & input,
   & select {
     width: 100%;
+  }
+  & .oq-settings-section-title {
+    & .setting-item-name {
+      --font-weight: var(--h4-weight);
+      font-variant: var(--h4-variant);
+      letter-spacing: 0.015em;
+      line-height: var(--h4-line-height);
+      font-size: var(--h4-size);
+      color: var(--h4-color);
+      font-weight: var(--font-weight);
+      font-style: var(--h4-style);
+      font-family: var(--h4-font);
+      margin-bottom: 0.5rem;
+    }
+  }
+}
+
+.oq-settings-custom-command {
+  padding-left: 1rem;
+  & .setting-item-name {
+    font-size: 1rem;
+    font-style: italic;
+    word-break: break-all;
   }
 }
 
@@ -75,9 +97,9 @@
   height: var(--oq-view-title-height);
   width: 100%;
   z-index: 1000;
-  color: var(--oq-app-faint-color);
+  color: var(--oq-app-muted-color);
   transition: var(--oq-transition-color), border-color 0.2s ease;
-  border-bottom: 2px solid var(--oq-app-faint-color);
+  border-bottom: 2px solid var(--oq-app-muted-color);
   padding: 0 1rem;
   font-weight: 400;
   --icon-size: var(--icon-m);
@@ -94,7 +116,7 @@
     margin-left: 0.5rem;
     content: "new conversation";
     font-size: small;
-    color: var(--oq-app-faint-color);
+    color: var(--oq-app-muted-color);
     transition: var(--oq-transition-color);
     cursor: pointer;
   }
@@ -186,7 +208,7 @@
   transition: var(--oq-transition-opacity);
 }
 .oq-message-actions .lucide {
-  color: var(--oq-app-faint-color);
+  color: var(--oq-app-muted-color);
   transition: var(--oq-transition-color);
   margin-right: 0.5rem;
   &:hover {
@@ -259,7 +281,7 @@
   font-size: smaller;
   text-align: right;
   user-select: none;
-  color: var(--oq-app-faint-color);
+  color: var(--oq-app-muted-color);
 }
 
 /* Message Pad ============================================================= */
@@ -268,11 +290,11 @@
   width: 100%;
   padding: 1rem;
   background: var(--background-primary);
-  border-top: 2px solid var(--oq-app-faint-color);
+  border-top: 2px solid var(--oq-app-muted-color);
 }
 
 /* Prompt Container (for both modal and message pad ======================= */
-.oq-prompt-container {
+#oq-prompt-container {
   position: relative;
   display: grid;
   grid-gap: 0.75rem;
@@ -300,7 +322,7 @@
   overflow-y: auto;
   resize: none;
   box-shadow: none;
-  outline: 1px solid var(--oq-app-faint-color);
+  outline: 1px solid var(--oq-app-muted-color);
   opacity: 0.6;
   transition: outline-color 0.2s ease;
   &:hover {
@@ -328,7 +350,7 @@ button.oq-prompt-send {
   box-shadow: none;
   padding: 0;
   background: none;
-  color: var(--oq-app-faint-color);
+  color: var(--oq-app-muted-color);
   transition: var(--oq-transition-color);
   opacity: 0.6;
   &::before {
@@ -347,7 +369,7 @@ button.oq-prompt-send {
     opacity: 1 !important;
   }
   &:disabled {
-    color: var(--oq-app-faint-color) !important;
+    color: var(--oq-app-muted-color) !important;
     transition: var(--oq-transition-color);
     &::before {
       font-weight: 800;
@@ -355,48 +377,130 @@ button.oq-prompt-send {
     }
   }
 }
-.oq-prompt-model {
+#oq-prompt-footer {
   padding: 0.2rem 0 0 1rem;
   font-size: x-small;
   font-weight: normal;
-  color: var(--oq-app-faint-color);
+  color: var(--oq-app-muted-color);
+
+  display: grid;
+  column-gap: 0.5rem;
+  grid-template-columns: max-content auto min-content;
+  align-items: center;
+  justify-items: end;
+  & button:nth-child(2),
+  button:nth-child(3) {
+    grid-column: 3;
+  }
 }
 
 /* Modals ================================================================== */
-#oq-saveas-form {
+#oq-saveas-form,
+#oq-newcommand-form,
+#oq-confirm-form {
   display: grid;
   padding-right: 1.25rem;
-  grid-row-gap: 1rem;
+  grid-row-gap: 1.5rem;
+  padding-top: 0.5rem;
+  & .oq-modal-title {
+    white-space: break-spaces;
+  }
+  & :focus {
+    border-color: var(--oq-app-bright-color);
+  }
+  & select:focus {
+    box-shadow: 0 0 0px 1px var(--oq-app-bright-color);
+  }
+  & input[type="checkbox"]:focus {
+    box-shadow: 0px 0px 8px var(--checkbox-color);
+  }
   & h5 {
     margin: 0;
     color: var(--text-normal);
+    font-style: normal;
   }
   & label {
-    font-size: 0.8rem;
+    font-size: var(--font-smaller);
   }
   & button {
     width: fit-content;
     justify-self: end;
-    background-color: var(--interactive-accent);
-    color: var(--text-on-accent);
+  }
+  & button[type="submit"] {
+    color: var(--oq-app-bright-color);
+    transition: background-color 0.2s ease;
+    &:hover,
+    &:focus {
+      background-color: var(--interactive-accent-hover);
+      color: var(--text-on-accent);
+      transition: background-color 0.2s ease;
+    }
   }
 }
-#oq-saveas-footer {
+#oq-newcommand-body {
+  display: grid;
+  grid-gap: 1rem;
+  grid-template-columns: auto 1fr;
+  max-width: 100%;
+  & > label {
+    text-align: right;
+    align-self: center;
+  }
+  & > input,
+  > select {
+    width: 100%;
+  }
+}
+#oq-confirm-form {
+  & button[type="submit"].mod-warning {
+    background-color: var(--background-modifier-error);
+    color: var(--text-on-accent);
+    &:hover {
+      background-color: var(--background-modifier-error-hover);
+    }
+  }
+}
+.oq-confirm-cmdname {
+  padding-left: 1.5rem;
+  font-style: italic;
+  color: var(--text-accent);
+  overflow-wrap: anywhere;
+  max-width: 100%;
+}
+#oq-saveas-footer,
+#oq-newcommand-footer {
   display: grid;
   grid-template-columns: max-content max-content 1fr;
   align-items: center;
 }
+#oq-confirm-footer {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: var(--size-4-2);
+}
+
 #oq-prompt-modal {
   padding-right: 1.25rem;
   & .oq-modal-title {
-    font-size: var(--font-ui-medium);
     display: block;
-    font-weight: bold;
-    padding-bottom: 1rem;
+    font-size: var(--font-ui-medium);
+    white-space: break-spaces;
     margin-top: -0.75rem;
+    padding-bottom: 1rem;
+    & div {
+      font-weight: bold;
+    }
+    & span {
+      color: var(--oq-app-bright-color);
+    }
   }
 }
 #oq-output-modal {
   padding: 0.5rem;
   user-select: text;
+}
+.oq-file-button {
+  box-shadow: none;
+  padding: 0;
 }

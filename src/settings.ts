@@ -1,190 +1,341 @@
-import { App, PluginSettingTab, Setting, TFolder } from "obsidian";
-import { Commands } from "@/interfaces";
+import { App, Notice, PluginSettingTab, Setting, TFolder } from "obsidian";
+import { APP_PROPS } from "./constants";
+import { Command, Commands, IPluginServices } from "@/interfaces";
 import QuillPlugin from "@/main";
+import VaultUtils from "@/VaultUtils";
+import ModalConfirm from "./components/ModalConfirm";
+import ModalCustomCommand from "./components/ModalCustomCommand";
 
 // Export the settings interface
 export interface QuillPluginSettings {
-	openaiApiKey: string;
-	openaiEnginesUrl: string;
-	openaiModel: string;
-	openaiTemperature: number;
-	saveConversations: boolean;
-	conversationsFolder: string;
-	messagesFolder: string;
-	templatesFolder: string;
-	openSavedFile: boolean;
-	commands: Commands;
+  openaiApiKey: string;
+  openaiEnginesUrl: string;
+  openaiModel: string;
+  openaiTemperature: number;
+  saveConversations: boolean;
+  conversationsFolder: string;
+  messagesFolder: string;
+  templatesFolder: string;
+  openSavedFile: boolean;
+  commands: Commands;
 }
 
 const openaiBaseUrl = "https://api.openai.com/v1";
 
 // Export the default settings
 export const DEFAULT_SETTINGS: QuillPluginSettings = {
-	openaiApiKey: "",
-	openaiEnginesUrl: `${openaiBaseUrl}/engines`,
-	openaiModel: "gpt-4o-mini",
-	openaiTemperature: 0.7,
-	saveConversations: true,
-	conversationsFolder: "Quill",
-	messagesFolder: "Quill",
-	openSavedFile: false,
-	templatesFolder: "Quill/Templates",
-	commands: {},
+  openaiApiKey: "",
+  openaiEnginesUrl: `${openaiBaseUrl}/engines`,
+  openaiModel: "gpt-4o",
+  openaiTemperature: 0.7,
+  saveConversations: true,
+  conversationsFolder: `${APP_PROPS.appName}/Conversations`,
+  messagesFolder: `${APP_PROPS.appName}/Messages`,
+  openSavedFile: false,
+  templatesFolder: `${APP_PROPS.appName}/Templates`,
+  commands: {},
 };
 
 interface OpenAIModels {
-	user: {
-		model: string;
-		display: string;
-	}[];
+  user: {
+    model: string;
+    display: string;
+  }[];
 }
 
 export const OPENAI_MODELS: OpenAIModels = {
-	user: [
-		{
-			model: "gpt-4o",
-			display: "GPT-4o",
-		},
-		{
-			model: "gpt-4o-mini",
-			display: "GPT-4o Mini",
-		},
-	],
+  user: [
+    {
+      model: "gpt-4o",
+      display: "GPT-4o",
+    },
+    {
+      model: "gpt-4o-mini",
+      display: "GPT-4o Mini",
+    },
+  ],
 };
 
 export class QuillSettingsTab extends PluginSettingTab {
-	plugin: QuillPlugin;
+  private plugin: QuillPlugin;
+  private pluginServices: IPluginServices;
 
-	constructor(app: App, plugin: QuillPlugin) {
-		super(app, plugin);
-		this.plugin = plugin;
-	}
+  constructor(app: App, plugin: QuillPlugin, pluginServices: IPluginServices) {
+    super(app, plugin);
+    this.plugin = plugin;
+    this.pluginServices = pluginServices;
+  }
 
-	display(): void {
-		const { containerEl } = this;
-		containerEl.addClass("oq-settings");
+  private closeSettings(): void {
+    // I can't find anything in the api to close the Settings panel
+    const escKeyEvent = new KeyboardEvent("keydown", {
+      key: "Escape",
+      code: "Escape",
+      bubbles: true,
+    });
+    document.dispatchEvent(escKeyEvent);
+  }
 
-		containerEl.empty();
+  display(): void {
+    const { containerEl } = this;
+    const settings = this.plugin.settings;
+    const vaultUtils = VaultUtils.getInstance(this.pluginServices, settings);
+    containerEl.setAttr("id", "oq-settings");
+    containerEl.empty();
 
-		this.containerEl.createEl("h3", {
-			text: "Obsidian Quill",
-		});
+    this.containerEl.createEl("h3", {
+      text: "Obsidian Quill",
+    });
 
-		// OpenAI
-		this.containerEl.createEl("h4", {
-			text: "OpenAI",
-		});
-		// OpenAI API Key `openaiApiKey`
-		new Setting(containerEl)
-			.setName("OpenAI API Key")
-			.setDesc("Enter your OpenAI API key.")
-			.addText((text) =>
-				text
-					.setPlaceholder("Enter your key")
-					.setValue(this.plugin.settings.openaiApiKey)
-					.onChange(async (value) => {
-						this.plugin.settings.openaiApiKey = value;
-						await this.plugin.saveSettings();
-					})
-			);
+    // OpenAI =================================================================
+    this.containerEl.createEl("h4", {
+      text: "OpenAI",
+    });
+    // OpenAI API Key `openaiApiKey`
+    new Setting(containerEl)
+      .setName("OpenAI API Key")
+      .setDesc("Enter your OpenAI API key.")
+      .addText((text) =>
+        text
+          .setPlaceholder("Enter your key")
+          .setValue(settings.openaiApiKey)
+          .onChange(async (value) => {
+            settings.openaiApiKey = value;
+            await this.pluginServices.saveSettings();
+          })
+      );
 
-		// OpenAI Model `openaiModel`
-		new Setting(containerEl)
-			.setName("OpenAI Model")
-			.setDesc(
-				"Set the default model for Quill commands. (Some commands will " +
-					"use a different model tailored to their specific purpose.)"
-			)
-			.addDropdown((dropdown) => {
-				OPENAI_MODELS.user.forEach((model) =>
-					dropdown.addOption(model.model, model.display)
-				);
-				dropdown.setValue(this.plugin.settings.openaiModel);
-				dropdown.onChange(async (model) => {
-					this.plugin.settings.openaiModel = model;
-					await this.plugin.saveSettings();
-				});
-			});
+    // OpenAI Model `openaiModel`
+    new Setting(containerEl)
+      .setName("OpenAI Model")
+      .setDesc(
+        "Set the default model for Quill commands. (Some commands will " +
+          "use a different model tailored to their specific purpose.)"
+      )
+      .addDropdown((dropdown) => {
+        OPENAI_MODELS.user.forEach((model) =>
+          dropdown.addOption(model.model, model.display)
+        );
+        dropdown.setValue(settings.openaiModel);
+        dropdown.onChange(async (model) => {
+          settings.openaiModel = model;
+          await this.pluginServices.saveSettings();
+        });
+      });
 
-		// Save Preferences
-		this.containerEl.createEl("h4", {
-			text: "Save Preferences",
-		});
-		// Save Conversations Automatically
-		new Setting(containerEl)
-			.setName("Save Conversations Automatically")
-			.setDesc("Save each conversation to a note automatically")
-			.addToggle((toggle) => {
-				toggle.setValue(this.plugin.settings.saveConversations);
-				toggle.onChange(async () => {
-					this.plugin.settings.saveConversations = toggle.getValue();
-					await this.plugin.saveSettings();
-				});
-			});
+    // Save Preferences =======================================================
+    this.containerEl.createEl("h4", {
+      text: "Saving Conversations and Messages",
+    });
+    // Save Conversations Automatically
+    new Setting(containerEl)
+      .setName("Save Conversations Automatically")
+      .setDesc("Save each conversation to a note automatically")
+      .addToggle((toggle) => {
+        toggle.setValue(settings.saveConversations);
+        toggle.onChange(async () => {
+          settings.saveConversations = toggle.getValue();
+          await this.pluginServices.saveSettings();
+        });
+      });
 
-		// Save Conversations To...
-		new Setting(containerEl)
-			.setName("Save Conversations To...")
-			.setDesc("Choose the default folder for saved conversations.")
-			.addDropdown((dropdown) => {
-				const folders = this.app.vault
-					.getAllLoadedFiles()
-					.filter((folder) => folder instanceof TFolder) as TFolder[];
-				const folderPaths = folders.map((folder) => folder.path).sort();
-				folderPaths.forEach((folderPath) =>
-					dropdown.addOption(folderPath, folderPath)
-				);
-				dropdown.setValue(this.plugin.settings.conversationsFolder);
-				dropdown.onChange(async (folder) => {
-					this.plugin.settings.conversationsFolder = folder;
-					await this.plugin.saveSettings();
-				});
-			});
+    // Save Conversations To...
+    new Setting(containerEl)
+      .setName("Save Conversations To...")
+      .setDesc("Choose the default folder for saved conversations.")
+      .addDropdown((dropdown) => {
+        const folders = this.app.vault
+          .getAllLoadedFiles()
+          .filter((folder) => folder instanceof TFolder) as TFolder[];
+        const folderPaths = folders.map((folder) => folder.path).sort();
+        folderPaths.forEach((folderPath) =>
+          dropdown.addOption(folderPath, folderPath)
+        );
+        dropdown.setValue(settings.conversationsFolder);
+        dropdown.onChange(async (folder) => {
+          settings.conversationsFolder = folder;
+          await this.pluginServices.saveSettings();
+        });
+      });
 
-		// Save Messages Preferences
-		new Setting(containerEl)
-			.setName("Save Messages To...")
-			.setDesc("Choose the default folder for saving individual messages.")
-			.addDropdown((dropdown) => {
-				const folders = this.app.vault
-					.getAllLoadedFiles()
-					.filter((folder) => folder instanceof TFolder) as TFolder[];
-				const folderPaths = folders.map((folder) => folder.path).sort();
-				folderPaths.forEach((folderPath) =>
-					dropdown.addOption(folderPath, folderPath)
-				);
-				dropdown.setValue(this.plugin.settings.messagesFolder);
-				dropdown.onChange(async (folder) => {
-					this.plugin.settings.messagesFolder = folder;
-					await this.plugin.saveSettings();
-				});
-			});
+    // Save Messages Preferences
+    new Setting(containerEl)
+      .setName("Save Messages To...")
+      .setDesc("Choose the default folder for saving individual messages.")
+      .addDropdown((dropdown) => {
+        const folders = this.app.vault
+          .getAllLoadedFiles()
+          .filter((folder) => folder instanceof TFolder) as TFolder[];
+        const folderPaths = folders.map((folder) => folder.path).sort();
+        folderPaths.forEach((folderPath) =>
+          dropdown.addOption(folderPath, folderPath)
+        );
+        dropdown.setValue(settings.messagesFolder);
+        dropdown.onChange(async (folder) => {
+          settings.messagesFolder = folder;
+          await this.pluginServices.saveSettings();
+        });
+      });
 
-		// Template Preferences
-		this.containerEl.createEl("h4", {
-			text: "Templates Folder",
-		});
-		// Template Folder
-		new Setting(containerEl)
-			.setName("Load Templates From...")
-			.setDesc(
-				"Templates are Obsidian notes you write, each of which define a " +
-					"prompt that a Quill command of your making will send. " +
-					"Select the folder where you'd like to store them."
-			)
-			.addDropdown((dropdown) => {
-				const folders = this.app.vault
-					.getAllLoadedFiles()
-					.filter((folder) => folder instanceof TFolder) as TFolder[];
-				const folderPaths = folders.map((folder) => folder.path).sort();
-				folderPaths.forEach((folderPath) =>
-					dropdown.addOption(folderPath, folderPath)
-				);
-				dropdown.setValue(this.plugin.settings.templatesFolder);
-				dropdown.onChange(async (folder) => {
-					this.plugin.settings.templatesFolder = folder;
-					await this.plugin.saveSettings();
-				});
-			});
-	}
+    // Custom Commands ========================================================
+    new Setting(containerEl)
+      .setName("My Custom Commands")
+      .setClass("oq-settings-section-title")
+      .setDesc(
+        "Define your own custom commands. First create a template — a note " +
+          "containing instructions for OpenAI — and then click Add Custom Command."
+      )
+      // Add New Custom Command
+      .addButton((button) => {
+        button.setButtonText("Add Custom Command").onClick(async () => {
+          new ModalCustomCommand(
+            this.app,
+            settings,
+            this.pluginServices,
+            async (id: string, command: Command) => {
+              settings.commands[id] = command;
+              await this.pluginServices.saveSettings();
+              await this.pluginServices.loadCommands();
+              new Notice(
+                `New command created:\n\n » ${command.name}\n\n ` +
+                  `It should now appear in the list below.`
+              );
+              this.display();
+            }
+          ).open();
+        });
+      });
+    // Command Template Folder ------------------------------------------------
+    const commandTemplateSetting = new Setting(containerEl)
+      .setName("Command Template Folder")
+      .setDesc("Select the folder for your custom command templates.")
+      .addDropdown((dropdown) => {
+        const folders = this.app.vault
+          .getAllLoadedFiles()
+          .filter((folder) => folder instanceof TFolder) as TFolder[];
+        const folderPaths = folders.map((folder) => folder.path).sort();
+        folderPaths.forEach((folderPath) =>
+          dropdown.addOption(folderPath, folderPath)
+        );
+        dropdown.setValue(settings.templatesFolder);
+        dropdown.onChange(async (folder) => {
+          settings.templatesFolder = folder;
+          await this.pluginServices.saveSettings();
+          this.display();
+        });
+      });
+
+    // Open Templates Folder
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore: Property 'internalPlugins' does not exist on type 'App'.
+    const expl = this.app.internalPlugins.getEnabledPluginById("file-explorer");
+    // Only show the button if the plugin is available
+    if (expl) {
+      commandTemplateSetting.addExtraButton((button) => {
+        button
+          .setIcon(APP_PROPS.folderIcon)
+          .setTooltip("Open folder")
+          .onClick(async () => {
+            const folder = vaultUtils.getFolderByPath(settings.templatesFolder);
+            if (folder) {
+              try {
+                expl.revealInFolder(folder);
+                this.closeSettings();
+              } catch (error) {
+                new Notice(`Error opening folder.`);
+                console.error("Error opening templates folder:", error);
+              }
+            }
+          });
+      });
+    }
+    // Custom Commands List ---------------------------------------------------
+    const commands = settings.commands;
+
+    const sortedCommands = Object.keys(commands)
+      .map((commandId) => ({ id: commandId, ...commands[commandId] }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+    sortedCommands.forEach((command) => {
+      const hasTemplateFile = vaultUtils.getFileByPath(
+        `${settings.templatesFolder}/${command.templateFilename}`,
+        true
+      );
+      const templateIcon = hasTemplateFile
+        ? APP_PROPS.fileIcon
+        : APP_PROPS.fileMissingIcon;
+      const tooltip = hasTemplateFile
+        ? `Open "${command.templateFilename}"`
+        : `Template file not found.\nEdit command to assign one.`;
+      new Setting(containerEl)
+        .setName(command.name)
+        .setDesc(
+          `${command.model || settings.openaiModel}` +
+            ` » ${command.target === "view" ? "Conversation" : "Note"}` +
+            ` ${command.prompt ? "+ Prompt" : ""}`
+        )
+        .setClass("oq-settings-custom-command")
+        // Open Template File
+        .addExtraButton((button) =>
+          button
+            .setIcon(templateIcon)
+            .setTooltip(tooltip)
+            .onClick(async () => {
+              const filePath = `${settings.templatesFolder}/${command.templateFilename}`;
+              if (vaultUtils.getFileByPath(filePath)) {
+                const opened = await vaultUtils.openFile(
+                  `${settings.templatesFolder}/${command.templateFilename}`,
+                  true
+                );
+                if (opened) this.closeSettings();
+              }
+            })
+        )
+        // Edit Command
+        .addExtraButton((button) =>
+          button
+            .setIcon(APP_PROPS.editIcon)
+            .setTooltip("Edit")
+            .onClick(async () => {
+              new ModalCustomCommand(
+                this.app,
+                settings,
+                this.pluginServices,
+                async (id: string, command: Command) => {
+                  settings.commands[id] = command;
+                  await this.pluginServices.saveSettings();
+                  await this.pluginServices.loadCommands();
+                  this.display();
+                  new Notice(`Updated command:\n\n » ${command.name}`);
+                },
+                command.id
+              ).open();
+            })
+        )
+        // Delete Command
+        .addExtraButton((button) =>
+          button
+            .setIcon(APP_PROPS.trashIcon)
+            .onClick(async () => {
+              new ModalConfirm(
+                this.app,
+                `Delete Custom Command`,
+                `Are you sure you want to permanently delete this command?` +
+                  `<span class="oq-confirm-cmdname">${command.name}</span>` +
+                  `The template file will remain in your vault.`,
+                "Delete",
+                true,
+                async () => {
+                  delete commands[command.id];
+                  await this.pluginServices.saveSettings();
+                  this.plugin.removeCommand(command.id);
+                  this.display(); // Refresh the list
+                  new Notice(`Deleted command:\n\n » ${command.name}`);
+                }
+              ).open();
+            })
+            .setTooltip("Delete...")
+        );
+    });
+  }
 }
