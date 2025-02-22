@@ -24,6 +24,7 @@
     width: 100%;
   }
   & .oq-settings-section-title {
+    display: block;
     & .setting-item-name {
       --font-weight: var(--h4-weight);
       font-variant: var(--h4-variant);

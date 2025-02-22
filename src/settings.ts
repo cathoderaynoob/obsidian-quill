@@ -182,33 +182,18 @@ export class QuillSettingsTab extends PluginSettingTab {
       .setName("My Custom Commands")
       .setClass("oq-settings-section-title")
       .setDesc(
-        "Define your own custom commands. First create a template — a note " +
-          "containing instructions for OpenAI — and then click Add Custom Command."
-      )
-      // Add New Custom Command
-      .addButton((button) => {
-        button.setButtonText("Add Custom Command").onClick(async () => {
-          new ModalCustomCommand(
-            this.app,
-            settings,
-            this.pluginServices,
-            async (id: string, command: Command) => {
-              settings.commands[id] = command;
-              await this.pluginServices.saveSettings();
-              await this.pluginServices.loadCommands();
-              new Notice(
-                `New command created:\n\n » ${command.name}\n\n ` +
-                  `It should now appear in the list below.`
-              );
-              this.display();
-            }
-          ).open();
-        });
-      });
-    // Command Template Folder ------------------------------------------------
+        "Each custom command is a combination of a template note and a " +
+          "command definition."
+      );
     const commandTemplateSetting = new Setting(containerEl)
-      .setName("Command Template Folder")
-      .setDesc("Select the folder for your custom command templates.")
+      .setName("Command Templates")
+      .setDesc(
+        "Store all your command templates in the folder selected here. " +
+          "To add a new command, first create a note in the templates folder. " +
+          "The note may contain template structure, instruction, and " +
+          "any other information you find most effective for the desired response."
+      )
+      // Command Template Folder ------------------------------------------------
       .addDropdown((dropdown) => {
         const folders = this.app.vault
           .getAllLoadedFiles()
@@ -249,6 +234,33 @@ export class QuillSettingsTab extends PluginSettingTab {
           });
       });
     }
+
+    // Add New Custom Command
+    new Setting(containerEl)
+      .setName("Command Definitions")
+      .setDesc(
+        "Have a template ready? Next, create a custom command to use it."
+      )
+      .addButton((button) => {
+        button.setButtonText("New Custom Command").onClick(async () => {
+          new ModalCustomCommand(
+            this.app,
+            settings,
+            this.pluginServices,
+            async (id: string, command: Command) => {
+              settings.commands[id] = command;
+              await this.pluginServices.saveSettings();
+              await this.pluginServices.loadCommands();
+              new Notice(
+                `New command created:\n\n » ${command.name}\n\n ` +
+                  `It should now appear in the list below.`
+              );
+              this.display();
+            }
+          ).open();
+        });
+      });
+
     // Custom Commands List ---------------------------------------------------
     const commands = settings.commands;
 
