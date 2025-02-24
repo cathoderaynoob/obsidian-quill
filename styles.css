@@ -289,7 +289,7 @@
 #oq-message-pad {
   z-index: 1000;
   width: 100%;
-  padding: 1rem;
+  padding: 1rem 1rem 2.5rem 1rem;
   background: var(--background-primary);
   border-top: 2px solid var(--oq-app-muted-color);
 }
