@@ -28,7 +28,7 @@ class ModalSaveMessageAs extends Modal {
       attr: { id: "oq-saveas-form" },
     });
 
-    this.setTitle("Save Message as a File");
+    this.setTitle("Save Message as a Note");
     // Save message as...
     const filenameEl = saveAsForm.createEl("input", {
       attr: {

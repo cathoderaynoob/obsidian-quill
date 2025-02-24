@@ -1,7 +1,12 @@
+import { Notice } from "obsidian";
 import { useEffect, useRef, useState } from "react";
 import { usePluginContext } from "@/components/PluginContext";
 import { Role } from "@/interfaces";
-import { ELEM_CLASSES_IDS, SCROLL_CHARS_LIMIT } from "@/constants";
+import {
+  ELEM_CLASSES_IDS,
+  ERROR_MESSAGES,
+  SCROLL_CHARS_LIMIT,
+} from "@/constants";
 import emitter from "@/customEmitter";
 import Message, { MessageType } from "@/components/Message";
 import PayloadMessages from "@/PayloadMessages";
@@ -11,6 +16,7 @@ const Messages: React.FC = () => {
   const { settings, apiService, pluginServices, vaultUtils, setIsResponding } =
     usePluginContext();
   const [messages, setMessages] = useState<MessageType[]>([]);
+  const [showSaveConvBtn, setShowSaveConvBtn] = useState(false);
   const [, setCurrentIndex] = useState(0);
   const latestMessageRef = useRef<MessageType | null>(null);
   const prevContentLengthRef = useRef<number>(0);
@@ -48,13 +54,8 @@ const Messages: React.FC = () => {
 
   // NEW CONVERSATION =========================================================
   const newConversation = async (event?: React.MouseEvent<HTMLElement>) => {
-    // Skip if alt+click. Save convo for all other use cases.
-    // const skipSave = event ? event.altKey : false;
-    // const success = skipSave || (await saveConversation());
-    // if (success) {
     apiService.cancelStream(); // When new convo started during a response
     clearMessages();
-    // }
     focusPrompt();
   };
 
@@ -64,7 +65,58 @@ const Messages: React.FC = () => {
     return conversationId;
   };
 
-  const saveConversation = async (
+  useEffect(() => {
+    setShowSaveConvBtn(() => {
+      if (!settings.saveConversations) {
+        return true;
+      }
+      return false;
+    });
+  }, [settings.saveConversations, messages.length]);
+
+  const saveConversationManually = async (
+    event: React.MouseEvent<HTMLElement>
+  ): Promise<void> => {
+    // Clear note of previous messages
+    const filename = getConversationId() + ".md";
+    const folderPath = vaultUtils.getConversationsFolder();
+    const filePath = `${folderPath}/${filename}`;
+    const file = vaultUtils.getFileByPath(filePath, true);
+    if (file) {
+      const success = await vaultUtils.emptyFileContent(file);
+      if (!success) {
+        new Notice("Unable to clear file content. Please check the console.");
+        return;
+      }
+    }
+
+    for (const message of messages) {
+      // if return is false, stop saving messages and show error
+      if (!(await saveMessageManually(message))) {
+        new Notice(ERROR_MESSAGES.saveError);
+        return;
+      }
+    }
+    new Notice(`Conversation saved:\n\n » ${filePath}`, 10000);
+  };
+
+  const saveMessageManually = async (
+    updatedMessage: MessageType
+  ): Promise<boolean> => {
+    if (settings.saveConversations) return false;
+    if (updatedMessage) {
+      const filename = await vaultUtils.appendLatestMessageToFile(
+        getConversationId(),
+        updatedMessage
+      );
+      if (!filename) return false;
+      return true;
+    } else {
+      return false;
+    }
+  };
+
+  const saveMessageAutomatically = async (
     updatedMessage: MessageType
   ): Promise<boolean> => {
     if (!settings.saveConversations) return false;
@@ -118,7 +170,7 @@ const Messages: React.FC = () => {
         return [...prevMessages, newMessage];
       });
       prevScrollTop.current = containerElem.scrollTop;
-      if (role === "user") saveConversation(newMessage);
+      if (role === "user") saveMessageAutomatically(newMessage);
       if (role === "assistant") {
         // Immediately scroll to the new message, regardless of the length
         scrollToMessage(messages.length - 1);
@@ -171,7 +223,7 @@ const Messages: React.FC = () => {
       // Scroll to the last message when the stream ends,
       // even if the requisite chars haven't been added
       scrollToMessage(messages.length - 1);
-      saveConversation(messages[messages.length - 1]);
+      saveMessageAutomatically(messages[messages.length - 1]);
     };
     emitter.on("streamEnd", handleStreamEnd);
     return () => {
@@ -353,7 +405,13 @@ const Messages: React.FC = () => {
   // Render the messages
   return (
     <>
-      <TitleBar newConversation={newConversation} />
+      <TitleBar
+        newConversation={newConversation}
+        manuallySaveConv={
+          showSaveConvBtn ? saveConversationManually : undefined
+        }
+        isConversationActive={messages.length > 0}
+      />
       <div id={ELEM_CLASSES_IDS.messages} tabIndex={0}>
         {messages.map((message, index) => (
           <Message

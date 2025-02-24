@@ -141,12 +141,21 @@ class VaultUtils {
   }
 
   // SAVE A CONVERSATION
-  getConversationsFolder() {
-    const folder = this.settings.conversationsFolder;
-    if (this.vault.getFolderByPath(folder) === null) {
-      this.vault.createFolder(folder);
+  getConversationsFolder(): string {
+    const folderPath = this.settings.conversationsFolder;
+    if (this.vault.getFolderByPath(folderPath) === null) {
+      this.vault.createFolder(folderPath);
     }
-    return;
+    return folderPath;
+  }
+
+  async emptyFileContent(file: TFile): Promise<boolean> {
+    await this.vault.modify(file, "");
+    if ((await this.vault.read(file)) === "") {
+      return true;
+    }
+    console.log(`Unable to clear file content from ${file.path}`);
+    return false;
   }
 
   private async formatLatestMessageForFile(
@@ -182,14 +191,11 @@ class VaultUtils {
     if (!latestMessage.content.length) return null;
     try {
       // Get conversation folder
-      const folder = this.settings.conversationsFolder;
-      if (this.vault.getFolderByPath(folder) === null) {
-        this.vault.createFolder(folder);
-      }
+      const folderPath = this.getConversationsFolder();
       // Set the filename
       const filename = `${conversationId}.md`;
-      const filePath = `${folder}/${filename}`;
-      let file = this.vault.getFileByPath(filePath);
+      const filePath = `${folderPath}/${filename}`;
+      let file = this.getFileByPath(filePath, true);
       // Does the file already exist?
       if (!file) {
         file = await this.vault.create(filePath, "");
