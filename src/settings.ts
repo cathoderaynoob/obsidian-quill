@@ -120,6 +120,7 @@ export class QuillSettingsTab extends PluginSettingTab {
         dropdown.onChange(async (model) => {
           settings.openaiModel = model;
           await this.pluginServices.saveSettings();
+          this.display();
         });
       });
 
@@ -279,13 +280,14 @@ export class QuillSettingsTab extends PluginSettingTab {
       const tooltip = hasTemplateFile
         ? `Open "${command.templateFilename}"`
         : `Template file not found.\nEdit command to assign one.`;
+
+      const modelString = command.model || `(${settings.openaiModel})`;
+      const targetString = command.target === "view" ? "Conversation" : "Note";
+      const promptString = command.prompt ? "+ Prompt" : "";
+
       new Setting(containerEl)
         .setName(command.name)
-        .setDesc(
-          `${command.model || settings.openaiModel}` +
-            ` » ${command.target === "view" ? "Conversation" : "Note"}` +
-            ` ${command.prompt ? "+ Prompt" : ""}`
-        )
+        .setDesc(`${modelString} » ${targetString} ${promptString}`)
         .setClass("oq-settings-custom-command")
         // Open Template File
         .addExtraButton((button) =>

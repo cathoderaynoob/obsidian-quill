@@ -180,6 +180,12 @@ class ModalCustomCommand extends Modal {
     const selectModel = formBody.createEl("select", {
       attr: { id: "oq-newcommand-model" },
     });
+    selectModel.createEl("option", {
+      text: `Default model (currently ${this.settings.openaiModel})`,
+      attr: {
+        value: "",
+      },
+    });
     OPENAI_MODELS.user.forEach((model) => {
       const option = selectOutputTargetEl.createEl("option", {
         text: model.display,
@@ -189,7 +195,7 @@ class ModalCustomCommand extends Modal {
       });
       selectModel.appendChild(option);
     });
-    selectModel.value = commandToEdit?.model || this.settings.openaiModel;
+    selectModel.value = commandToEdit?.model || "";
 
     // Modal Footer
     const footer = newCommandForm.createDiv({
