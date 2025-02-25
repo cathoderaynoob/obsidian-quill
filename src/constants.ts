@@ -5,6 +5,7 @@ export const APP_PROPS = {
   fileIcon: "file",
   fileMissingIcon: "file-question",
   folderIcon: "folder",
+  saveToFileIcon: "file-plus",
   sendIcon: "bird",
   trashIcon: "trash-2",
 };
@@ -18,6 +19,7 @@ export const ELEM_CLASSES_IDS = {
   msgHighlight: "oq-message-highlight",
   msgStreaming: "oq-message-streaming",
   newConversation: "oq-btn-new-conv",
+  saveConversation: "oq-btn-save-conv",
   promptInput: "oq-prompt-input",
   promptSend: "oq-prompt-send",
 };
