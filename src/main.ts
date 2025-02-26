@@ -294,7 +294,6 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
   // Saves the current settings to the local storage
   async saveSettings(): Promise<void> {
     await this.saveData(this.settings);
-    await this.loadSettings();
   }
 
   // MISCELLANEOUS
