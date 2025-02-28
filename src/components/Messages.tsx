@@ -215,9 +215,9 @@ const Messages: React.FC = () => {
     };
   }, [messages]);
 
-  // STREAM END ===============================================================
+  // RESPONSE END ===============================================================
   useEffect(() => {
-    const handleStreamEnd = () => {
+    const handleResponseEnd = () => {
       setIsResponding(false);
       clearHighlights(ELEM_CLASSES_IDS.msgStreaming);
       // Scroll to the last message when the stream ends,
@@ -225,9 +225,9 @@ const Messages: React.FC = () => {
       scrollToMessage(messages.length - 1);
       saveMessageAutomatically(messages[messages.length - 1]);
     };
-    emitter.on("streamEnd", handleStreamEnd);
+    emitter.on("responseEnd", handleResponseEnd);
     return () => {
-      emitter.off("streamEnd", handleStreamEnd);
+      emitter.off("responseEnd", handleResponseEnd);
     };
   }, [messages]);
 

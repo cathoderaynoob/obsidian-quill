@@ -35,6 +35,7 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
       getViewElem: this.getViewElem.bind(this),
       notifyError: this.notifyError.bind(this),
       saveSettings: this.saveSettings.bind(this),
+      openPluginSettings: this.openPluginSettings.bind(this),
       loadCommands: this.loadCommands.bind(this),
     };
 
@@ -294,6 +295,29 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
   // Saves the current settings to the local storage
   async saveSettings(): Promise<void> {
     await this.saveData(this.settings);
+  }
+
+  // Open Quill settings tab
+  async openPluginSettings(): Promise<void> {
+    // Thanks to the community
+    // https://discord.com/channels/686053708261228577/840286264964022302/1091000197645090856
+    const tabId = this.manifest.id;
+    try {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore: 'setting' does not exist on type 'App'.
+      const settingsPanel = this.app.setting;
+      settingsPanel.open();
+      if (settingsPanel.lastTabId !== tabId) {
+        settingsPanel.openTabById(tabId);
+      }
+    } catch (e) {
+      new Notice(
+        "There was a problem opening settings. Navigate to\n\n" +
+          " » Settings > Quill\n\nto update your preferences.",
+        0
+      );
+      console.log("Not able to open Quill Settings", e);
+    }
   }
 
   // MISCELLANEOUS

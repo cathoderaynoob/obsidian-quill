@@ -19,15 +19,46 @@ export default class ApiService {
     this.pluginServices = pluginServices;
     this.settings = settings;
     this.openai = new OpenAI({
-      apiKey: this.settings.openaiApiKey,
+      apiKey: "",
       dangerouslyAllowBrowser: true,
     });
     this.payloadMessages = PayloadMessages.getInstance();
     this.vault = pluginServices.app.vault;
   }
 
-  hasApiKey(): boolean {
-    return !!this.settings.openaiApiKey;
+  async getModels(): Promise<OpenAI.Models.ModelsPage | undefined> {
+    try {
+      const models = await this.openai.models.list();
+      return models || undefined;
+    } catch (e) {
+      console.log(e);
+      return undefined;
+    }
+  }
+
+  private async validateAndSetApiKey(): Promise<boolean> {
+    const cachedApiKey = this.openai.apiKey;
+    const settingsApiKey = this.settings.openaiApiKey;
+
+    if (!settingsApiKey || cachedApiKey !== settingsApiKey) {
+      if (!settingsApiKey) {
+        this.pluginServices.notifyError("apiKeyMissing");
+        this.pluginServices.openPluginSettings();
+        emitter.emit("responseEnd");
+        return false;
+      }
+      if (cachedApiKey !== settingsApiKey) {
+        this.openai.apiKey = settingsApiKey;
+        const valid = await this.getModels();
+        if (!valid) {
+          this.pluginServices.notifyError("apiKeyInvalid");
+          this.pluginServices.openPluginSettings();
+          emitter.emit("responseEnd");
+          return false;
+        }
+      }
+    }
+    return true;
   }
 
   // CHAT =====================================================================
@@ -40,6 +71,7 @@ export default class ApiService {
     ) => void,
     outputTarget?: OutputTarget
   ): Promise<string> {
+    if (!(await this.validateAndSetApiKey())) return "";
     const bufferLimit = STREAM_BUFFER_LIMIT;
     let bufferedContent = "";
     let completedMessage = "";
@@ -76,17 +108,17 @@ export default class ApiService {
           completedMessage += content;
         }
       }
-    } catch (error) {
-      this.pluginServices.notifyError("unknown", error);
+    } catch (e) {
+      console.log(e);
       return "";
     } finally {
       if (outputTarget && bufferedContent.length > 0) {
         callback(bufferedContent, outputTarget);
       }
-      // Give completedMessage time to be return before emitting streamEnd
+      // Give completedMessage time to be return before emitting responseEnd
       setTimeout(() => {
-        emitter.emit("streamEnd");
-        emitter.emit("modalStreamEnd");
+        emitter.emit("responseEnd");
+        emitter.emit("modalResponseEnd");
       }, 150);
     }
     return completedMessage;
@@ -103,6 +135,7 @@ export default class ApiService {
     callback: (text: string, outputTarget?: OutputTarget) => void,
     outputTarget?: OutputTarget
   ): Promise<void> {
+    if (!(await this.validateAndSetApiKey())) return;
     try {
       const completion = await this.openai.chat.completions.create({
         model: payload.model,
@@ -132,6 +165,7 @@ export default class ApiService {
       return false;
     }
 
+    if (!(await this.validateAndSetApiKey())) return false;
     const fileInfo = await this.openai.files.retrieve(file_id);
     return fileInfo || false;
   }
@@ -153,6 +187,7 @@ export default class ApiService {
     });
 
     if (uploadableFile) {
+      if (!(await this.validateAndSetApiKey())) return undefined;
       try {
         const uploadResponse = await this.openai.files.create({
           file: uploadableFile,

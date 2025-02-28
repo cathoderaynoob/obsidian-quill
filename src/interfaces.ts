@@ -19,6 +19,7 @@ export interface IPluginServices {
   getViewElem(): HTMLElement | null;
   notifyError(errorCode: string, consoleMsg?: string): void;
   saveSettings(): Promise<void>;
+  openPluginSettings(): Promise<void>;
   loadCommands(): Promise<void>;
 }
 
