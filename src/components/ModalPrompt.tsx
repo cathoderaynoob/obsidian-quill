@@ -5,7 +5,7 @@ import { APP_PROPS } from "@/constants";
 import { QuillPluginSettings } from "@/settings";
 import { getFeatureProperties } from "@/featuresRegistry";
 import emitter from "@/customEmitter";
-import ModalCustomCommand from "./ModalCustomCommand";
+import ModalCustomCommand from "@/components/ModalCustomCommand";
 import PromptContent from "@/components/PromptContent";
 
 interface ModalPromptParams {
@@ -17,10 +17,6 @@ interface ModalPromptParams {
   command?: Command;
   customCommandId?: string;
 }
-
-// export interface ModalPromptFileParams extends ModalPromptParams {
-//   onSend: (prompt: string, filePath?: string) => void;
-// }
 
 // GET PROMPT FROM USER MODAL =================================================
 class ModalPrompt extends Modal {
@@ -53,11 +49,11 @@ class ModalPrompt extends Modal {
     this.featureId = featureId;
     this.command = command;
     this.customCommandId = customCommandId;
-    this.handleStreamEnd = this.handleStreamEnd.bind(this);
-    emitter.on("modalStreamEnd", this.handleStreamEnd);
+    this.handleResponseEnd = this.handleResponseEnd.bind(this);
+    emitter.on("modalResponseEnd", this.handleResponseEnd);
   }
 
-  handleStreamEnd = () => {
+  handleResponseEnd = () => {
     this.enableSend();
   };
 

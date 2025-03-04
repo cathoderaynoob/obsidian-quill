@@ -22,16 +22,19 @@ export const ELEM_CLASSES_IDS = {
   saveConversation: "oq-btn-save-conv",
   promptInput: "oq-prompt-input",
   promptSend: "oq-prompt-send",
+  validationEmpty: "oq-validation-empty",
 };
 export const ERROR_MESSAGES = {
+  apiKeyMissing:
+    "Missing API key. Please enter it at:\n\n" +
+    " » Settings > Quill > OpenAI API Key.",
+  apiKeyInvalid:
+    "Invalid API key. Please enter it at:\n\n" +
+    " » Settings > Quill > OpenAI API Key.",
   fileNotFound: "Cannot find file at path provided. See console for details.",
   fileReadError: "Error reading file. Please check the console for details.",
   fileUploadError:
     "Error uploading file. Please check the console for details.",
-  noApiKey:
-    "Your OpenAI API key is missing. Please enter it in the " +
-    "community plugin settings for Quill.",
-  noEngines: "No engines found. More information can be found in the console.",
   noFeature: "Feature not found",
   saveError: "Unable to save to a note. Please check the console for details.",
   unknown: "An error occurred. Please check the console for details.",

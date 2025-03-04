@@ -1,10 +1,10 @@
 import { App, Notice, PluginSettingTab, Setting, TFolder } from "obsidian";
-import { APP_PROPS } from "./constants";
+import { APP_PROPS, ELEM_CLASSES_IDS } from "@/constants";
 import { Command, Commands, IPluginServices } from "@/interfaces";
 import QuillPlugin from "@/main";
 import VaultUtils from "@/VaultUtils";
-import ModalConfirm from "./components/ModalConfirm";
-import ModalCustomCommand from "./components/ModalCustomCommand";
+import ModalConfirm from "@/components/ModalConfirm";
+import ModalCustomCommand from "@/components/ModalCustomCommand";
 
 // Export the settings interface
 export interface QuillPluginSettings {
@@ -83,6 +83,15 @@ export class QuillSettingsTab extends PluginSettingTab {
     containerEl.setAttr("id", "oq-settings");
     containerEl.empty();
 
+    const validateHasValue = async (
+      settingEl: Setting,
+      value: string
+    ): Promise<void> => {
+      !value
+        ? settingEl.controlEl.addClass(ELEM_CLASSES_IDS.validationEmpty)
+        : settingEl.controlEl.removeClass(ELEM_CLASSES_IDS.validationEmpty);
+    };
+
     this.containerEl.createEl("h3", {
       text: "Obsidian Quill",
     });
@@ -91,21 +100,27 @@ export class QuillSettingsTab extends PluginSettingTab {
     this.containerEl.createEl("h4", {
       text: "OpenAI",
     });
-    // OpenAI API Key `openaiApiKey`
-    new Setting(containerEl)
+    // OpenAI API Key
+    const apikeySetting = new Setting(containerEl)
       .setName("OpenAI API Key")
       .setDesc("Enter your OpenAI API key.")
-      .addText((text) =>
+      .addText((text) => {
         text
           .setPlaceholder("Enter your key")
           .setValue(settings.openaiApiKey)
           .onChange(async (value) => {
             settings.openaiApiKey = value;
-            await this.pluginServices.saveSettings();
-          })
-      );
+            await validateHasValue(apikeySetting, settings.openaiApiKey);
+          });
+        text.inputEl.onfocus = async () => {
+          await validateHasValue(apikeySetting, settings.openaiApiKey);
+        };
+        text.inputEl.onblur = async () => {
+          await this.pluginServices.saveSettings();
+        };
+      });
 
-    // OpenAI Model `openaiModel`
+    // OpenAI Model
     new Setting(containerEl)
       .setName("OpenAI Model")
       .setDesc(
@@ -124,7 +139,7 @@ export class QuillSettingsTab extends PluginSettingTab {
         });
       });
 
-    // Save Preferences =======================================================
+    // Saving Conversations and Messages =======================================================
     this.containerEl.createEl("h4", {
       text: "Saving Conversations and Messages",
     });

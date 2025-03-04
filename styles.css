@@ -38,6 +38,9 @@
       margin-bottom: 0.5rem;
     }
   }
+  & .oq-validation-empty input {
+    border-color: var(--text-accent);
+  }
 }
 
 .oq-settings-custom-command {
