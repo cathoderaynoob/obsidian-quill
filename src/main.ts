@@ -70,11 +70,11 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
     // Open modal to get prompt
     this.addCommand({
       id: "new-prompt",
-      name: "New prompt",
+      name: "Open prompt",
       callback: async () => {
         this.toggleView();
         this.openModalPrompt({
-          featureId: "newPrompt",
+          featureId: "openPrompt",
           outputTarget: "view",
         });
       },
@@ -105,7 +105,7 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
     // "New Command" command
     this.addCommand({
       id: "new-command",
-      name: "New Command",
+      name: "Create New Command",
       callback: async () => {
         const modal = new ModalCustomCommand(
           this.app,

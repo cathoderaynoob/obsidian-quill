@@ -63,7 +63,7 @@ const MessagePad: React.FC<MessagePadProps> = ({ executeFeature }) => {
     const trimmedValue = promptValue.trim();
     setPromptValue(trimmedValue);
     executeFeature({
-      id: "newPrompt",
+      id: "openPrompt",
       inputText: trimmedValue,
     });
     setPromptValue("");
