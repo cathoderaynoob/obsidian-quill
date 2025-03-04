@@ -59,8 +59,8 @@ export const FeaturesRegistry = (
     },
 
     // NEW PROMPT
-    newPrompt: {
-      id: "newPrompt",
+    openPrompt: {
+      id: "openPrompt",
       prompt: (inputText: string) => inputText,
       processResponse: (response: string) =>
         emitter.emit("updateResponseMessage", response),
