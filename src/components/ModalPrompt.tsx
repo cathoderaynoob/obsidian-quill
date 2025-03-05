@@ -82,6 +82,11 @@ class ModalPrompt extends Modal {
     this.disableSend();
   };
 
+  handleOpenSettings = () => {
+    this.pluginServices.openPluginSettings();
+    this.close();
+  };
+
   handleKeyPress = (e: React.KeyboardEvent) => {
     if (this.disabled) this.disableSend();
     if (e.key === "Enter" && e.shiftKey) {
@@ -192,6 +197,7 @@ class ModalPrompt extends Modal {
           handleInput={this.handleInput}
           handleKeyPress={this.handleKeyPress}
           handleSend={this.handleSend}
+          handleOpenSettings={this.handleOpenSettings}
           handleBlur={this.handleBlur}
           disabled={this.disabled} // TODO: Update this to disable sending
         />

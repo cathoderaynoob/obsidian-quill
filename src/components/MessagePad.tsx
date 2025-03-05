@@ -9,7 +9,7 @@ interface MessagePadProps {
 }
 
 const MessagePad: React.FC<MessagePadProps> = ({ executeFeature }) => {
-  const { isResponding, settings } = usePluginContext();
+  const { isResponding, pluginServices, settings } = usePluginContext();
   const [promptValue, setPromptValue] = useState<string>("");
   const [rows] = useState<number>(1);
 
@@ -70,6 +70,10 @@ const MessagePad: React.FC<MessagePadProps> = ({ executeFeature }) => {
     setTextareaSize();
   };
 
+  const handleOpenSettings = () => {
+    pluginServices.openPluginSettings();
+  };
+
   return (
     <div id={ELEM_CLASSES_IDS.messagePad}>
       <PromptContent
@@ -80,6 +84,7 @@ const MessagePad: React.FC<MessagePadProps> = ({ executeFeature }) => {
         handleInput={handleInput}
         handleKeyPress={handleKeyPress}
         handleSend={handleSend}
+        handleOpenSettings={handleOpenSettings}
         disabled={isResponding}
       />
     </div>
