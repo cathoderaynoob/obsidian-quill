@@ -1,4 +1,4 @@
-import { setIcon } from "obsidian";
+import { setIcon, setTooltip } from "obsidian";
 import React, { useEffect, useRef } from "react";
 import { APP_PROPS, ELEM_CLASSES_IDS } from "@/constants";
 
@@ -10,6 +10,7 @@ interface PromptContentProps {
   handleBlur: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   handleKeyPress: (e: React.KeyboardEvent) => void;
   handleSend: () => void;
+  handleOpenSettings: () => void;
   disabled: boolean;
   target?: string;
 }
@@ -22,21 +23,30 @@ const PromptContent: React.FC<PromptContentProps> = ({
   handleInput,
   handleKeyPress,
   handleSend,
+  handleOpenSettings,
   handleBlur,
   disabled = false,
 }) => {
   const promptContentRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const buttonRef = useRef<HTMLButtonElement>(null);
+  const sendButtonRef = useRef<HTMLButtonElement>(null);
+  const settingsButtonRef = useRef<HTMLButtonElement>(null);
   const textareaClass = ELEM_CLASSES_IDS.promptInput;
-  const buttonClass = ELEM_CLASSES_IDS.promptSend;
+  const sendButtonClass = ELEM_CLASSES_IDS.promptSend;
+  const settingsButtonClass = ELEM_CLASSES_IDS.settingsButton;
 
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.focus();
     }
-    if (buttonRef.current) {
-      setIcon(buttonRef.current, APP_PROPS.sendIcon);
+    if (sendButtonRef.current) {
+      setIcon(sendButtonRef.current, APP_PROPS.sendIcon);
+    }
+    if (settingsButtonRef.current) {
+      setIcon(settingsButtonRef.current, APP_PROPS.openSettingsIcon);
+      setTooltip(settingsButtonRef.current, "Open Quill Settings", {
+        placement: "left",
+      });
     }
   }, []);
 
@@ -53,12 +63,19 @@ const PromptContent: React.FC<PromptContentProps> = ({
         onKeyDown={handleKeyPress}
       />
       <button
-        ref={buttonRef}
-        className={buttonClass}
+        ref={sendButtonRef}
+        className={sendButtonClass}
         onClick={handleSend}
         disabled={disabled}
       />
-      <div id="oq-prompt-footer">{model}</div>
+      <div id="oq-prompt-footer">
+        <span>{model}</span>
+        <button
+          ref={settingsButtonRef}
+          className={settingsButtonClass}
+          onClick={handleOpenSettings}
+        />
+      </div>
     </div>
   );
 };

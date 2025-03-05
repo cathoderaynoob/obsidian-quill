@@ -396,19 +396,24 @@ button.oq-prompt-send {
   }
 }
 #oq-prompt-footer {
-  padding: 0.2rem 0 0 1rem;
+  padding: 0 0 0 0.5rem;
   font-size: x-small;
   font-weight: normal;
-  color: var(--oq-app-muted-color);
+  color: var(--text-normal);
 
   display: grid;
   column-gap: 0.5rem;
-  grid-template-columns: max-content auto min-content;
+  grid-template-columns: auto 1fr max-content;
   align-items: center;
   justify-items: end;
-  & button:nth-child(2),
-  button:nth-child(3) {
+  & *:nth-child(2),
+  *:nth-child(3) {
     grid-column: 3;
+  }
+  & button:hover,
+  button:focus {
+    color: var(--oq-app-bright-color);
+    transition: var(--oq-transition-color);
   }
 }
 
