@@ -8,7 +8,7 @@ import { ELEM_CLASSES_IDS } from "@/constants";
 
 export interface MessageType {
   conversationId: string | null;
-  convIdx: number;
+  msgIdx: number;
   id: string;
   role: Role;
   content: string;
@@ -23,8 +23,7 @@ interface MessageProps extends MessageType {
 }
 
 const Message: React.FC<MessageProps> = ({
-  conversationId,
-  convIdx,
+  msgIdx,
   id,
   role,
   content: message,
@@ -52,7 +51,7 @@ const Message: React.FC<MessageProps> = ({
   const handleCollapseSelectedText = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
-    if (!event.target.checked) handleOnCollapse(convIdx);
+    if (!event.target.checked) handleOnCollapse(msgIdx);
   };
 
   return (
@@ -60,7 +59,7 @@ const Message: React.FC<MessageProps> = ({
       {message ? (
         <div
           className={`${ELEM_CLASSES_IDS.message} oq-message-${role}`}
-          data-conv-idx={convIdx}
+          data-conv-idx={msgIdx}
         >
           {role === "user" && <p className="oq-message-user-icon"></p>}
           <div

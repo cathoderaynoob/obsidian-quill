@@ -77,12 +77,12 @@ const Messages: React.FC = () => {
   const saveConversationManually = async (
     event: React.MouseEvent<HTMLElement>
   ): Promise<void> => {
-    // Clear note of previous messages
     const filename = getConversationId() + ".md";
     const folderPath = vaultUtils.getConversationsFolder();
     const filePath = `${folderPath}/${filename}`;
     const file = vaultUtils.getFileByPath(filePath, true);
     if (file) {
+      // Clear note of previous messages first
       const success = await vaultUtils.emptyFileContent(file);
       if (!success) {
         new Notice("Unable to clear file content. Please check the console.");
@@ -103,14 +103,21 @@ const Messages: React.FC = () => {
   const saveMessageManually = async (
     updatedMessage: MessageType
   ): Promise<boolean> => {
-    if (settings.saveConversations) return false;
     if (updatedMessage) {
-      const filename = await vaultUtils.appendLatestMessageToFile(
-        getConversationId(),
-        updatedMessage
-      );
-      if (!filename) return false;
-      return true;
+      // setTimeout prevents Obsidian indexing error
+      return new Promise((resolve) => {
+        setTimeout(async () => {
+          const filename = await vaultUtils.appendLatestMessageToConvFile(
+            getConversationId(),
+            updatedMessage
+          );
+          if (!filename) {
+            resolve(false);
+          } else {
+            resolve(true);
+          }
+        }, 0);
+      });
     } else {
       return false;
     }
@@ -123,7 +130,7 @@ const Messages: React.FC = () => {
     if (updatedMessage) {
       // Allow time for scrolling, etc. to complete, which this can interrupt
       setTimeout(async () => {
-        const filename = await vaultUtils.appendLatestMessageToFile(
+        const filename = await vaultUtils.appendLatestMessageToConvFile(
           getConversationId(),
           updatedMessage
         );
@@ -155,7 +162,7 @@ const Messages: React.FC = () => {
         : inputText || "";
       const newMessage: MessageType = {
         conversationId: getConversationId(),
-        convIdx: messages.length + 1,
+        msgIdx: messages.length + 1,
         id: generateUniqueId(),
         role: role,
         model: model,
@@ -417,7 +424,7 @@ const Messages: React.FC = () => {
           <Message
             key={message.id}
             {...message}
-            convIdx={index}
+            msgIdx={index}
             handleOnCollapse={handleCollapseSelectedText}
           />
         ))}
