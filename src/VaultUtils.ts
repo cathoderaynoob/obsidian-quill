@@ -184,32 +184,28 @@ class VaultUtils {
     return fileText;
   }
 
-  async appendLatestMessageToFile(
+  async appendLatestMessageToConvFile(
     conversationId: string,
     latestMessage: MessageType
   ): Promise<string | null> {
-    if (!latestMessage.content.length) return null;
     try {
       // Get conversation folder
       const folderPath = this.getConversationsFolder();
-      // Set the filename
+      // Find the conversation file, or create it
       const filename = `${conversationId}.md`;
       const filePath = `${folderPath}/${filename}`;
       let file = this.getFileByPath(filePath, true);
-      // Does the file already exist?
       if (!file) {
         file = await this.vault.create(filePath, "");
       }
-      const messageText = await this.formatLatestMessageForFile(
-        latestMessage,
-        file
-      );
-      if (!messageText.length) {
-        this.pluginServices.notifyError("saveError");
-        return null;
+      if (latestMessage.content.length) {
+        const messageText = await this.formatLatestMessageForFile(
+          latestMessage,
+          file
+        );
+        // Append the latest message
+        await this.vault.append(file, messageText);
       }
-      // Append the latest message
-      await this.vault.append(file, messageText);
       return filename;
     } catch (e) {
       new Notice(e);
@@ -226,6 +222,7 @@ class VaultUtils {
     const fileText = message;
     if (!fileText.length) {
       this.pluginServices.notifyError("saveError");
+      console.log("no file text length");
       return null;
     }
 
