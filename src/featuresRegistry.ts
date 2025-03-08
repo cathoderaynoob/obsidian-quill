@@ -23,41 +23,6 @@ export const FeaturesRegistry = (
   app: App
 ): Record<string, FeatureProperties> => {
   const registry: Record<string, FeatureProperties> = {
-    // TELL A JOKE
-    tellAJoke: {
-      id: "tellAJoke",
-      prompt: () => PROMPTS.tellAJoke.content,
-      processResponse: (response: string) => {
-        if (response.length) new ModalTextOutput(app, response).open();
-      },
-      model: "gpt-4o-mini",
-    },
-
-    // CUSTOM COMMAND
-    customCommandToView: {
-      id: "customCommandToView",
-      prompt: (inputText: string) => inputText,
-      processResponse: (response: string) =>
-        emitter.emit("updateResponseMessage", response),
-      stream: true,
-      outputTarget: "view",
-    },
-
-    customCommandToEditor: {
-      id: "customCommandToEditor",
-      prompt: (inputText: string) => inputText,
-      processResponse: async (
-        response: string,
-        editor: Editor,
-        editorPos: EditorPosition
-      ) => {
-        if (response.length) {
-          await renderToEditor(response, editor, editorPos);
-        }
-      },
-      stream: true,
-    },
-
     // NEW PROMPT
     openPrompt: {
       id: "openPrompt",
@@ -76,6 +41,42 @@ export const FeaturesRegistry = (
         emitter.emit("updateResponseMessage", response),
       stream: true,
       outputTarget: "view",
+    },
+
+    // TELL A JOKE
+    tellAJoke: {
+      id: "tellAJoke",
+      prompt: () => PROMPTS.tellAJoke.content,
+      processResponse: (response: string) => {
+        if (response.length) new ModalTextOutput(app, response).open();
+      },
+      model: "gpt-4o-mini",
+    },
+
+    // CUSTOM COMMAND TO VIEW
+    customCommandToView: {
+      id: "customCommandToView",
+      prompt: (inputText: string) => inputText,
+      processResponse: (response: string) =>
+        emitter.emit("updateResponseMessage", response),
+      stream: true,
+      outputTarget: "view",
+    },
+
+    // CUSTOM COMMAND TO EDITOR
+    customCommandToEditor: {
+      id: "customCommandToEditor",
+      prompt: (inputText: string) => inputText,
+      processResponse: async (
+        response: string,
+        editor: Editor,
+        editorPos: EditorPosition
+      ) => {
+        if (response.length) {
+          await renderToEditor(response, editor, editorPos);
+        }
+      },
+      stream: true,
     },
   };
 
