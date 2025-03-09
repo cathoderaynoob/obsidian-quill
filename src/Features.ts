@@ -7,31 +7,32 @@ import ApiService from "@/ApiService";
 import PayloadMessages from "@/PayloadMessages";
 
 export default class Features {
-	app: App;
-	apiService: ApiService;
-	settings: QuillPluginSettings;
-	payloadMessages: PayloadMessages;
-	featuresRegistry: Record<string, FeatureProperties>;
-	pluginServices: IPluginServices;
+  app: App;
+  apiService: ApiService;
+  settings: QuillPluginSettings;
+  payloadMessages: PayloadMessages;
+  featuresRegistry: Record<string, FeatureProperties>;
+  pluginServices: IPluginServices;
 
-	constructor(app: App, apiService: ApiService, settings: QuillPluginSettings) {
-		this.app = app;
-		this.apiService = apiService;
-		this.settings = settings;
-		this.payloadMessages = PayloadMessages.getInstance();
-		this.featuresRegistry = FeaturesRegistry(app);
-		this.executeFeature = this.executeFeature.bind(this);
-		this.pluginServices = apiService.pluginServices;
-	}
+  constructor(app: App, apiService: ApiService, settings: QuillPluginSettings) {
+    this.app = app;
+    this.apiService = apiService;
+    this.settings = settings;
+    this.payloadMessages = PayloadMessages.getInstance();
+    this.featuresRegistry = FeaturesRegistry(app);
+    this.executeFeature = this.executeFeature.bind(this);
+    this.pluginServices = apiService.pluginServices;
+  }
 
-	async executeFeature(options: ExecutionOptions) {
-		await executeFeature(
-			this.featuresRegistry,
-			options,
-			this.settings,
-			this.apiService,
-			this.payloadMessages,
-			this.pluginServices
-		);
-	}
+  async executeFeature(options: ExecutionOptions) {
+    const success = await executeFeature(
+      this.featuresRegistry,
+      options,
+      this.settings,
+      this.apiService,
+      this.payloadMessages,
+      this.pluginServices
+    );
+    return success;
+  }
 }

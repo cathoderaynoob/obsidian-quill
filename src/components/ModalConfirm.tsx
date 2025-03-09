@@ -15,7 +15,7 @@ class ModalConfirm extends Modal {
       | string
       | "Are you sure you want to do this? This action cannot be undone.",
     submitButtonText: string | "Yes, I'm sure",
-    submitButtonRed = false,
+    submitButtonRed: boolean | false,
     onSubmit: () => void
   ) {
     super(app);

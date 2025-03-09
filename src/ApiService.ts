@@ -4,6 +4,7 @@ import { GptRequestPayload, IPluginServices, OutputTarget } from "@/interfaces";
 import { QuillPluginSettings } from "@/settings";
 import { STREAM_BUFFER_LIMIT } from "@/constants";
 import emitter from "@/customEmitter";
+import ModalConfirm from "@/components/ModalConfirm";
 import PayloadMessages from "@/PayloadMessages";
 
 export default class ApiService {
@@ -19,46 +20,77 @@ export default class ApiService {
     this.pluginServices = pluginServices;
     this.settings = settings;
     this.openai = new OpenAI({
-      apiKey: "",
+      apiKey: this.settings.openaiApiKey,
       dangerouslyAllowBrowser: true,
     });
     this.payloadMessages = PayloadMessages.getInstance();
     this.vault = pluginServices.app.vault;
   }
 
-  async getModels(): Promise<OpenAI.Models.ModelsPage | undefined> {
+  async getModels(): Promise<OpenAI.Models.ModelsPage | false> {
     try {
       const models = await this.openai.models.list();
       return models || undefined;
     } catch (e) {
-      console.log(e);
-      return undefined;
+      console.log(e.message);
+      return false;
     }
   }
 
-  private async validateAndSetApiKey(): Promise<boolean> {
-    const cachedApiKey = this.openai.apiKey;
-    const settingsApiKey = this.settings.openaiApiKey;
+  async openApiKeyProblemModal(problem: "missing" | "invalid"): Promise<void> {
+    const modalContent = {
+      missing: {
+        title: "Missing API Key",
+        message: "Open Settings to add it?",
+        notify: "apiKeyMissing",
+      },
+      invalid: {
+        title: "Invalid API Key",
+        message: "Open Settings to update it?",
+        notify: "apiKeyInvalid",
+      },
+    };
 
-    if (!settingsApiKey || cachedApiKey !== settingsApiKey) {
-      if (!settingsApiKey) {
-        this.pluginServices.notifyError("apiKeyMissing");
-        this.pluginServices.openPluginSettings();
-        emitter.emit("responseEnd");
-        return false;
-      }
-      if (cachedApiKey !== settingsApiKey) {
-        this.openai.apiKey = settingsApiKey;
-        const valid = await this.getModels();
-        if (!valid) {
-          this.pluginServices.notifyError("apiKeyInvalid");
-          this.pluginServices.openPluginSettings();
-          emitter.emit("responseEnd");
-          return false;
+    const { title, message, notify } = modalContent[problem];
+
+    try {
+      new ModalConfirm(
+        this.pluginServices.app,
+        title,
+        message,
+        "Open Settings",
+        false,
+        async () => {
+          await this.pluginServices.openPluginSettings();
         }
-      }
+      ).open();
+    } catch (e) {
+      console.log(e.message);
+      this.pluginServices.notifyError(notify);
     }
-    return true;
+  }
+
+  refreshApiKey(): void {
+    this.openai.apiKey = this.settings.openaiApiKey;
+  }
+
+  async validateApiKey(suppressNotice?: boolean): Promise<boolean> {
+    // MISSING
+    if (!this.settings.openaiApiKey) {
+      if (!suppressNotice) await this.openApiKeyProblemModal("missing");
+      emitter.emit("responseEnd");
+      return false;
+    }
+    // INVALID
+    this.refreshApiKey();
+    const isApiKeyValid = await this.getModels();
+    if (isApiKeyValid) {
+      return true;
+    } else {
+      if (!suppressNotice) await this.openApiKeyProblemModal("invalid");
+      emitter.emit("responseEnd");
+      return false;
+    }
   }
 
   // CHAT =====================================================================
@@ -69,14 +101,12 @@ export default class ApiService {
       outputTarget?: OutputTarget,
       editorPos?: EditorPosition
     ) => void,
-    outputTarget?: OutputTarget
+    outputTarget: OutputTarget = "view"
   ): Promise<string> {
-    if (!(await this.validateAndSetApiKey())) return "";
     const bufferLimit = STREAM_BUFFER_LIMIT;
     let bufferedContent = "";
     let completedMessage = "";
     let lastEditorPos: EditorPosition | null = null;
-
     const bufferContent = (content: string, editor: Editor) => {
       if (!lastEditorPos) {
         lastEditorPos = editor.getCursor();
@@ -109,8 +139,10 @@ export default class ApiService {
         }
       }
     } catch (e) {
-      console.log(e);
-      return "";
+      console.log(e.message);
+      if (e.status && e.status === 401) {
+        await this.validateApiKey();
+      }
     } finally {
       if (outputTarget && bufferedContent.length > 0) {
         callback(bufferedContent, outputTarget);
@@ -135,7 +167,6 @@ export default class ApiService {
     callback: (text: string, outputTarget?: OutputTarget) => void,
     outputTarget?: OutputTarget
   ): Promise<void> {
-    if (!(await this.validateAndSetApiKey())) return;
     try {
       const completion = await this.openai.chat.completions.create({
         model: payload.model,
@@ -148,8 +179,11 @@ export default class ApiService {
           outputTarget || undefined
         );
       }
-    } catch (error) {
-      this.pluginServices.notifyError("unknown", error);
+    } catch (e) {
+      console.log(e.message);
+      if (e.status && e.status === 401) {
+        await this.validateApiKey();
+      }
     }
   }
 
@@ -165,9 +199,16 @@ export default class ApiService {
       return false;
     }
 
-    if (!(await this.validateAndSetApiKey())) return false;
-    const fileInfo = await this.openai.files.retrieve(file_id);
-    return fileInfo || false;
+    try {
+      const fileInfo = await this.openai.files.retrieve(file_id);
+      return fileInfo;
+    } catch (e) {
+      console.log(e.message);
+      if (e.status && e.status === 401) {
+        await this.validateApiKey();
+      }
+      return false;
+    }
   }
 
   async uploadFileFromVault(
@@ -187,15 +228,17 @@ export default class ApiService {
     });
 
     if (uploadableFile) {
-      if (!(await this.validateAndSetApiKey())) return undefined;
       try {
         const uploadResponse = await this.openai.files.create({
           file: uploadableFile,
           purpose: purpose,
         });
         return uploadResponse.id;
-      } catch (error) {
-        console.error("Error uploading file:", error);
+      } catch (e) {
+        console.log("Error uploading file:", e);
+        if (e.status && e.status === 401) {
+          await this.validateApiKey();
+        }
       }
     } else {
       this.pluginServices.notifyError(

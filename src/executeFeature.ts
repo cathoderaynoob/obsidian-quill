@@ -34,7 +34,7 @@ export const executeFeature = async (
   apiService: ApiService,
   payloadMessages: PayloadMessages,
   pluginServices: IPluginServices
-): Promise<void> => {
+): Promise<boolean> => {
   // options
   const {
     id,
@@ -44,11 +44,14 @@ export const executeFeature = async (
     formattingGuidance,
     outputTarget,
   } = options;
+
+  if (!(await apiService.validateApiKey())) return false;
+
   const vaultUtils = VaultUtils.getInstance(pluginServices, settings);
   const feature = featureRegistry[id];
   if (!feature) {
     pluginServices.notifyError("noFeature");
-    return;
+    return false;
   }
   // Custom Command Template File
   let commandTemplateContent: string | undefined;
@@ -68,7 +71,7 @@ export const executeFeature = async (
     selectedText: selectedText || undefined,
     formattingGuidance: formattingGuidance || undefined,
   });
-  if (!payloadPrompt) return; // Prevent empty requests
+  if (!payloadPrompt) return false; // Prevent empty requests
 
   let payloadMessagesArray: PayloadMessagesType[] = [];
   const newPayloadMessage: PayloadMessagesType = {
@@ -161,4 +164,5 @@ export const executeFeature = async (
       outputTarget
     );
   }
+  return true;
 };

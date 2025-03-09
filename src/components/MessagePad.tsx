@@ -5,7 +5,7 @@ import { usePluginContext } from "@/components/PluginContext";
 import PromptContent from "@/components/PromptContent";
 
 interface MessagePadProps {
-  executeFeature: (options: ExecutionOptions) => void;
+  executeFeature: (options: ExecutionOptions) => Promise<boolean>;
 }
 
 const MessagePad: React.FC<MessagePadProps> = ({ executeFeature }) => {
@@ -59,15 +59,20 @@ const MessagePad: React.FC<MessagePadProps> = ({ executeFeature }) => {
     }
   };
 
-  const handleSend = () => {
+  const handleSend = async () => {
     const trimmedValue = promptValue.trim();
-    setPromptValue(trimmedValue);
-    executeFeature({
+    // Clear the prompt field...
+    setPromptValue("");
+    setTextareaSize();
+    const success = await executeFeature({
       id: "openPrompt",
       inputText: trimmedValue,
     });
-    setPromptValue("");
-    setTextareaSize();
+    if (!success) {
+      // ...but restore it if the response fails
+      setPromptValue(trimmedValue);
+      setTextareaSize();
+    }
   };
 
   const handleOpenSettings = () => {
