@@ -5,7 +5,6 @@
 [id="oq-newcommand-form"] {
   --oq-app-bright-color: var(--text-accent);
   --oq-app-muted-color: var(--text-muted);
-  --oq-view-title-height: 2.5rem;
   --oq-message-pad-height: 6.25rem;
   --oq-highlight-width: 3px;
   --oq-transition-color: color 0.2s ease;
@@ -82,7 +81,6 @@
 
 /* View ==================================================================== */
 [data-type="quill-chat-view"]:focus-within {
-  #oq-view-title,
   #oq-message-pad {
     border-color: var(--oq-app-bright-color);
     color: var(--oq-app-bright-color);
@@ -92,23 +90,8 @@
 [data-type="quill-chat-view"] .view-content {
   display: grid;
   grid-gap: 0;
-  grid-template-rows: var(--oq-view-title-height) 1fr auto;
+  grid-template-rows: 1fr auto;
   padding: 0;
-}
-#oq-view-title {
-  display: grid;
-  grid-template-columns: 1fr min-content;
-  align-items: center;
-  height: var(--oq-view-title-height);
-  width: 100%;
-  z-index: 1000;
-  color: var(--oq-app-muted-color);
-  transition: var(--oq-transition-color), border-color 0.2s ease;
-  border-bottom: 2px solid var(--oq-app-muted-color);
-  padding: 0 1rem;
-  font-weight: 400;
-  --icon-size: var(--icon-m);
-  background: var(--background-primary);
 }
 #oq-btn-new-conv,
 #oq-btn-save-conv {
@@ -121,14 +104,6 @@
     color: var(--oq-app-bright-color);
     transition: var(--oq-transition-color);
   }
-}
-#oq-btn-new-conv::after {
-  position: relative;
-  bottom: 0.35rem;
-  margin-left: 0.5rem;
-  color: var(--oq-app-muted-color);
-  content: "new conversation";
-  font-size: small;
 }
 #oq-btn-save-conv {
   color: var(--oq-app-muted-color);
@@ -396,18 +371,15 @@ button.oq-prompt-send {
   }
 }
 #oq-prompt-footer {
-  padding: 0 0 0 0.5rem;
   font-size: x-small;
   font-weight: normal;
   color: var(--text-normal);
 
   display: grid;
   column-gap: 0.5rem;
-  grid-template-columns: auto 1fr max-content;
+  grid-template-columns: auto 1fr max-content auto;
   align-items: center;
-  justify-items: end;
-  & *:nth-child(2),
-  *:nth-child(3) {
+  & span {
     grid-column: 3;
   }
   & button:hover,

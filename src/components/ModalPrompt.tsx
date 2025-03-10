@@ -143,7 +143,7 @@ class ModalPrompt extends Modal {
   generateFileButtonIcon(command: Command) {
     const button = new ButtonComponent(this.contentEl);
     button
-      .setClass("clickable-icon")
+      .setClass(APP_PROPS.clickableIcon)
       .setIcon(APP_PROPS.fileIcon)
       .setTooltip("Open template file")
       .onClick(() => {
@@ -159,7 +159,7 @@ class ModalPrompt extends Modal {
   generateEditButtonIcon(customCommandId: string) {
     const button = new ButtonComponent(this.contentEl);
     button
-      .setClass("clickable-icon")
+      .setClass(APP_PROPS.clickableIcon)
       .setIcon(APP_PROPS.editIcon)
       .setTooltip("Edit command")
       .onClick(() => {
@@ -193,13 +193,12 @@ class ModalPrompt extends Modal {
           value={this.promptValue}
           rows={this.rows}
           model={this.model}
-          target={this.command?.target || "view"}
           handleInput={this.handleInput}
           handleKeyPress={this.handleKeyPress}
           handleSend={this.handleSend}
           handleOpenSettings={this.handleOpenSettings}
           handleBlur={this.handleBlur}
-          disabled={this.disabled} // TODO: Update this to disable sending
+          disabled={this.disabled} // TODO: Update this to disable sending (???)
         />
       </div>
     );

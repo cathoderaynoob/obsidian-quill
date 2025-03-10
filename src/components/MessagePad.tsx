@@ -6,9 +6,17 @@ import PromptContent from "@/components/PromptContent";
 
 interface MessagePadProps {
   executeFeature: (options: ExecutionOptions) => Promise<boolean>;
+  newConversation: (event: React.MouseEvent<HTMLElement>) => void;
+  manuallySaveConv?: (event: React.MouseEvent<HTMLElement>) => void;
+  isConversationActive: boolean;
 }
 
-const MessagePad: React.FC<MessagePadProps> = ({ executeFeature }) => {
+const MessagePad: React.FC<MessagePadProps> = ({
+  executeFeature,
+  newConversation,
+  manuallySaveConv: manuallySaveConv,
+  isConversationActive: isConversationActive,
+}) => {
   const { isResponding, pluginServices, settings } = usePluginContext();
   const [promptValue, setPromptValue] = useState<string>("");
   const [rows] = useState<number>(1);
@@ -90,6 +98,9 @@ const MessagePad: React.FC<MessagePadProps> = ({ executeFeature }) => {
         handleKeyPress={handleKeyPress}
         handleSend={handleSend}
         handleOpenSettings={handleOpenSettings}
+        newConversation={newConversation}
+        manuallySaveConv={manuallySaveConv}
+        isConversationActive={isConversationActive}
         disabled={isResponding}
       />
     </div>
