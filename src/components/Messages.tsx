@@ -7,12 +7,17 @@ import {
   ERROR_MESSAGES,
   SCROLL_CHARS_LIMIT,
 } from "@/constants";
-import emitter from "@/customEmitter";
+import { ExecutionOptions } from "@/executeFeature";
 import Message, { MessageType } from "@/components/Message";
+import emitter from "@/customEmitter";
 import PayloadMessages from "@/PayloadMessages";
-import TitleBar from "@/components/TitleBar";
+import MessagePad from "@/components/MessagePad";
 
-const Messages: React.FC = () => {
+interface MessagesProps {
+  executeFeature: (options: ExecutionOptions) => Promise<boolean>;
+}
+
+const Messages: React.FC<MessagesProps> = ({ executeFeature }) => {
   const { settings, apiService, pluginServices, vaultUtils, setIsResponding } =
     usePluginContext();
   const [messages, setMessages] = useState<MessageType[]>([]);
@@ -412,13 +417,6 @@ const Messages: React.FC = () => {
   // Render the messages
   return (
     <>
-      <TitleBar
-        newConversation={newConversation}
-        manuallySaveConv={
-          showSaveConvBtn ? saveConversationManually : undefined
-        }
-        isConversationActive={messages.length > 0}
-      />
       <div id={ELEM_CLASSES_IDS.messages} tabIndex={0}>
         {messages.map((message, index) => (
           <Message
@@ -429,6 +427,14 @@ const Messages: React.FC = () => {
           />
         ))}
       </div>
+      <MessagePad
+        executeFeature={executeFeature}
+        newConversation={newConversation}
+        manuallySaveConv={
+          showSaveConvBtn ? saveConversationManually : undefined
+        }
+        isConversationActive={messages.length > 0}
+      />
     </>
   );
 };

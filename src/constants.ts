@@ -1,12 +1,14 @@
 export const APP_PROPS = {
   appName: "Quill",
   appIcon: "feather",
+  clickableIcon: "clickable-icon",
   editIcon: "settings",
   fileIcon: "file",
   fileMissingIcon: "file-question",
   folderIcon: "folder",
   openSettingsIcon: "settings-2",
-  saveToFileIcon: "file-plus",
+  noConvToSaveIcon: "scroll",
+  saveToFileIcon: "scroll-text",
   sendIcon: "bird",
   trashIcon: "trash-2",
 };
@@ -23,7 +25,6 @@ export const ELEM_CLASSES_IDS = {
   saveConversation: "oq-btn-save-conv",
   promptInput: "oq-prompt-input",
   promptSend: "oq-prompt-send",
-  settingsButton: "clickable-icon",
   validationEmpty: "oq-validation-empty",
 };
 export const ERROR_MESSAGES = {

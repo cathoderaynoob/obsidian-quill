@@ -161,7 +161,6 @@ export default class ApiService {
     this.streamingContent = null;
   }
 
-  // TODO: Update this to possibly return string instead of void
   async getNonStreamingChatResponse(
     payload: GptRequestPayload,
     callback: (text: string, outputTarget?: OutputTarget) => void,
