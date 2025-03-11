@@ -1,5 +1,9 @@
 import { App, Modal, setTooltip } from "obsidian";
-import { QuillPluginSettings, OPENAI_MODELS } from "@/settings";
+import {
+  DEFAULT_SETTINGS,
+  QuillPluginSettings,
+  OPENAI_MODELS,
+} from "@/settings";
 import { Command, IPluginServices } from "@/interfaces";
 import VaultUtils from "@/VaultUtils";
 import { ELEM_CLASSES_IDS } from "@/constants";
@@ -90,17 +94,21 @@ class ModalCustomCommand extends Modal {
         for: ELEM_CLASSES_IDS.cmdTemplate,
       },
     });
+
     const selectTemplateEl = formBody.createEl("select", {
       attr: { id: ELEM_CLASSES_IDS.cmdTemplate },
     });
+
     // Populate the menu with the list of markdown files in the templates folder
     (async () => {
+      const templatesFolder =
+        this.settings.pathTemplates || DEFAULT_SETTINGS.pathTemplates;
       const templateFiles = await vaultUtils.getListOfMarkdownFilesByPath(
-        this.settings.templatesFolder
+        templatesFolder
       );
       // Add a default option
       selectTemplateEl.createEl("option", {
-        text: `From folder "${this.settings.templatesFolder}"`,
+        text: `... in folder "${templatesFolder}"`,
         attr: {
           value: "",
           disabled: "disabled",

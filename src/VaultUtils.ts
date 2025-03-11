@@ -1,16 +1,18 @@
 import { normalizePath, Notice, TFile, TFolder, Vault } from "obsidian";
 import { join } from "path";
 import { format } from "date-fns";
-import { IPluginServices } from "@/interfaces";
+import { DefaultSaveFolder, IPluginServices } from "@/interfaces";
 import { MessageType } from "@/components/Message";
 import { QuillPluginSettings } from "@/settings";
 import ModalSaveMessageAs from "@/components/ModalSaveMessageAs";
+import ModalSaveConversation from "@/components/ModalSaveConversation";
 
 class VaultUtils {
   private static instance: VaultUtils;
   private pluginServices: IPluginServices;
   private settings: QuillPluginSettings;
   private vault: Vault;
+  saveConversationManually: () => Promise<boolean>;
 
   constructor(pluginServices: IPluginServices, settings: QuillPluginSettings) {
     this.pluginServices = pluginServices;
@@ -52,7 +54,7 @@ class VaultUtils {
   }
 
   // Returns the file object given its path
-  getFileByPath(filePath: string, suppressError?: boolean): TFile {
+  getFileByPath(filePath: string, suppressError?: boolean): TFile | null {
     const file = this.vault.getAbstractFileByPath(filePath) as TFile;
     if (!file && !suppressError) {
       this.pluginServices.notifyError(
@@ -64,9 +66,9 @@ class VaultUtils {
   }
 
   // Returns the folder object given its path
-  getFolderByPath(folderPath: string): TFolder | null {
+  getFolderByPath(folderPath: string, suppressError?: boolean): TFolder | null {
     const folder = this.vault.getFolderByPath(folderPath);
-    if (!folder) {
+    if (!folder && !suppressError) {
       this.pluginServices.notifyError(
         "folderNotFound",
         `Folder not found at \`${folderPath}\`.`
@@ -75,12 +77,19 @@ class VaultUtils {
     return folder;
   }
 
+  sortFolderPaths(folders: TFolder[]): string[] {
+    folders.map((folder) => folder.path);
+    return folders
+      .map((folder) => folder.path)
+      .sort((a, b) => a.localeCompare(b));
+  }
+
   // Returns an alphabetically sorted list of all folders in the vault
-  getAllFolders() {
+  getAllFolderPaths(): string[] {
     const folders = this.vault
       .getAllLoadedFiles()
       .filter((file) => file instanceof TFolder) as TFolder[];
-    return folders.map((folder) => folder.path).sort();
+    return this.sortFolderPaths(folders);
   }
 
   // Returns the content of a given file
@@ -123,7 +132,7 @@ class VaultUtils {
   createFilenameAsDatetime(fileExt?: string) {
     fileExt = fileExt || "md"; // Default file type
     const now = this.getDateTime();
-    return `Quill ${now}.${fileExt}`;
+    return `${now}.${fileExt}`;
   }
 
   // Returns the filename from the first heading in a markdown file
@@ -140,13 +149,55 @@ class VaultUtils {
     return sanitized;
   }
 
-  // SAVE A CONVERSATION
-  getConversationsFolder(): string {
-    const folderPath = this.settings.conversationsFolder;
-    if (this.vault.getFolderByPath(folderPath) === null) {
+  async getDefaultFolderPath(
+    folder: DefaultSaveFolder,
+    createFolderIfMissing?: boolean
+  ): Promise<string> {
+    let folderPath = "";
+    switch (folder) {
+      case "conversations":
+        // Check settings for user's preference
+        folderPath = this.settings.pathConversations;
+        // If not yet set, or the folder is missing, prompt to select one
+        if (
+          folderPath === "" ||
+          this.vault.getFolderByPath(folderPath) === null
+        ) {
+          folderPath = await this.promptForConvoFolder();
+        }
+        break;
+      case "messages":
+        folderPath = this.settings.pathMessages;
+        break;
+      case "templates":
+        folderPath = this.settings.pathTemplates;
+        break;
+    }
+    // If folder at the given path is missing, optionally create it
+    if (
+      createFolderIfMissing &&
+      this.vault.getFolderByPath(folderPath) === null
+    ) {
       this.vault.createFolder(folderPath);
     }
     return folderPath;
+  }
+
+  async promptForConvoFolder(): Promise<string> {
+    return new Promise((resolve) => {
+      const modal = new ModalSaveConversation(
+        this.pluginServices.app,
+        this.settings,
+        this.getAllFolderPaths(),
+        async (folderPath) => {
+          this.settings.pathConversations = folderPath;
+          this.pluginServices.saveSettings();
+          modal.close();
+          resolve(folderPath);
+        }
+      );
+      modal.open();
+    });
   }
 
   async emptyFileContent(file: TFile): Promise<boolean> {
@@ -186,11 +237,10 @@ class VaultUtils {
 
   async appendLatestMessageToConvFile(
     conversationId: string,
-    latestMessage: MessageType
+    latestMessage: MessageType,
+    folderPath: string
   ): Promise<string | null> {
     try {
-      // Get conversation folder
-      const folderPath = this.getConversationsFolder();
       // Find the conversation file, or create it
       const filename = `${conversationId}.md`;
       const filePath = `${folderPath}/${filename}`;
@@ -208,7 +258,6 @@ class VaultUtils {
       }
       return filename;
     } catch (e) {
-      new Notice(e);
       console.log(e);
       return null;
     }
@@ -216,13 +265,12 @@ class VaultUtils {
 
   // SAVE A MESSAGE TO A FILE AS...
   async saveMessageAs(
-    message: string,
-    settings: QuillPluginSettings
+    message: string
   ): Promise<{ filename: string; path: string } | null> {
     const fileText = message;
     if (!fileText.length) {
       this.pluginServices.notifyError("saveError");
-      console.log("no file text length");
+      console.log("File contains no text");
       return null;
     }
 
@@ -231,23 +279,29 @@ class VaultUtils {
         this.pluginServices.app,
         this.settings,
         message,
-        this.getAllFolders().sort(),
-        async (fileName, folderPath, openFile) => {
+        this.getAllFolderPaths(),
+        async (fileName, folderPath, openFile, saveAsDefault) => {
           if (!fileName.length) {
             fileName = this.createFilenameAsDatetime();
           }
           const filename = this.sanitizeFilename(
             fileName.endsWith(".md") ? fileName : fileName + ".md"
           );
+          if (this.vault.getFolderByPath(folderPath) === null) {
+            this.vault.createFolder(folderPath);
+          }
           const filepath = normalizePath(join(folderPath, filename));
           try {
             await this.vault.create(filepath, fileText);
-            new Notice(`${filename}\n  saved to\n${folderPath}`);
+            new Notice(`${filename}\n\n  saved to\n\n${folderPath}`);
             modal.close();
-            this.settings.openSavedFile = openFile;
-            await this.pluginServices.saveSettings();
+            this.settings.openAfterSave = openFile;
             if (openFile) {
-              this.openFile(filepath, true);
+              await this.openFile(filepath, true);
+            }
+            if (saveAsDefault) {
+              this.settings.pathMessages = folderPath;
+              await this.pluginServices.saveSettings();
             }
             resolve({ filename, path: folderPath });
           } catch (e) {

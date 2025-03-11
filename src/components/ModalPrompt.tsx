@@ -148,7 +148,7 @@ class ModalPrompt extends Modal {
       .setTooltip("Open template file")
       .onClick(() => {
         if (command?.templateFilename) {
-          const filePath = `${this.settings.templatesFolder}/${command.templateFilename}`;
+          const filePath = `${this.settings.pathTemplates}/${command.templateFilename}`;
           this.openFileInNewPane(this.app, filePath);
         }
         this.close();

@@ -58,10 +58,15 @@ export const executeFeature = async (
   if (command) {
     // Read content from template file
     const templateFilePath = normalizePath(
-      `${settings.templatesFolder}/${command.templateFilename}`
+      `${settings.pathTemplates}/${command.templateFilename}`
     );
-    const templateFile: TFile = vaultUtils.getFileByPath(templateFilePath);
-    commandTemplateContent = await vaultUtils.getFileContent(templateFile);
+    const templateFile: TFile | null =
+      vaultUtils.getFileByPath(templateFilePath);
+    if (templateFile) {
+      commandTemplateContent = await vaultUtils.getFileContent(templateFile);
+    } else {
+      return false;
+    }
   }
 
   // Build prompt payload

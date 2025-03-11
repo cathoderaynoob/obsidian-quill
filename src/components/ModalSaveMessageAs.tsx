@@ -1,10 +1,15 @@
-import { App, Modal } from "obsidian";
-import { QuillPluginSettings } from "@/settings";
+import { App, DropdownComponent, Modal } from "obsidian";
+import { DEFAULT_SETTINGS, QuillPluginSettings } from "@/settings";
 
 class ModalSaveMessageAs extends Modal {
   private content: string;
   private folderPaths: string[];
-  private onSubmit: (name: string, path: string, openFile: boolean) => void;
+  private onSubmit: (
+    name: string,
+    path: string,
+    openFile: boolean,
+    saveAsDefault: boolean
+  ) => void;
   private settings: QuillPluginSettings;
 
   constructor(
@@ -12,7 +17,12 @@ class ModalSaveMessageAs extends Modal {
     settings: QuillPluginSettings,
     content: string,
     folderPaths: string[],
-    onSubmit: (name: string, path: string, openFile: boolean) => void
+    onSubmit: (
+      name: string,
+      path: string,
+      openFile: boolean,
+      saveAsDefault: boolean
+    ) => void
   ) {
     super(app);
     this.settings = settings;
@@ -42,25 +52,96 @@ class ModalSaveMessageAs extends Modal {
     filenameEl.select();
 
     // To folder...
-    const selectFolderField = saveAsForm.createEl("select", {
-      attr: { id: "oq-saveas-folder" },
+    const defaultMessagesFolder = DEFAULT_SETTINGS.pathMessages;
+    const settingsMessagesPath = this.settings.pathMessages;
+    const isNewUser = settingsMessagesPath === "";
+    const isMissingFolder = !this.folderPaths.includes(settingsMessagesPath);
+
+    if (isNewUser || isMissingFolder) {
+      const message = isNewUser
+        ? "Select a default folder for your saved messages. You can change " +
+          "this later in Settings."
+        : "Your default messages folder could not be found:";
+      saveAsForm
+        .createDiv({
+          cls: "oq-warn",
+          text: message,
+        })
+        .createDiv({
+          cls: "oq-filepath",
+          text: settingsMessagesPath,
+        });
+    }
+
+    // Add select menu
+    const selectFieldsContainer = saveAsForm.createDiv({
+      cls: "oq-select-fields",
     });
-    this.folderPaths.forEach((folderPath) => {
-      const option = selectFolderField.createEl("option", {
-        text: folderPath,
+    const selectFolderComp = new DropdownComponent(selectFieldsContainer);
+
+    if (isNewUser) {
+      selectFolderComp.addOption(
+        defaultMessagesFolder,
+        `${defaultMessagesFolder}  (Quill plugin default)`
+      );
+    } else if (isMissingFolder) {
+      selectFolderComp.selectEl.createEl("option", {
+        text: "Save to folder...",
         attr: {
-          value: folderPath,
+          value: "",
+          disabled: "disabled",
         },
       });
-      selectFolderField.appendChild(option);
-      // Select the folder that the user has set in the settings
-      selectFolderField.value = this.settings.messagesFolder;
+    }
+    this.folderPaths.forEach((folderPath) => {
+      selectFolderComp.addOption(folderPath, folderPath);
     });
+
+    const selectedPath = isNewUser
+      ? defaultMessagesFolder
+      : isMissingFolder
+      ? ""
+      : settingsMessagesPath;
+
+    selectFolderComp.setValue(selectedPath);
+
+    // Style the empty selection option elem
+    selectFolderComp.selectEl.toggleClass("oq-disabled", selectedPath === "");
+    selectFolderComp.onChange(() => {
+      const isEmpty = selectFolderComp.getValue() === "";
+      selectFolderComp.selectEl.toggleClass("oq-disabled", isEmpty);
+    });
+
+    // Add an option to save the selected folder as default
+    let isSaveAsDefaultChecked = false;
+    if (isMissingFolder) {
+      const saveAsDefaultDiv = selectFieldsContainer.createDiv({
+        attr: {
+          class: "oq-saveas-default-container",
+        },
+      });
+      const saveAsDefault = saveAsDefaultDiv.createEl("input", {
+        attr: {
+          id: "oq-saveas-default",
+          type: "checkbox",
+        },
+      });
+      // Add event to update the value of isSaveAsDefaultChecked
+      saveAsDefault.onchange = () => {
+        isSaveAsDefaultChecked = saveAsDefault.checked;
+      };
+      saveAsDefaultDiv.createEl("label", {
+        text: "Set as my default messages folder",
+        attr: {
+          for: "oq-saveas-default",
+        },
+      });
+    }
 
     // Modal Footer
     const footer = saveAsForm.createDiv({
       attr: {
-        id: "oq-saveas-footer",
+        id: "oq-saveas-message-footer",
       },
     });
 
@@ -71,7 +152,7 @@ class ModalSaveMessageAs extends Modal {
         type: "checkbox",
       },
     });
-    openFile.checked = this.settings.openSavedFile;
+    openFile.checked = this.settings.openAfterSave;
     footer.createEl("label", {
       text: "Open file after saving",
       attr: {
@@ -91,10 +172,19 @@ class ModalSaveMessageAs extends Modal {
       event.preventDefault();
       this.onSubmit(
         filenameEl.value,
-        selectFolderField.value,
-        openFile.checked
+        selectFolderComp.selectEl.value,
+        openFile.checked,
+        isSaveAsDefaultChecked
       );
     };
+
+    // Cancel Button
+    footer.createEl("button", {
+      text: "Cancel",
+      attr: {
+        type: "button",
+      },
+    }).onclick = () => this.close();
 
     // Add event listener to saveAsContainer for Return key
     saveAsForm.addEventListener("keydown", (event) => {
@@ -102,7 +192,7 @@ class ModalSaveMessageAs extends Modal {
         if (document.activeElement === filenameEl) {
           event.preventDefault();
           saveButton.click();
-        } else if (document.activeElement === selectFolderField) {
+        } else if (document.activeElement === selectFolderComp.selectEl) {
           event.preventDefault();
         }
       }

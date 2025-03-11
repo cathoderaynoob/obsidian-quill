@@ -13,6 +13,8 @@ export interface Commands {
   [key: string]: Command;
 }
 
+export type DefaultSaveFolder = "conversations" | "messages" | "templates";
+
 export interface IPluginServices {
   app: App;
   toggleView(): Promise<void>;
