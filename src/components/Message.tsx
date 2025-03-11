@@ -1,7 +1,7 @@
-import { Notice } from "obsidian";
+import { Notice, setIcon, setTooltip } from "obsidian";
 import ReactMarkdown from "react-markdown";
-// import { BetweenHorizontalEnd, Copy, FilePlus } from "lucide-react";
-import { Copy, FilePlus } from "lucide-react";
+import { useEffect, useRef } from "react";
+import { APP_PROPS } from "@/constants";
 import { Role } from "@/interfaces";
 import { usePluginContext } from "@/components/PluginContext";
 import { ELEM_CLASSES_IDS } from "@/constants";
@@ -34,8 +34,11 @@ const Message: React.FC<MessageProps> = ({
   // status,
 }) => {
   const { settings, vaultUtils } = usePluginContext();
+  const copyMessageButtonRef = useRef<HTMLButtonElement>(null);
+  const saveMessageButtonRef = useRef<HTMLButtonElement>(null);
+  const clickableIconClass = APP_PROPS.clickableIcon;
 
-  const saveMessage = async (event: React.MouseEvent<SVGSVGElement>) => {
+  const saveMessage = async () => {
     vaultUtils.saveMessageAs(message, settings);
   };
 
@@ -53,6 +56,25 @@ const Message: React.FC<MessageProps> = ({
   ) => {
     if (!event.target.checked) handleOnCollapse(msgIdx);
   };
+
+  useEffect(() => {
+    // Copy Message Button
+    const copyButton = copyMessageButtonRef.current;
+    if (copyButton) {
+      setIcon(copyButton, APP_PROPS.copyIcon);
+      setTooltip(copyButton, "Copy message to clipboard", {
+        placement: "top",
+      });
+    }
+    // Save Message Button
+    const saveButton = saveMessageButtonRef.current;
+    if (saveButton) {
+      setIcon(saveButton, APP_PROPS.newFileIcon);
+      setTooltip(saveButton, "Save message to new note", {
+        placement: "top",
+      });
+    }
+  }, [message]);
 
   return (
     <>
@@ -88,13 +110,20 @@ const Message: React.FC<MessageProps> = ({
             {role === "assistant" && (
               <div className="oq-message-footer">
                 <div className="oq-message-actions">
-                  <Copy
-                    size={18}
-                    strokeWidth={2}
-                    onClick={copyMessageToClipboard}
-                  />
-                  <FilePlus size={18} strokeWidth={2} onClick={saveMessage} />
-                  {/* <BetweenHorizontalEnd size={18} strokeWidth={2} /> Not sure if this is really helpful */}
+                  {copyMessageButtonRef && (
+                    <button
+                      ref={copyMessageButtonRef}
+                      onClick={copyMessageToClipboard}
+                      className={clickableIconClass}
+                    />
+                  )}
+                  {saveMessageButtonRef && (
+                    <button
+                      ref={saveMessageButtonRef}
+                      onClick={saveMessage}
+                      className={clickableIconClass}
+                    />
+                  )}
                 </div>
                 <div className="oq-message-model">{model}</div>
               </div>

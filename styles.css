@@ -5,6 +5,7 @@
 [id="oq-newcommand-form"] {
   --oq-app-bright-color: var(--text-accent);
   --oq-app-muted-color: var(--text-muted);
+  --oq-app-faint-color: var(--color-base-40);
   --oq-message-pad-height: 6.25rem;
   --oq-highlight-width: 3px;
   --oq-transition-color: color 0.2s ease;
@@ -190,24 +191,33 @@
 }
 .oq-message-footer {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: min-content 1fr;
+  align-items: center;
 }
 .oq-message-actions {
-  opacity: 0.4;
-  transition: var(--oq-transition-opacity);
-}
-.oq-message:hover .oq-message-actions {
-  opacity: 1;
-  transition: var(--oq-transition-opacity);
-}
-.oq-message-actions .lucide {
-  color: var(--oq-app-muted-color);
-  transition: var(--oq-transition-color);
-  margin-right: 0.5rem;
-  &:hover {
-    color: var(--oq-app-bright-color);
+  display: grid;
+  grid-template-columns: auto auto;
+  padding-bottom: 0.33rem;
+  & button {
+    color: var(--oq-app-faint-color);
     transition: var(--oq-transition-color);
-    cursor: pointer;
+    &:focus {
+      color: var(--oq-app-bright-color);
+      transition: var(--oq-transition-color);
+      cursor: pointer;
+    }
+  }
+}
+.oq-message:hover {
+  .oq-message-actions button {
+    color: var(--oq-app-muted-color);
+    transition: var(--oq-transition-color);
+    &:hover,
+    &:focus {
+      color: var(--oq-app-bright-color);
+      transition: var(--oq-transition-color);
+      cursor: pointer;
+    }
   }
 }
 .oq-message-assistant {
@@ -380,7 +390,7 @@ button.oq-prompt-send {
   grid-template-columns: auto 1fr max-content auto;
   align-items: center;
   & span {
-    grid-column: 3;
+    grid-column: 2;
   }
   & button:hover,
   button:focus {

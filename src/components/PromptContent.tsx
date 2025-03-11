@@ -75,12 +75,12 @@ const PromptContent: React.FC<PromptContentProps> = ({
         setIcon(
           saveConvElem,
           isConversationActive
-            ? APP_PROPS.saveToFileIcon
+            ? APP_PROPS.saveConversationIcon
             : APP_PROPS.noConvToSaveIcon
         );
         saveConvElem.toggleClass("oq-disabled", !isConversationActive);
         const tooltipText = isConversationActive
-          ? "Save conversation to note"
+          ? "Save conversation"
           : "No conversation to save";
         setTooltip(saveConvElem, tooltipText, {
           placement: "top",
@@ -116,6 +116,7 @@ const PromptContent: React.FC<PromptContentProps> = ({
             onClick={newConversation}
           />
         )}
+        <span>{model}</span>
         {manuallySaveConv && (
           <button
             ref={saveConversationButtonRef}
@@ -124,7 +125,6 @@ const PromptContent: React.FC<PromptContentProps> = ({
             disabled={!isConversationActive}
           />
         )}
-        <span>{model}</span>
         <button
           ref={settingsButtonRef}
           className={clickableIconClass}
