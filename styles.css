@@ -12,9 +12,28 @@
   --oq-transition-opacity: opacity 0.2s ease;
 }
 
-.oq-warn {
+.oq-warn-text {
   font-style: italic;
   font-size: small;
+}
+
+.oq-warn-button {
+  color: var(--text-error);
+  cursor: help;
+  &:hover,
+  &:focus {
+    color: var(--text-error);
+  }
+}
+
+.oq-menu-default {
+  font-style: italic;
+}
+
+.oq-action-button,
+.oq-action-button:hover,
+.oq-action-button:focus {
+  color: var(--text-accent);
 }
 
 .oq-filepath {
@@ -28,11 +47,15 @@
   & .setting-item {
     display: grid;
     grid-gap: 0.5rem;
-    grid-template-columns: 1fr 33%;
+    /* grid-template-columns: 1fr 33%; */
+    grid-template-columns: 1fr 40%;
   }
   & input,
   & select {
     width: 100%;
+    &.oq-disabled {
+      color: var(--text-faint);
+    }
   }
   & .oq-settings-section-title {
     display: block;

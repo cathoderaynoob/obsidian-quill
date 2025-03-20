@@ -42,7 +42,7 @@ class ModalSaveConversation extends Modal {
         : "Your default conversations folder could not be found:";
       saveAsForm
         .createDiv({
-          cls: "oq-warn",
+          cls: "oq-warn-text",
           text: message,
         })
         .createDiv({
@@ -55,6 +55,7 @@ class ModalSaveConversation extends Modal {
     const selectFieldsContainer = saveAsForm.createDiv({
       cls: "oq-select-fields",
     });
+
     const selectFolderComp = new DropdownComponent(selectFieldsContainer);
 
     if (isNewUser) {

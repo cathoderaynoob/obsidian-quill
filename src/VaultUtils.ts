@@ -30,6 +30,10 @@ class VaultUtils {
     return VaultUtils.instance;
   }
 
+  async createFolder(path: string): Promise<TFolder> {
+    return this.vault.createFolder(path);
+  }
+
   // Returns a list of markdown files in a folder
   async getListOfMarkdownFilesByPath(folderPath: string) {
     const filesAndFolders = await this.vault.adapter.list(folderPath);
