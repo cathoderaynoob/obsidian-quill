@@ -12,6 +12,17 @@
   --oq-transition-opacity: opacity 0.2s ease;
 }
 
+.oq-warn {
+  font-style: italic;
+  font-size: small;
+}
+
+.oq-filepath {
+  font-style: normal;
+  font-family: monospace;
+  font-size: medium;
+}
+
 /* Settings ================================================================ */
 #oq-settings {
   & .setting-item {
@@ -386,16 +397,20 @@ button.oq-prompt-send {
   color: var(--text-normal);
 
   display: grid;
-  column-gap: 0.5rem;
-  grid-template-columns: auto 1fr max-content auto;
   align-items: center;
-  & span {
-    grid-column: 2;
+  grid-template-columns: auto 1fr max-content auto;
+  justify-items: start;
+  & button:nth-child(1),
+  button:nth-child(2) {
+    justify-self: end;
   }
   & button:hover,
   button:focus {
     color: var(--oq-app-bright-color);
     transition: var(--oq-transition-color);
+  }
+  & button + span {
+    margin-left: 0.5rem;
   }
 }
 
@@ -405,8 +420,12 @@ button.oq-prompt-send {
 #oq-confirm-form {
   display: grid;
   padding-right: 1.25rem;
-  grid-row-gap: 1.5rem;
+  grid-row-gap: 1.33rem;
   padding-top: 0.5rem;
+  & .oq-filepath {
+    padding-left: 1rem;
+    margin-top: 0.66rem;
+  }
   & .oq-modal-title {
     white-space: break-spaces;
   }
@@ -415,6 +434,9 @@ button.oq-prompt-send {
   }
   & select:focus {
     box-shadow: 0 0 0px 1px var(--oq-app-bright-color);
+  }
+  & select.oq-disabled {
+    color: var(--text-faint);
   }
   & input[type="checkbox"]:focus {
     box-shadow: 0px 0px 8px var(--checkbox-color);
@@ -441,6 +463,20 @@ button.oq-prompt-send {
       transition: background-color 0.2s ease;
     }
   }
+  & span.oq-warn {
+    font-size: small;
+    padding-left: 0.66rem;
+  }
+}
+.oq-saveas-default-container {
+  display: grid;
+  align-items: center;
+  grid-template-columns: min-content max-content;
+  padding-left: 0.66rem;
+}
+.oq-select-fields {
+  display: grid;
+  grid-row-gap: 1rem;
 }
 #oq-newcommand-body {
   display: grid;
@@ -472,17 +508,27 @@ button.oq-prompt-send {
   overflow-wrap: anywhere;
   max-width: 100%;
 }
-#oq-saveas-footer,
+#oq-saveas-message-footer,
+#oq-saveas-convo-footer,
 #oq-newcommand-footer {
   display: grid;
-  grid-template-columns: max-content max-content 1fr;
+  grid-template-columns: max-content max-content 1fr min-content;
   align-items: center;
+  padding-left: 0.75rem;
+  & button + button {
+    margin-left: 0.5rem;
+    justify-self: end;
+  }
+}
+#oq-saveas-convo-footer {
+  grid-template-columns: 1fr min-content;
 }
 #oq-confirm-footer {
   display: grid;
   grid-template-columns: 1fr auto;
   align-items: center;
   gap: var(--size-4-2);
+  padding-top: 0.66rem;
 }
 
 #oq-prompt-modal {

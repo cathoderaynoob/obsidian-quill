@@ -21,7 +21,7 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature }) => {
   const { settings, apiService, pluginServices, vaultUtils, setIsResponding } =
     usePluginContext();
   const [messages, setMessages] = useState<MessageType[]>([]);
-  const [showSaveConvBtn, setShowSaveConvBtn] = useState(false);
+  const [showSaveConvoBtn, setShowSaveConvoBtn] = useState(false);
   const [, setCurrentIndex] = useState(0);
   const latestMessageRef = useRef<MessageType | null>(null);
   const prevContentLengthRef = useRef<number>(0);
@@ -71,77 +71,75 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature }) => {
   };
 
   useEffect(() => {
-    setShowSaveConvBtn(() => {
-      if (!settings.saveConversations) {
+    setShowSaveConvoBtn(() => {
+      if (!settings.autoSaveConvos) {
         return true;
       }
       return false;
     });
-  }, [settings.saveConversations, messages.length]);
+  }, [settings.autoSaveConvos, messages.length]);
 
-  const saveConversationManually = async (
-    event: React.MouseEvent<HTMLElement>
-  ): Promise<void> => {
-    const filename = getConversationId() + ".md";
-    const folderPath = vaultUtils.getConversationsFolder();
+  const saveConversationManually = async (): Promise<boolean> => {
+    // Filename is based on conversation ID
+    const convoId = getConversationId();
+    const filename = convoId + ".md";
+    // Get the conversations folder path
+    const folderPath = await vaultUtils.getDefaultFolderPath(
+      "conversations",
+      true
+    );
+    if (folderPath === "") return false;
+    // Construct the full file path
     const filePath = `${folderPath}/${filename}`;
-    const file = vaultUtils.getFileByPath(filePath, true);
-    if (file) {
-      // Clear note of previous messages first
-      const success = await vaultUtils.emptyFileContent(file);
+    // See if the convo has been saved previously
+    const savedFile = vaultUtils.getFileByPath(filePath, true);
+    if (savedFile) {
+      // If so, clear note of previous messages first
+      const success = await vaultUtils.emptyFileContent(savedFile);
       if (!success) {
         new Notice("Unable to clear file content. Please check the console.");
-        return;
+        return false;
       }
     }
-
+    // Now save messages to file
     for (const message of messages) {
       // if return is false, stop saving messages and show error
-      if (!(await saveMessageManually(message))) {
+      if (!(await saveMessageToConversation(message, folderPath))) {
         new Notice(ERROR_MESSAGES.saveError);
-        return;
+        return false;
       }
     }
-    new Notice(`Conversation saved:\n\n » ${filePath}`, 10000);
+    new Notice(`${convoId}\n\n  saved to folder\n\n${folderPath}`, 5000);
+    return true;
   };
+  // Make this available to vaultUtils
+  vaultUtils.saveConversationManually = saveConversationManually;
 
-  const saveMessageManually = async (
-    updatedMessage: MessageType
+  const saveMessageToConversation = async (
+    updatedMessage: MessageType,
+    folderPath: string
   ): Promise<boolean> => {
     if (updatedMessage) {
       // setTimeout prevents Obsidian indexing error
       return new Promise((resolve) => {
-        setTimeout(async () => {
-          const filename = await vaultUtils.appendLatestMessageToConvFile(
-            getConversationId(),
-            updatedMessage
-          );
-          if (!filename) {
-            resolve(false);
-          } else {
-            resolve(true);
-          }
-        }, 0);
-      });
-    } else {
-      return false;
-    }
-  };
-
-  const saveMessageAutomatically = async (
-    updatedMessage: MessageType
-  ): Promise<boolean> => {
-    if (!settings.saveConversations) return false;
-    if (updatedMessage) {
-      // Allow time for scrolling, etc. to complete, which this can interrupt
-      setTimeout(async () => {
-        const filename = await vaultUtils.appendLatestMessageToConvFile(
-          getConversationId(),
-          updatedMessage
+        setTimeout(
+          async () => {
+            const filename = await vaultUtils.appendLatestMessageToConvFile(
+              getConversationId(),
+              updatedMessage,
+              folderPath
+            );
+            if (!filename) {
+              resolve(false);
+            } else {
+              resolve(true);
+            }
+          },
+          // When auto-saving, the save can disrupt scrolling of messages, so
+          // delay to make time for it to complete
+          settings.autoSaveConvos ? 1500 : 0
         );
-        if (!filename) return false;
-      }, 1500);
-      return true;
+      });
     } else {
       return false;
     }
@@ -149,7 +147,7 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature }) => {
 
   // NEW MESSAGE ==============================================================
   // Adds a new message to the conversation, but
-  // does not include content of message (see `updateResponseMessage`)
+  // Does not include content of message (see `updateResponseMessage`)
   useEffect(() => {
     const containerElem = getContainerElem();
     if (!containerElem) return;
@@ -182,7 +180,6 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature }) => {
         return [...prevMessages, newMessage];
       });
       prevScrollTop.current = containerElem.scrollTop;
-      if (role === "user") saveMessageAutomatically(newMessage);
       if (role === "assistant") {
         // Immediately scroll to the new message, regardless of the length
         scrollToMessage(messages.length - 1);
@@ -229,13 +226,29 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature }) => {
 
   // RESPONSE END ===============================================================
   useEffect(() => {
-    const handleResponseEnd = () => {
+    const handleResponseEnd = async () => {
       setIsResponding(false);
       clearHighlights(ELEM_CLASSES_IDS.msgStreaming);
       // Scroll to the last message when the stream ends,
       // even if the requisite chars haven't been added
       scrollToMessage(messages.length - 1);
-      saveMessageAutomatically(messages[messages.length - 1]);
+      // Don't save now if saving convos manually
+      if (!settings.autoSaveConvos) return;
+      // Autosave
+      const folderPath = await vaultUtils.getDefaultFolderPath(
+        "conversations",
+        true
+      );
+      if (folderPath !== "") {
+        // TODO: Refactor to save only the last message. THIS ISN'T A GOOD APPROACH
+        // Get the last two messages (i.e. user and assistant) and save them
+        for (const message of messages.slice(-2)) {
+          // If return is false, stop saving messages and show error
+          if (!(await saveMessageToConversation(message, folderPath))) {
+            return;
+          }
+        }
+      }
     };
     emitter.on("responseEnd", handleResponseEnd);
     return () => {
@@ -431,7 +444,7 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature }) => {
         executeFeature={executeFeature}
         newConversation={newConversation}
         manuallySaveConv={
-          showSaveConvBtn ? saveConversationManually : undefined
+          showSaveConvoBtn ? saveConversationManually : undefined
         }
         isConversationActive={messages.length > 0}
       />

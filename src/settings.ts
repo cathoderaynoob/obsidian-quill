@@ -1,4 +1,10 @@
-import { App, Notice, PluginSettingTab, Setting, TFolder } from "obsidian";
+import {
+  App,
+  DropdownComponent,
+  Notice,
+  PluginSettingTab,
+  Setting,
+} from "obsidian";
 import { APP_PROPS, ELEM_CLASSES_IDS } from "@/constants";
 import { Command, Commands, IPluginServices } from "@/interfaces";
 import QuillPlugin from "@/main";
@@ -9,30 +15,26 @@ import ModalCustomCommand from "@/components/ModalCustomCommand";
 // Export the settings interface
 export interface QuillPluginSettings {
   openaiApiKey: string;
-  openaiEnginesUrl: string;
   openaiModel: string;
   openaiTemperature: number;
-  saveConversations: boolean;
-  conversationsFolder: string;
-  messagesFolder: string;
-  templatesFolder: string;
-  openSavedFile: boolean;
+  autoSaveConvos: boolean;
+  pathConversations: string;
+  pathMessages: string;
+  pathTemplates: string;
+  openAfterSave: boolean;
   commands: Commands;
 }
-
-const openaiBaseUrl = "https://api.openai.com/v1";
 
 // Export the default settings
 export const DEFAULT_SETTINGS: QuillPluginSettings = {
   openaiApiKey: "",
-  openaiEnginesUrl: `${openaiBaseUrl}/engines`,
   openaiModel: "gpt-4o",
   openaiTemperature: 0.7,
-  saveConversations: true,
-  conversationsFolder: `${APP_PROPS.appName}/Conversations`,
-  messagesFolder: `${APP_PROPS.appName}/Messages`,
-  openSavedFile: false,
-  templatesFolder: `${APP_PROPS.appName}/Templates`,
+  autoSaveConvos: false,
+  pathConversations: `${APP_PROPS.appName}/Conversations`,
+  pathMessages: `${APP_PROPS.appName}/Messages`,
+  pathTemplates: `${APP_PROPS.appName}/Templates`,
+  openAfterSave: false,
   commands: {},
 };
 
@@ -79,6 +81,9 @@ export class QuillSettingsTab extends PluginSettingTab {
   display(): void {
     const { containerEl } = this;
     const settings = this.plugin.settings;
+    const defaultConversationsPath = DEFAULT_SETTINGS.pathConversations;
+    const defaultMessagesPath = DEFAULT_SETTINGS.pathMessages;
+    const defaultTemplatesPath = DEFAULT_SETTINGS.pathTemplates;
     const vaultUtils = VaultUtils.getInstance(this.pluginServices, settings);
     containerEl.setAttr("id", "oq-settings");
     containerEl.empty();
@@ -90,6 +95,21 @@ export class QuillSettingsTab extends PluginSettingTab {
       !value
         ? settingEl.controlEl.addClass(ELEM_CLASSES_IDS.validationEmpty)
         : settingEl.controlEl.removeClass(ELEM_CLASSES_IDS.validationEmpty);
+    };
+
+    const addDefaultFolderDropdownOptions = (
+      dropdown: DropdownComponent,
+      defaultFolderPath?: string
+    ): void => {
+      const folderPaths = vaultUtils.getAllFolderPaths();
+      if (defaultFolderPath && !folderPaths.contains(defaultFolderPath)) {
+        dropdown.addOption(defaultFolderPath, `${defaultFolderPath} (default)`);
+      }
+      folderPaths.forEach((folderPath) => {
+        if (!!defaultFolderPath || folderPath !== defaultFolderPath) {
+          dropdown.addOption(folderPath, folderPath);
+        }
+      });
     };
 
     this.containerEl.createEl("h3", {
@@ -148,9 +168,9 @@ export class QuillSettingsTab extends PluginSettingTab {
       .setName("Save Conversations Automatically")
       .setDesc("Save each conversation to a note automatically")
       .addToggle((toggle) => {
-        toggle.setValue(settings.saveConversations);
+        toggle.setValue(settings.autoSaveConvos);
         toggle.onChange(async () => {
-          settings.saveConversations = toggle.getValue();
+          settings.autoSaveConvos = toggle.getValue();
           await this.pluginServices.saveSettings();
         });
       });
@@ -160,16 +180,14 @@ export class QuillSettingsTab extends PluginSettingTab {
       .setName("Save Conversations To...")
       .setDesc("Choose the default folder for saved conversations.")
       .addDropdown((dropdown) => {
-        const folders = this.app.vault
-          .getAllLoadedFiles()
-          .filter((folder) => folder instanceof TFolder) as TFolder[];
-        const folderPaths = folders.map((folder) => folder.path).sort();
-        folderPaths.forEach((folderPath) =>
-          dropdown.addOption(folderPath, folderPath)
+        addDefaultFolderDropdownOptions(dropdown, defaultConversationsPath);
+        dropdown.setValue(
+          vaultUtils.getFolderByPath(settings.pathConversations, true)
+            ? settings.pathConversations
+            : defaultConversationsPath
         );
-        dropdown.setValue(settings.conversationsFolder);
         dropdown.onChange(async (folder) => {
-          settings.conversationsFolder = folder;
+          settings.pathConversations = folder;
           await this.pluginServices.saveSettings();
         });
       });
@@ -179,16 +197,14 @@ export class QuillSettingsTab extends PluginSettingTab {
       .setName("Save Messages To...")
       .setDesc("Choose the default folder for saving individual messages.")
       .addDropdown((dropdown) => {
-        const folders = this.app.vault
-          .getAllLoadedFiles()
-          .filter((folder) => folder instanceof TFolder) as TFolder[];
-        const folderPaths = folders.map((folder) => folder.path).sort();
-        folderPaths.forEach((folderPath) =>
-          dropdown.addOption(folderPath, folderPath)
+        addDefaultFolderDropdownOptions(dropdown, defaultMessagesPath);
+        dropdown.setValue(
+          vaultUtils.getFolderByPath(settings.pathMessages, true)
+            ? settings.pathMessages
+            : defaultMessagesPath
         );
-        dropdown.setValue(settings.messagesFolder);
         dropdown.onChange(async (folder) => {
-          settings.messagesFolder = folder;
+          settings.pathMessages = folder;
           await this.pluginServices.saveSettings();
         });
       });
@@ -211,16 +227,14 @@ export class QuillSettingsTab extends PluginSettingTab {
       )
       // Command Template Folder ------------------------------------------------
       .addDropdown((dropdown) => {
-        const folders = this.app.vault
-          .getAllLoadedFiles()
-          .filter((folder) => folder instanceof TFolder) as TFolder[];
-        const folderPaths = folders.map((folder) => folder.path).sort();
-        folderPaths.forEach((folderPath) =>
-          dropdown.addOption(folderPath, folderPath)
+        addDefaultFolderDropdownOptions(dropdown, defaultTemplatesPath);
+        dropdown.setValue(
+          vaultUtils.getFolderByPath(settings.pathTemplates, true)
+            ? settings.pathTemplates
+            : defaultTemplatesPath
         );
-        dropdown.setValue(settings.templatesFolder);
         dropdown.onChange(async (folder) => {
-          settings.templatesFolder = folder;
+          settings.pathTemplates = folder;
           await this.pluginServices.saveSettings();
           this.display();
         });
@@ -237,7 +251,10 @@ export class QuillSettingsTab extends PluginSettingTab {
           .setIcon(APP_PROPS.folderIcon)
           .setTooltip("Open folder")
           .onClick(async () => {
-            const folder = vaultUtils.getFolderByPath(settings.templatesFolder);
+            const folder = vaultUtils.getFolderByPath(
+              settings.pathTemplates,
+              true
+            );
             if (folder) {
               try {
                 expl.revealInFolder(folder);
@@ -285,8 +302,8 @@ export class QuillSettingsTab extends PluginSettingTab {
       .sort((a, b) => a.name.localeCompare(b.name));
 
     sortedCommands.forEach((command) => {
-      const hasTemplateFile = vaultUtils.getFileByPath(
-        `${settings.templatesFolder}/${command.templateFilename}`,
+      const hasTemplateFile = !!vaultUtils.getFileByPath(
+        `${settings.pathTemplates}/${command.templateFilename}`,
         true
       );
       const templateIcon = hasTemplateFile
@@ -305,21 +322,22 @@ export class QuillSettingsTab extends PluginSettingTab {
         .setDesc(`${modelString} » ${targetString} ${promptString}`)
         .setClass("oq-settings-custom-command")
         // Open Template File
-        .addExtraButton((button) =>
-          button
+        .addExtraButton((button) => {
+          const openTemplateButton = button
             .setIcon(templateIcon)
-            .setTooltip(tooltip)
-            .onClick(async () => {
-              const filePath = `${settings.templatesFolder}/${command.templateFilename}`;
+            .setTooltip(tooltip);
+          if (hasTemplateFile)
+            openTemplateButton.onClick(async () => {
+              const filePath = `${settings.pathTemplates}/${command.templateFilename}`;
               if (vaultUtils.getFileByPath(filePath)) {
                 const opened = await vaultUtils.openFile(
-                  `${settings.templatesFolder}/${command.templateFilename}`,
+                  `${settings.pathTemplates}/${command.templateFilename}`,
                   true
                 );
                 if (opened) this.closeSettings();
               }
-            })
-        )
+            });
+        })
         // Edit Command
         .addExtraButton((button) =>
           button

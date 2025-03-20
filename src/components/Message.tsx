@@ -15,7 +15,6 @@ export interface MessageType {
   model: string;
   selectedText?: string;
   error?: string;
-  // status?: string;
 }
 
 interface MessageProps extends MessageType {
@@ -31,15 +30,14 @@ const Message: React.FC<MessageProps> = ({
   selectedText,
   error,
   handleOnCollapse,
-  // status,
 }) => {
-  const { settings, vaultUtils } = usePluginContext();
+  const { vaultUtils } = usePluginContext();
   const copyMessageButtonRef = useRef<HTMLButtonElement>(null);
   const saveMessageButtonRef = useRef<HTMLButtonElement>(null);
   const clickableIconClass = APP_PROPS.clickableIcon;
 
-  const saveMessage = async () => {
-    vaultUtils.saveMessageAs(message, settings);
+  const saveMessageAs = async () => {
+    vaultUtils.saveMessageAs(message);
   };
 
   const copyMessageToClipboard = () => {
@@ -120,7 +118,7 @@ const Message: React.FC<MessageProps> = ({
                   {saveMessageButtonRef && (
                     <button
                       ref={saveMessageButtonRef}
-                      onClick={saveMessage}
+                      onClick={saveMessageAs}
                       className={clickableIconClass}
                     />
                   )}
