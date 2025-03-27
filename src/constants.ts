@@ -1,3 +1,5 @@
+import { OpenAIModels } from "@/interfaces";
+
 export const APP_PROPS = {
   appName: "Quill",
   appIcon: "feather",
@@ -7,6 +9,9 @@ export const APP_PROPS = {
   fileIcon: "file",
   fileMissingIcon: "file-question",
   folderIcon: "folder",
+  folderAddIcon: "folder-plus",
+  folderMissingIcon: "folder-x",
+  folderOpenIcon: "folder-open",
   openSettingsIcon: "settings",
   newFileIcon: "file-plus",
   noConvToSaveIcon: "scroll",
@@ -15,12 +20,15 @@ export const APP_PROPS = {
   trashIcon: "trash-2",
 };
 export const ELEM_CLASSES_IDS = {
+  btnAction: "oq-action-button",
+  btnWarn: "oq-warn-button",
   cmdFooter: "oq-newcommand-footer",
   cmdTarget: "oq-newcommand-target",
   cmdTemplate: "oq-newcommand-template",
   message: "oq-message",
   messagePad: "oq-message-pad",
   messages: "oq-messages",
+  menuDefault: "oq-menu-default",
   msgHighlight: "oq-message-highlight",
   msgStreaming: "oq-message-streaming",
   newConversation: "oq-btn-new-conv",
@@ -40,6 +48,10 @@ export const ERROR_MESSAGES = {
   fileReadError: "Error reading file. Please check the console for details.",
   fileUploadError:
     "Error uploading file. Please check the console for details.",
+  folderCreateError:
+    "Error creating folder. Please check the console for details.",
+  folderNotFound:
+    "Cannot find folder at path provided. See console for details.",
   noFeature: "Feature not found",
   saveError: "Unable to save to a note. Please check the console for details.",
   unknown: "An error occurred. Please check the console for details.",
@@ -51,6 +63,18 @@ export type ErrorCode = keyof typeof ERROR_MESSAGES;
 export const QUILL_VIEW_TYPE = "quill-chat-view";
 export const SCROLL_CHARS_LIMIT = 400;
 export const STREAM_BUFFER_LIMIT = 300;
+export const OPENAI_MODELS: OpenAIModels = {
+  user: [
+    {
+      model: "gpt-4o",
+      display: "GPT-4o",
+    },
+    {
+      model: "gpt-4o-mini",
+      display: "GPT-4o Mini",
+    },
+  ],
+};
 export const PROMPTS = {
   systemInitial: {
     role: "system",

@@ -1,12 +1,8 @@
 import { App, Modal, setTooltip } from "obsidian";
-import {
-  DEFAULT_SETTINGS,
-  QuillPluginSettings,
-  OPENAI_MODELS,
-} from "@/settings";
+import { DEFAULT_SETTINGS, QuillPluginSettings } from "@/settings";
 import { Command, IPluginServices } from "@/interfaces";
 import VaultUtils from "@/VaultUtils";
-import { ELEM_CLASSES_IDS } from "@/constants";
+import { ELEM_CLASSES_IDS, OPENAI_MODELS } from "@/constants";
 
 class ModalCustomCommand extends Modal {
   private onSubmit: (id: string, command: Command) => void;

@@ -14,6 +14,10 @@ export interface Commands {
 }
 
 export type DefaultSaveFolder = "conversations" | "messages" | "templates";
+export type folderSettingNames =
+  | "pathConversations"
+  | "pathMessages"
+  | "pathTemplates";
 
 export interface IPluginServices {
   app: App;
@@ -37,10 +41,17 @@ export interface GptRequestPayload {
   temperature: number;
 }
 
+export type OutputTarget = Editor | "view" | "modal";
+
+export interface OpenAIModels {
+  user: {
+    model: string;
+    display: string;
+  }[];
+}
+
 export type Role = "system" | "user" | "assistant";
 export interface PayloadMessagesType {
   role: Role;
   content: string;
 }
-
-export type OutputTarget = Editor | "view" | "modal";

@@ -64,7 +64,7 @@ class ModalSaveMessageAs extends Modal {
         : "Your default messages folder could not be found:";
       saveAsForm
         .createDiv({
-          cls: "oq-warn",
+          cls: "oq-warn-text",
           text: message,
         })
         .createDiv({
