@@ -34,7 +34,7 @@ const Message: React.FC<MessageProps> = ({
   const { vaultUtils } = usePluginContext();
   const copyMessageButtonRef = useRef<HTMLButtonElement>(null);
   const saveMessageButtonRef = useRef<HTMLButtonElement>(null);
-  const clickableIconClass = APP_PROPS.clickableIcon;
+  const clickableIconClass = ELEM_CLASSES_IDS.clickableIcon;
 
   const saveMessageAs = async () => {
     vaultUtils.saveMessageAs(message);

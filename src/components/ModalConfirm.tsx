@@ -1,7 +1,6 @@
 import { App, Modal } from "obsidian";
 
 class ModalConfirm extends Modal {
-  private content: string;
   private title: string;
   private message: string;
   private submitButtonText: string;

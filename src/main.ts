@@ -12,10 +12,12 @@ import {
 } from "@/settings";
 import { Command, Commands, IPluginServices, OutputTarget } from "@/interfaces";
 import ApiService from "@/ApiService";
+import DefaultFolderUtils from "@/DefaultFolderUtils";
 import Features from "@/Features";
 import ModalCustomCommand from "@/components/ModalCustomCommand";
 import ModalPrompt from "@/components/ModalPrompt";
 import QuillView from "@/components/view";
+import VaultUtils from "@/VaultUtils";
 
 export default class QuillPlugin extends Plugin implements IPluginServices {
   settings: QuillPluginSettings;
@@ -38,6 +40,16 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
       openPluginSettings: this.openPluginSettings.bind(this),
       loadCommands: this.loadCommands.bind(this),
     };
+    const vaultUtils = VaultUtils.getInstance(
+      this.pluginServices,
+      this.settings
+    );
+    const { hasValidDefaultFolder, promptMissingTemplateFolder } =
+      DefaultFolderUtils.getInstance(
+        this.pluginServices,
+        this.settings,
+        vaultUtils
+      );
 
     this.addSettingTab(
       new QuillSettingsTab(this.app, this, this.pluginServices)
@@ -85,19 +97,17 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
       id: "send-text-with-prompt",
       name: "Send selected text with my prompt",
       editorCheckCallback: (checking: boolean, editor: Editor) => {
+        if (checking) return true;
         const selectedText = editor.getSelection().trim();
-        if (selectedText) {
-          if (!checking) {
-            this.toggleView();
-            this.openModalPrompt({
-              featureId: "sendPromptWithSelectedText",
-              selectedText: selectedText,
-              outputTarget: "view",
-            });
-          }
-          return true;
-        }
-        return false;
+        if (!selectedText) return false;
+        this.toggleView();
+        this.openModalPrompt({
+          featureId: "sendPromptWithSelectedText",
+          selectedText: selectedText,
+          outputTarget: "view",
+        });
+
+        return true;
       },
     });
 
@@ -107,17 +117,24 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
       id: "new-command",
       name: "Create New Command",
       callback: async () => {
-        const modal = new ModalCustomCommand(
-          this.app,
-          this.settings,
-          this.pluginServices,
-          async (id: string, command: Command) => {
-            this.settings.commands[id] = command;
-            await this.saveSettings();
-            await this.loadCommands();
-          }
-        );
-        modal.open();
+        let isTemplateFolderSet = false;
+        isTemplateFolderSet = await hasValidDefaultFolder("templates");
+
+        if (isTemplateFolderSet) {
+          const modal = new ModalCustomCommand(
+            this.pluginServices,
+            this.settings,
+            vaultUtils,
+            async (id: string, command: Command) => {
+              this.settings.commands[id] = command;
+              await this.saveSettings();
+              await this.loadCommands();
+            }
+          );
+          modal.open();
+        } else {
+          promptMissingTemplateFolder();
+        }
       },
     });
     await this.loadCommands();
@@ -137,7 +154,6 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
     outputTarget?: OutputTarget;
   }): void {
     const modal = new ModalPrompt({
-      app: this.app,
       settings: this.settings,
       pluginServices: this.pluginServices,
       onSend: async (userEntry) => {
@@ -156,8 +172,8 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
     modal.open();
   }
 
-  // VIEW ========================================================
-  // TODO: Add activate and deactivate, and then use them in the toggleView method
+  // VIEW =====================================================================
+  // TODO: Add activate and deactivate, then use them in the toggleView method
   viewIsActive = false;
 
   async toggleView(): Promise<void> {
@@ -203,73 +219,68 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
   // CUSTOM COMMAND LOADER ====================================================
   // Loads the user-created custom commands defined in the settings
   loadCommands = async () => {
+    const vaultUtils = VaultUtils.getInstance(
+      this.pluginServices,
+      this.settings
+    );
+    const { validateTemplateFile } = DefaultFolderUtils.getInstance(
+      this.pluginServices,
+      this.settings,
+      vaultUtils
+    );
     const commands: Commands = this.settings.commands;
+
     for (const commandId in commands) {
       const command = commands[commandId];
-
       let callback: (() => void) | undefined = undefined;
-
-      // TODO: Get the basic stuff done first before handling selected text
-      // let editorCheckCallback:
-      // 	| ((checking: boolean, editor: Editor) => boolean)
-      // 	| undefined = undefined;
-      // selectedText: command.sendSelectedText --- THIS SHOULD GO UNDER editorCheckCallback
-      // 	? this.app.workspace
-      // 			.getActiveViewOfType(Editor)
-      // 			.getSelection()
-      // 	: undefined,
-
       let cmdEditorCheckCallback:
         | ((checking: boolean, editor: Editor) => void)
         | undefined = undefined;
 
-      switch (command.target) {
-        case "editor": {
-          const featureId = "customCommandToEditor";
-          cmdEditorCheckCallback = async (
-            checking: boolean,
-            editor: Editor
-          ) => {
-            if (!checking) {
-              if (command.prompt) {
-                this.openModalPrompt({
-                  featureId: featureId,
-                  command: command,
-                  customCommandId: commandId,
-                  outputTarget: editor,
-                });
-              } else {
-                await this.features.executeFeature({
-                  id: featureId,
-                  command: command,
-                  outputTarget: editor,
-                });
-              }
-            }
-          };
-          break;
-        }
-        case "view": {
-          const featureId = "customCommandToView";
-          callback = async () => {
-            this.toggleView();
-            if (command.prompt) {
-              this.openModalPrompt({
-                featureId: featureId,
-                command: command,
-                customCommandId: commandId,
-                outputTarget: "view",
-              });
-            } else {
-              await this.features.executeFeature({
-                id: featureId,
-                command: command,
-                outputTarget: "view",
-              });
-            }
-          };
-          break;
-        }
+      // Command Output to Note (Editor)
+      if (command.target === "editor") {
+        const featureId = "customCommandToEditor";
+        cmdEditorCheckCallback = async (checking: boolean, editor: Editor) => {
+          if (checking) return;
+          if (!(await validateTemplateFile(command.templateFilename))) return;
+          if (command.prompt) {
+            this.openModalPrompt({
+              featureId: featureId,
+              command: command,
+              customCommandId: commandId,
+              outputTarget: editor,
+            });
+          } else {
+            await this.features.executeFeature({
+              id: featureId,
+              command: command,
+              outputTarget: editor,
+            });
+          }
+        };
+      }
+
+      // Command Output to Conversation View (View)
+      if (command.target === "view") {
+        const featureId = "customCommandToView";
+        callback = async () => {
+          if (!(await validateTemplateFile(command.templateFilename))) return;
+          this.toggleView();
+          if (command.prompt) {
+            this.openModalPrompt({
+              featureId: featureId,
+              command: command,
+              customCommandId: commandId,
+              outputTarget: "view",
+            });
+          } else {
+            await this.features.executeFeature({
+              id: featureId,
+              command: command,
+              outputTarget: "view",
+            });
+          }
+        };
       }
 
       this.addCommand({
@@ -300,7 +311,8 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
   // Open Quill settings tab
   async openPluginSettings(): Promise<void> {
     // Thanks to the community
-    // https://discord.com/channels/686053708261228577/840286264964022302/1091000197645090856
+    // https://discord.com/channels/
+    //   686053708261228577/840286264964022302/1091000197645090856
     const tabId = this.manifest.id;
     try {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
