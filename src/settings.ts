@@ -289,7 +289,7 @@ export class QuillSettingsTab extends PluginSettingTab {
               await this.pluginServices.saveSettings();
               await this.pluginServices.loadCommands();
               new Notice(
-                `New command created:\n\n » ${command.name}\n\n ` +
+                `New command created:\n\n    ${command.name}\n\n ` +
                   `It should now appear in the list below.`
               );
               this.display();
@@ -370,7 +370,7 @@ export class QuillSettingsTab extends PluginSettingTab {
                   await this.pluginServices.saveSettings();
                   await this.pluginServices.loadCommands();
                   this.display();
-                  new Notice(`Updated command:\n\n » ${command.name}`);
+                  new Notice(`Updated command:\n${command.name}`);
                 },
                 command.id
               ).open();
@@ -396,7 +396,7 @@ export class QuillSettingsTab extends PluginSettingTab {
                   await this.pluginServices.saveSettings();
                   this.plugin.removeCommand(command.id);
                   this.display(); // Refresh the list
-                  new Notice(`Deleted command:\n\n » ${command.name}`);
+                  new Notice(`Deleted command:\n${command.name}`);
                 }
               ).open();
             })

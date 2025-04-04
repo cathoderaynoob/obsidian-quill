@@ -9,9 +9,9 @@ import {
 } from "@/constants";
 import { ExecutionOptions } from "@/executeFeature";
 import DefaultFolderUtils from "@/DefaultFolderUtils";
-import Message, { MessageType } from "@/components/Message";
+import Message, { ConvoMessageType } from "@/components/Message";
 import emitter from "@/customEmitter";
-import PayloadMessages from "@/PayloadMessages";
+import PayloadUtils from "@/PayloadMessages";
 import MessagePad from "@/components/MessagePad";
 
 interface MessagesProps {
@@ -21,14 +21,14 @@ interface MessagesProps {
 const Messages: React.FC<MessagesProps> = ({ executeFeature }) => {
   const { settings, apiService, pluginServices, vaultUtils, setIsResponding } =
     usePluginContext();
-  const [messages, setMessages] = useState<MessageType[]>([]);
+  const [messages, setMessages] = useState<ConvoMessageType[]>([]);
   const [showSaveConvoBtn, setShowSaveConvoBtn] = useState(false);
   const [, setCurrentIndex] = useState(0);
-  const latestMessageRef = useRef<MessageType | null>(null);
+  const latestMessageRef = useRef<ConvoMessageType | null>(null);
   const prevContentLengthRef = useRef<number>(0);
   const prevScrollTop = useRef<number>(0);
   const stopScrolling = useRef<boolean>(false);
-  const payloadMessages = PayloadMessages.getInstance();
+  const payloadMessages = PayloadUtils.getViewInstance();
   const clsMessageHighlight = ELEM_CLASSES_IDS.msgHighlight;
 
   const { getDefaultFolderPath } = DefaultFolderUtils.getInstance(
@@ -42,7 +42,7 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature }) => {
   };
 
   const getMessageElem = (index: number): HTMLElement | null => {
-    return document.querySelector(`[data-conv-idx="${index}"]`);
+    return document.querySelector(`[data-msg-idx="${index}"]`);
   };
 
   const focusPrompt = (): void => {
@@ -51,12 +51,10 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature }) => {
     ) as HTMLElement;
     promptInput.focus();
   };
-
   const clearMessages = (): void => {
     setMessages([]);
     payloadMessages.clearAll();
-    if (latestMessageRef.current)
-      latestMessageRef.current.conversationId = null;
+    if (latestMessageRef.current) latestMessageRef.current.conversationId = "";
   };
 
   // Unique ID used for each conversation and message
@@ -120,7 +118,7 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature }) => {
   vaultUtils.saveConversationManually = saveConversationManually;
 
   const saveMessageToConversation = async (
-    updatedMessage: MessageType,
+    updatedMessage: ConvoMessageType,
     folderPath: string
   ): Promise<boolean> => {
     if (updatedMessage) {
@@ -156,7 +154,7 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature }) => {
     const containerElem = getContainerElem();
     if (!containerElem) return;
 
-    const handleNewMessage = async (
+    const handleNewConvoMessage = async (
       role: Role,
       model: string,
       inputText: string,
@@ -167,10 +165,10 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature }) => {
       const content = commandName
         ? `*${commandName}*\n\n${inputText || ""}`
         : inputText || "";
-      const newMessage: MessageType = {
+      const newMessage: ConvoMessageType = {
         conversationId: getConversationId(),
-        msgIdx: messages.length + 1,
-        id: generateUniqueId(),
+        msgIndex: messages.length + 1,
+        msgId: generateUniqueId(),
         role: role,
         model: model,
         content: content,
@@ -191,9 +189,9 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature }) => {
       }
     };
 
-    emitter.on("newMessage", handleNewMessage);
+    emitter.on("newConvoMessage", handleNewConvoMessage);
     return () => {
-      emitter.off("newMessage", handleNewMessage);
+      emitter.off("newConvoMessage", handleNewConvoMessage);
     };
   }, [messages]);
 
@@ -206,7 +204,7 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature }) => {
         setMessages((prevMessages) => {
           const updatedMessages = [...prevMessages];
           updatedMessages[updatedMessages.length - 1] = {
-            ...(latestMessageRef.current as MessageType),
+            ...(latestMessageRef.current as ConvoMessageType),
           };
           return updatedMessages;
         });
@@ -434,9 +432,9 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature }) => {
       <div id={ELEM_CLASSES_IDS.messages} tabIndex={0}>
         {messages.map((message, index) => (
           <Message
-            key={message.id}
+            key={message.msgId}
             {...message}
-            msgIdx={index}
+            msgIndex={index}
             handleOnCollapse={handleCollapseSelectedText}
           />
         ))}

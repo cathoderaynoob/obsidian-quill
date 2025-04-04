@@ -1,15 +1,14 @@
 import { Notice, setIcon, setTooltip } from "obsidian";
-import ReactMarkdown from "react-markdown";
 import { useEffect, useRef } from "react";
-import { APP_PROPS } from "@/constants";
+import ReactMarkdown from "react-markdown";
+import { APP_PROPS, ELEM_CLASSES_IDS } from "@/constants";
 import { Role } from "@/interfaces";
 import { usePluginContext } from "@/components/PluginContext";
-import { ELEM_CLASSES_IDS } from "@/constants";
 
-export interface MessageType {
-  conversationId: string | null;
-  msgIdx: number;
-  id: string;
+export interface ConvoMessageType {
+  conversationId: string;
+  msgIndex: number;
+  msgId: string;
   role: Role;
   content: string;
   model: string;
@@ -17,13 +16,13 @@ export interface MessageType {
   error?: string;
 }
 
-interface MessageProps extends MessageType {
+interface ConvoMessageProps extends ConvoMessageType {
   handleOnCollapse: (index: number) => void;
 }
 
-const Message: React.FC<MessageProps> = ({
-  msgIdx,
-  id,
+const Message: React.FC<ConvoMessageProps> = ({
+  msgIndex,
+  msgId,
   role,
   content: message,
   model,
@@ -52,7 +51,7 @@ const Message: React.FC<MessageProps> = ({
   const handleCollapseSelectedText = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
-    if (!event.target.checked) handleOnCollapse(msgIdx);
+    if (!event.target.checked) handleOnCollapse(msgIndex);
   };
 
   useEffect(() => {
@@ -79,7 +78,7 @@ const Message: React.FC<MessageProps> = ({
       {message ? (
         <div
           className={`${ELEM_CLASSES_IDS.message} oq-message-${role}`}
-          data-conv-idx={msgIdx}
+          data-msg-idx={msgIndex}
         >
           {role === "user" && <p className="oq-message-user-icon"></p>}
           <div
@@ -94,12 +93,15 @@ const Message: React.FC<MessageProps> = ({
             )}
             {selectedText && (
               <div className="oq-message-selectedtext">
-                <label className="oq-message-selectedtext-content" htmlFor={id}>
+                <label
+                  className="oq-message-selectedtext-content"
+                  htmlFor={msgId}
+                >
                   <ReactMarkdown>{selectedText}</ReactMarkdown>
                 </label>
                 <input
                   type="checkbox"
-                  id={id}
+                  id={msgId}
                   className="oq-message-selectedtext-checkbox"
                   onChange={handleCollapseSelectedText}
                 />

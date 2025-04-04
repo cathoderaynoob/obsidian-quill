@@ -1,47 +1,56 @@
 import { PayloadMessagesType } from "@/interfaces";
+import { IPluginServices } from "@/interfaces";
+import { QuillPluginSettings } from "@/settings";
 
-class PayloadMessages {
-	payloadMessages: PayloadMessagesType[];
-	public static instance: PayloadMessages;
+class PayloadUtils {
+  public static instance: PayloadUtils;
+  payloadMessages: PayloadMessagesType[];
+  pluginServices: IPluginServices;
+  settings: QuillPluginSettings;
 
-	constructor() {
-		this.payloadMessages = [];
-	}
+  constructor() {
+    this.payloadMessages = [];
+  }
 
-	static getInstance(): PayloadMessages {
-		if (!PayloadMessages.instance) {
-			PayloadMessages.instance = new PayloadMessages();
-		}
-		return PayloadMessages.instance;
-	}
+  private static viewInstance: PayloadUtils;
+  static getViewInstance(): PayloadUtils {
+    if (!PayloadUtils.viewInstance) {
+      PayloadUtils.viewInstance = new PayloadUtils();
+    }
+    return PayloadUtils.viewInstance;
+  }
 
-	getAll(includeSys?: boolean): PayloadMessagesType[] {
-		if (includeSys) {
-			return [...this.payloadMessages];
-		} else {
-			return this.payloadMessages.filter(
-				(message) => message.role !== "system"
-			);
-		}
-	}
+  static getEditorInstance(): PayloadUtils {
+    return new PayloadUtils();
+  }
 
-	get(): PayloadMessagesType[] {
-		return [...this.payloadMessages];
-	}
+  getAll(includeSys?: boolean): PayloadMessagesType[] {
+    if (includeSys) {
+      return [...this.payloadMessages];
+    } else {
+      return this.payloadMessages.filter(
+        (message) => message.role !== "system"
+      );
+    }
+  }
 
-	getLatestMessage(): PayloadMessagesType | null {
-		if (this.payloadMessages.length === 0) return null;
-		return { ...this.payloadMessages[this.payloadMessages.length - 1] };
-	}
+  get(): PayloadMessagesType[] {
+    return [...this.payloadMessages];
+  }
 
-	addMessage(message: PayloadMessagesType): PayloadMessagesType[] {
-		this.payloadMessages.push(message);
-		return this.payloadMessages;
-	}
+  getLatestMessage(): PayloadMessagesType | null {
+    if (this.payloadMessages.length === 0) return null;
+    return { ...this.payloadMessages[this.payloadMessages.length - 1] };
+  }
 
-	clearAll(): void {
-		this.payloadMessages = [];
-	}
+  addMessage(message: PayloadMessagesType): PayloadMessagesType[] {
+    this.payloadMessages.push(message);
+    return this.payloadMessages;
+  }
+
+  clearAll(): void {
+    this.payloadMessages = [];
+  }
 }
 
-export default PayloadMessages;
+export default PayloadUtils;

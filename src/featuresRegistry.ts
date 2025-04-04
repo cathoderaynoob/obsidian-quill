@@ -1,22 +1,24 @@
 import { App, Editor, EditorPosition } from "obsidian";
-import { PROMPTS } from "@/constants";
 import { OutputTarget } from "@/interfaces";
 import { renderToEditor } from "@/editorUtils";
 import emitter from "@/customEmitter";
-import ModalTextOutput from "@/components/ModalTextOutput";
+
+type ProcessResponseParams = {
+  response: string;
+  outputTarget?: OutputTarget;
+  editor?: Editor;
+  editorPos?: EditorPosition | null;
+};
+export type ProcessResponse = (params: ProcessResponseParams) => void;
 
 export interface FeatureProperties {
   id: string;
   prompt: (inputText?: string) => string;
-  processResponse: (
-    response: string,
-    outputTarget?: OutputTarget,
-    editorPos?: EditorPosition
-  ) => void;
+  processResponse: ProcessResponse;
+  outputTarget: OutputTarget;
   model?: string;
   temperature?: number;
   stream?: boolean;
-  outputTarget?: OutputTarget;
 }
 
 export const FeaturesRegistry = (
@@ -27,55 +29,42 @@ export const FeaturesRegistry = (
     openPrompt: {
       id: "openPrompt",
       prompt: (inputText: string) => inputText,
-      processResponse: (response: string) =>
+      processResponse: ({ response }) =>
         emitter.emit("updateResponseMessage", response),
-      stream: true,
       outputTarget: "view",
+      stream: true,
     },
 
     // SEND SELECTED TEXT WITH PROMPT
     sendPromptWithSelectedText: {
       id: "sendPromptWithSelectedText",
       prompt: (inputText: string) => inputText,
-      processResponse: (response: string) =>
+      processResponse: ({ response }) =>
         emitter.emit("updateResponseMessage", response),
-      stream: true,
       outputTarget: "view",
-    },
-
-    // TELL A JOKE
-    tellAJoke: {
-      id: "tellAJoke",
-      prompt: () => PROMPTS.tellAJoke.content,
-      processResponse: (response: string) => {
-        if (response.length) new ModalTextOutput(app, response).open();
-      },
-      model: "gpt-4o-mini",
+      stream: true,
     },
 
     // CUSTOM COMMAND TO VIEW
     customCommandToView: {
       id: "customCommandToView",
       prompt: (inputText: string) => inputText,
-      processResponse: (response: string) =>
+      processResponse: ({ response }) =>
         emitter.emit("updateResponseMessage", response),
-      stream: true,
       outputTarget: "view",
+      stream: true,
     },
 
     // CUSTOM COMMAND TO EDITOR
     customCommandToEditor: {
       id: "customCommandToEditor",
       prompt: (inputText: string) => inputText,
-      processResponse: async (
-        response: string,
-        editor: Editor,
-        editorPos: EditorPosition
-      ) => {
-        if (response.length) {
+      processResponse: async ({ response, editor, editorPos }) => {
+        if (response.length && editor && editorPos) {
           await renderToEditor(response, editor, editorPos);
         }
       },
+      outputTarget: "editor",
       stream: true,
     },
   };

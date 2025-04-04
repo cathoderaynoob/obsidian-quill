@@ -146,23 +146,26 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
     customCommandId,
     selectedText,
     outputTarget = "view",
+    editor,
   }: {
     featureId: string;
     command?: Command;
     customCommandId?: string;
     selectedText?: string;
     outputTarget?: OutputTarget;
+    editor?: Editor;
   }): void {
     const modal = new ModalPrompt({
       settings: this.settings,
       pluginServices: this.pluginServices,
       onSend: async (userEntry) => {
         await this.features.executeFeature({
-          id: featureId,
+          featureId: featureId,
           inputText: userEntry || "",
           command: command || undefined,
           selectedText: selectedText || undefined,
           outputTarget: outputTarget || "view",
+          editor: editor,
         });
       },
       command: command || undefined,
@@ -248,13 +251,15 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
               featureId: featureId,
               command: command,
               customCommandId: commandId,
-              outputTarget: editor,
+              outputTarget: "editor",
+              editor: editor,
             });
           } else {
             await this.features.executeFeature({
-              id: featureId,
+              featureId: featureId,
               command: command,
-              outputTarget: editor,
+              outputTarget: "editor",
+              editor: editor,
             });
           }
         };
@@ -275,7 +280,7 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
             });
           } else {
             await this.features.executeFeature({
-              id: featureId,
+              featureId: featureId,
               command: command,
               outputTarget: "view",
             });
@@ -324,8 +329,9 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
       }
     } catch (e) {
       new Notice(
-        "There was a problem opening settings. Navigate to\n\n" +
-          " » Settings > Quill\n\nto update your preferences.",
+        "There was a problem opening settings.\n" +
+          "To update your preferences, go to:\n\n" +
+          "    Settings > Quill",
         10000
       );
       console.log("Not able to open Quill Settings", e);

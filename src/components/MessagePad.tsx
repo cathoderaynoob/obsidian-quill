@@ -73,7 +73,7 @@ const MessagePad: React.FC<MessagePadProps> = ({
     setPromptValue("");
     setTextareaSize();
     const success = await executeFeature({
-      id: "openPrompt",
+      featureId: "openPrompt",
       inputText: trimmedValue,
     });
     if (!success) {

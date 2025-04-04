@@ -3,15 +3,14 @@ import { Editor, EditorPosition, TFile, Vault } from "obsidian";
 import { GptRequestPayload, IPluginServices, OutputTarget } from "@/interfaces";
 import { QuillPluginSettings } from "@/settings";
 import { STREAM_BUFFER_LIMIT } from "@/constants";
+import { ProcessResponse } from "@/featuresRegistry";
 import emitter from "@/customEmitter";
 import ModalConfirm from "@/components/ModalConfirm";
-import PayloadMessages from "@/PayloadMessages";
 
 export default class ApiService {
   pluginServices: IPluginServices;
   settings: QuillPluginSettings;
   openai: OpenAI;
-  payloadMessages: PayloadMessages;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   streamingContent: any | null = null;
   vault: Vault;
@@ -23,7 +22,6 @@ export default class ApiService {
       apiKey: this.settings.openaiApiKey,
       dangerouslyAllowBrowser: true,
     });
-    this.payloadMessages = PayloadMessages.getInstance();
     this.vault = pluginServices.app.vault;
   }
 
@@ -96,12 +94,9 @@ export default class ApiService {
   // CHAT =====================================================================
   async getStreamingChatResponse(
     payload: GptRequestPayload,
-    callback: (
-      response: string,
-      outputTarget?: OutputTarget,
-      editorPos?: EditorPosition
-    ) => void,
-    outputTarget: OutputTarget = "view"
+    callback: ProcessResponse,
+    outputTarget: OutputTarget = "view",
+    editor?: Editor
   ): Promise<string> {
     const bufferLimit = STREAM_BUFFER_LIMIT;
     let bufferedContent = "";
@@ -113,7 +108,12 @@ export default class ApiService {
       }
       bufferedContent += content;
       if (bufferedContent.length >= bufferLimit) {
-        callback(bufferedContent, outputTarget, lastEditorPos);
+        callback({
+          response: bufferedContent,
+          outputTarget: outputTarget,
+          editor: editor,
+          editorPos: lastEditorPos,
+        });
         lastEditorPos = editor.getCursor();
         bufferedContent = "";
       }
@@ -130,10 +130,10 @@ export default class ApiService {
       for await (const chunk of this.streamingContent) {
         const content = chunk.choices[0]?.delta?.content;
         if (typeof content === "string") {
-          if (outputTarget instanceof Editor) {
-            bufferContent(content, outputTarget);
+          if (editor) {
+            bufferContent(content, editor);
           } else {
-            callback(content);
+            callback({ response: content });
           }
           completedMessage += content;
         }
@@ -145,13 +145,19 @@ export default class ApiService {
       }
     } finally {
       if (outputTarget && bufferedContent.length > 0) {
-        callback(bufferedContent, outputTarget);
+        callback({
+          response: bufferedContent,
+          outputTarget: outputTarget,
+          editor: editor,
+          editorPos: lastEditorPos,
+        });
       }
-      // Give completedMessage time to be return before emitting responseEnd
-      setTimeout(() => {
-        emitter.emit("responseEnd");
-        emitter.emit("modalResponseEnd");
-      }, 150);
+      if (outputTarget === "view")
+        // Give completedMessage time to be return before emitting responseEnd
+        setTimeout(() => {
+          emitter.emit("responseEnd");
+          emitter.emit("modalResponseEnd");
+        }, 150);
     }
     return completedMessage;
   }
@@ -163,7 +169,7 @@ export default class ApiService {
 
   async getNonStreamingChatResponse(
     payload: GptRequestPayload,
-    callback: (text: string, outputTarget?: OutputTarget) => void,
+    callback: ProcessResponse,
     outputTarget?: OutputTarget
   ): Promise<void> {
     try {
@@ -173,10 +179,10 @@ export default class ApiService {
         temperature: payload.temperature,
       });
       if (completion.choices[0]?.message?.content) {
-        callback(
-          completion.choices[0]?.message?.content,
-          outputTarget || undefined
-        );
+        callback({
+          response: completion.choices[0]?.message?.content,
+          outputTarget: outputTarget,
+        });
       }
     } catch (e) {
       console.log(e.message);

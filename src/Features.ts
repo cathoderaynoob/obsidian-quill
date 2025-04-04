@@ -4,13 +4,11 @@ import { FeatureProperties, FeaturesRegistry } from "@/featuresRegistry";
 import { executeFeature, ExecutionOptions } from "@/executeFeature";
 import { IPluginServices } from "@/interfaces";
 import ApiService from "@/ApiService";
-import PayloadMessages from "@/PayloadMessages";
 
 export default class Features {
   app: App;
   apiService: ApiService;
   settings: QuillPluginSettings;
-  payloadMessages: PayloadMessages;
   featuresRegistry: Record<string, FeatureProperties>;
   pluginServices: IPluginServices;
 
@@ -18,7 +16,6 @@ export default class Features {
     this.app = app;
     this.apiService = apiService;
     this.settings = settings;
-    this.payloadMessages = PayloadMessages.getInstance();
     this.featuresRegistry = FeaturesRegistry(app);
     this.executeFeature = this.executeFeature.bind(this);
     this.pluginServices = apiService.pluginServices;
@@ -30,7 +27,6 @@ export default class Features {
       options,
       this.settings,
       this.apiService,
-      this.payloadMessages,
       this.pluginServices
     );
     return success;
