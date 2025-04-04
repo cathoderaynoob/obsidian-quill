@@ -262,7 +262,7 @@ class DefaultFolderUtils {
       !suppressPrompt && this.promptMissingTemplateFolder();
       return false;
     }
-    if (filePath === null) {
+    if (filePath === null || !this.vaultUtils.getFileByPath(filePath, true)) {
       !suppressPrompt && this.promptMissingTemplateFile(fileName);
       return false;
     }
