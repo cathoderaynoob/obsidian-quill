@@ -8,6 +8,7 @@ import {
   SCROLL_CHARS_LIMIT,
 } from "@/constants";
 import { ExecutionOptions } from "@/executeFeature";
+import DefaultFolderUtils from "@/DefaultFolderUtils";
 import Message, { MessageType } from "@/components/Message";
 import emitter from "@/customEmitter";
 import PayloadMessages from "@/PayloadMessages";
@@ -29,6 +30,12 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature }) => {
   const stopScrolling = useRef<boolean>(false);
   const payloadMessages = PayloadMessages.getInstance();
   const clsMessageHighlight = ELEM_CLASSES_IDS.msgHighlight;
+
+  const { getDefaultFolderPath } = DefaultFolderUtils.getInstance(
+    pluginServices,
+    settings,
+    vaultUtils
+  );
 
   const getContainerElem = (): HTMLElement | null => {
     return document.getElementById(ELEM_CLASSES_IDS.messages);
@@ -84,10 +91,7 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature }) => {
     const convoId = getConversationId();
     const filename = convoId + ".md";
     // Get the conversations folder path
-    const folderPath = await vaultUtils.getDefaultFolderPath(
-      "conversations",
-      true
-    );
+    const folderPath = await getDefaultFolderPath("conversations", true);
     if (folderPath === "") return false;
     // Construct the full file path
     const filePath = `${folderPath}/${filename}`;
@@ -235,10 +239,7 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature }) => {
       // Don't save now if saving convos manually
       if (!settings.autoSaveConvos) return;
       // Autosave
-      const folderPath = await vaultUtils.getDefaultFolderPath(
-        "conversations",
-        true
-      );
+      const folderPath = await getDefaultFolderPath("conversations", true);
       if (folderPath !== "") {
         // TODO: Refactor to save only the last message. THIS ISN'T A GOOD APPROACH
         // Get the last two messages (i.e. user and assistant) and save them

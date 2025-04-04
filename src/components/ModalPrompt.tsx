@@ -1,15 +1,15 @@
-import { App, ButtonComponent, Modal, Notice, TFile } from "obsidian";
+import { ButtonComponent, Modal, Notice, TFile } from "obsidian";
 import { Root, createRoot } from "react-dom/client";
 import { Command, IPluginServices } from "@/interfaces";
-import { APP_PROPS } from "@/constants";
+import { APP_PROPS, ELEM_CLASSES_IDS } from "@/constants";
 import { QuillPluginSettings } from "@/settings";
 import { getFeatureProperties } from "@/featuresRegistry";
 import emitter from "@/customEmitter";
 import ModalCustomCommand from "@/components/ModalCustomCommand";
 import PromptContent from "@/components/PromptContent";
+import VaultUtils from "@/VaultUtils";
 
 interface ModalPromptParams {
-  app: App;
   settings: QuillPluginSettings;
   pluginServices: IPluginServices;
   onSend: (prompt: string) => void;
@@ -34,7 +34,6 @@ class ModalPrompt extends Modal {
   disabled = false;
 
   constructor({
-    app,
     settings,
     pluginServices,
     onSend,
@@ -42,7 +41,7 @@ class ModalPrompt extends Modal {
     command,
     customCommandId,
   }: ModalPromptParams) {
-    super(app);
+    super(pluginServices.app);
     this.settings = settings;
     this.pluginServices = pluginServices;
     this.onSend = onSend;
@@ -98,7 +97,8 @@ class ModalPrompt extends Modal {
     }
   };
 
-  openFileInNewPane = (app: App, filePath: string) => {
+  openFileInNewPane = (filePath: string) => {
+    const app = this.pluginServices.app;
     const file = app.vault.getAbstractFileByPath(filePath);
     if (file && file instanceof TFile) {
       app.workspace.getLeaf(true).openFile(file);
@@ -123,7 +123,9 @@ class ModalPrompt extends Modal {
             : this.command.target === "editor"
             ? "note"
             : undefined;
-        const targetElement = this.contentEl.querySelector("#oq-prompt-footer");
+        const targetElement = this.contentEl.querySelector(
+          ELEM_CLASSES_IDS.promptFooter
+        );
         if (targetElement) {
           targetElement.textContent = `${this.model} ${
             targetName && `• ${targetName}`
@@ -143,13 +145,14 @@ class ModalPrompt extends Modal {
   generateFileButtonIcon(command: Command) {
     const button = new ButtonComponent(this.contentEl);
     button
-      .setClass(APP_PROPS.clickableIcon)
+      .setClass(ELEM_CLASSES_IDS.clickableIcon)
       .setIcon(APP_PROPS.fileIcon)
       .setTooltip("Open template file")
       .onClick(() => {
         if (command?.templateFilename) {
-          const filePath = `${this.settings.pathTemplates}/${command.templateFilename}`;
-          this.openFileInNewPane(this.app, filePath);
+          const filePath =
+            this.settings.pathTemplates + "/" + command.templateFilename;
+          this.openFileInNewPane(filePath);
         }
         this.close();
       });
@@ -158,15 +161,19 @@ class ModalPrompt extends Modal {
 
   generateEditButtonIcon(customCommandId: string) {
     const button = new ButtonComponent(this.contentEl);
+    const vaultUtils = VaultUtils.getInstance(
+      this.pluginServices,
+      this.settings
+    );
     button
-      .setClass(APP_PROPS.clickableIcon)
+      .setClass(ELEM_CLASSES_IDS.clickableIcon)
       .setIcon(APP_PROPS.editIcon)
       .setTooltip("Edit command")
       .onClick(() => {
         new ModalCustomCommand(
-          this.app,
-          this.settings,
           this.pluginServices,
+          this.settings,
+          vaultUtils,
           async (id: string, command: Command) => {
             this.settings.commands[customCommandId] = command;
             await this.pluginServices.saveSettings();

@@ -12,30 +12,27 @@
   --oq-transition-opacity: opacity 0.2s ease;
 }
 
-.oq-warn-text {
-  font-style: italic;
-  font-size: small;
-}
-
 .oq-warn-button {
   color: var(--text-error);
   cursor: help;
   &:hover,
   &:focus {
     color: var(--text-error);
+    background: none;
   }
 }
-
+.oq-menu-placeholder {
+  opacity: 1;
+  color: var(--text-muted);
+}
 .oq-menu-default {
   font-style: italic;
 }
-
 .oq-action-button,
 .oq-action-button:hover,
 .oq-action-button:focus {
   color: var(--text-accent);
 }
-
 .oq-filepath {
   font-style: normal;
   font-family: monospace;
@@ -47,15 +44,18 @@
   & .setting-item {
     display: grid;
     grid-gap: 0.5rem;
-    /* grid-template-columns: 1fr 33%; */
     grid-template-columns: 1fr 40%;
   }
   & input,
   & select {
     width: 100%;
     &.oq-disabled {
-      color: var(--text-faint);
+      color: var(--text-muted);
     }
+  }
+  & button:disabled {
+    opacity: 1;
+    color: var(--text-faint);
   }
   & .oq-settings-section-title {
     display: block;
@@ -447,7 +447,6 @@ button.oq-prompt-send {
   padding-top: 0.5rem;
   & .oq-filepath {
     padding-left: 1rem;
-    margin-top: 0.66rem;
   }
   & .oq-modal-title {
     white-space: break-spaces;
@@ -459,7 +458,7 @@ button.oq-prompt-send {
     box-shadow: 0 0 0px 1px var(--oq-app-bright-color);
   }
   & select.oq-disabled {
-    color: var(--text-faint);
+    color: var(--text-muted);
   }
   & input[type="checkbox"]:focus {
     box-shadow: 0px 0px 8px var(--checkbox-color);

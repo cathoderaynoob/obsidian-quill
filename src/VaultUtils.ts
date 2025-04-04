@@ -1,11 +1,10 @@
 import { normalizePath, Notice, TFile, TFolder, Vault } from "obsidian";
 import { join } from "path";
 import { format } from "date-fns";
-import { DefaultSaveFolder, IPluginServices } from "@/interfaces";
+import { IPluginServices } from "@/interfaces";
 import { MessageType } from "@/components/Message";
 import { QuillPluginSettings } from "@/settings";
 import ModalSaveMessageAs from "@/components/ModalSaveMessageAs";
-import ModalSaveConversation from "@/components/ModalSaveConversation";
 
 class VaultUtils {
   private static instance: VaultUtils;
@@ -30,74 +29,76 @@ class VaultUtils {
     return VaultUtils.instance;
   }
 
-  async createFolder(path: string): Promise<TFolder> {
+  createFolder = async (path: string): Promise<TFolder> => {
     return this.vault.createFolder(path);
-  }
+  };
 
   // Returns a list of markdown files in a folder
-  async getListOfMarkdownFilesByPath(folderPath: string) {
+  getListOfMarkdownFilesByPath = async (folderPath: string) => {
     const filesAndFolders = await this.vault.adapter.list(folderPath);
     const markdownFiles = filesAndFolders.files.filter((file) =>
       file.endsWith(".md")
     );
     return markdownFiles;
-  }
+  };
 
   // Returns the filename of a file given its path
-  getFilenameByPath(filePath: string): string | null {
+  getFilenameByPath = (filePath: string): string | null => {
     const file = this.vault.getAbstractFileByPath(filePath);
     if (file && file instanceof TFile) {
       return filePath.split("/").pop() || null;
-    } else {
-      this.pluginServices.notifyError(
-        "fileNotFound",
-        `File not found at \`${filePath}\`.`
-      );
     }
+    this.pluginServices.notifyError(
+      "fileNotFound",
+      `File not found at \`${filePath}\`.`
+    );
     return null;
-  }
+  };
 
   // Returns the file object given its path
-  getFileByPath(filePath: string, suppressError?: boolean): TFile | null {
+  getFileByPath = (filePath: string, suppressError?: boolean): TFile | null => {
     const file = this.vault.getAbstractFileByPath(filePath) as TFile;
-    if (!file && !suppressError) {
+    if (file) return file;
+    if (!suppressError)
       this.pluginServices.notifyError(
         "fileNotFound",
         `File not found at \`${filePath}\`.`
       );
-    }
-    return file;
-  }
+    return null;
+  };
 
   // Returns the folder object given its path
-  getFolderByPath(folderPath: string, suppressError?: boolean): TFolder | null {
+  getFolderByPath = (
+    folderPath: string,
+    suppressError?: boolean
+  ): TFolder | null => {
     const folder = this.vault.getFolderByPath(folderPath);
-    if (!folder && !suppressError) {
+    if (folder) return folder;
+    if (!suppressError)
       this.pluginServices.notifyError(
         "folderNotFound",
         `Folder not found at \`${folderPath}\`.`
       );
-    }
-    return folder;
-  }
+    return null;
+  };
 
-  sortFolderPaths(folders: TFolder[]): string[] {
+  sortFolderPaths = (folders: TFolder[]): string[] => {
     folders.map((folder) => folder.path);
     return folders
       .map((folder) => folder.path)
       .sort((a, b) => a.localeCompare(b));
-  }
+  };
 
   // Returns an alphabetically sorted list of all folders in the vault
-  getAllFolderPaths(): string[] {
+  getAllFolderPaths = (): string[] => {
     const folders = this.vault
       .getAllLoadedFiles()
       .filter((file) => file instanceof TFolder) as TFolder[];
     return this.sortFolderPaths(folders);
-  }
+  };
 
   // Returns the content of a given file
-  async getFileContent(file: TFile): Promise<string> {
+  getFileContent = async (file: TFile): Promise<string> => {
     try {
       const content = this.vault.read(file);
       return content;
@@ -108,10 +109,10 @@ class VaultUtils {
       );
       return "";
     }
-  }
+  };
 
   // Opens a file in the editor and returns a boolean indicating success
-  async openFile(filepath: string, newLeaf?: boolean): Promise<boolean> {
+  openFile = async (filepath: string, newLeaf?: boolean): Promise<boolean> => {
     try {
       const leaf = this.pluginServices.app.workspace.getLeaf(newLeaf || false);
       const file = this.vault.getAbstractFileByPath(filepath) as TFile;
@@ -127,7 +128,7 @@ class VaultUtils {
       console.log(e);
       return false; // Return false if an error occurs
     }
-  }
+  };
 
   getDateTime() {
     return format(Date.now(), "yyyy-MM-dd HH.mm.ss");
@@ -153,70 +154,19 @@ class VaultUtils {
     return sanitized;
   }
 
-  async getDefaultFolderPath(
-    folder: DefaultSaveFolder,
-    createFolderIfMissing?: boolean
-  ): Promise<string> {
-    let folderPath = "";
-    switch (folder) {
-      case "conversations":
-        // Check settings for user's preference
-        folderPath = this.settings.pathConversations;
-        // If not yet set, or the folder is missing, prompt to select one
-        if (
-          folderPath === "" ||
-          this.vault.getFolderByPath(folderPath) === null
-        ) {
-          folderPath = await this.promptForConvoFolder();
-        }
-        break;
-      case "messages":
-        folderPath = this.settings.pathMessages;
-        break;
-      case "templates":
-        folderPath = this.settings.pathTemplates;
-        break;
-    }
-    // If folder at the given path is missing, optionally create it
-    if (
-      createFolderIfMissing &&
-      this.vault.getFolderByPath(folderPath) === null
-    ) {
-      this.vault.createFolder(folderPath);
-    }
-    return folderPath;
-  }
-
-  async promptForConvoFolder(): Promise<string> {
-    return new Promise((resolve) => {
-      const modal = new ModalSaveConversation(
-        this.pluginServices.app,
-        this.settings,
-        this.getAllFolderPaths(),
-        async (folderPath) => {
-          this.settings.pathConversations = folderPath;
-          this.pluginServices.saveSettings();
-          modal.close();
-          resolve(folderPath);
-        }
-      );
-      modal.open();
-    });
-  }
-
-  async emptyFileContent(file: TFile): Promise<boolean> {
+  emptyFileContent = async (file: TFile): Promise<boolean> => {
     await this.vault.modify(file, "");
     if ((await this.vault.read(file)) === "") {
       return true;
     }
     console.log(`Unable to clear file content from ${file.path}`);
     return false;
-  }
+  };
 
-  private async formatLatestMessageForFile(
+  private formatLatestMessageForFile = async (
     msg: MessageType,
     file: TFile
-  ): Promise<string> {
+  ): Promise<string> => {
     const fileContent = await this.vault.read(file);
     const matches = fileContent.match(/\[Message \d+\]/g)?.length || 0;
     const messageNum = matches + 1;
@@ -237,13 +187,13 @@ class VaultUtils {
     fileText += separator;
 
     return fileText;
-  }
+  };
 
-  async appendLatestMessageToConvFile(
+  appendLatestMessageToConvFile = async (
     conversationId: string,
     latestMessage: MessageType,
     folderPath: string
-  ): Promise<string | null> {
+  ): Promise<string | null> => {
     try {
       // Find the conversation file, or create it
       const filename = `${conversationId}.md`;
@@ -265,12 +215,12 @@ class VaultUtils {
       console.log(e);
       return null;
     }
-  }
+  };
 
   // SAVE A MESSAGE TO A FILE AS...
-  async saveMessageAs(
+  saveMessageAs = async (
     message: string
-  ): Promise<{ filename: string; path: string } | null> {
+  ): Promise<{ filename: string; path: string } | null> => {
     const fileText = message;
     if (!fileText.length) {
       this.pluginServices.notifyError("saveError");
@@ -282,6 +232,7 @@ class VaultUtils {
       const modal = new ModalSaveMessageAs(
         this.pluginServices.app,
         this.settings,
+        this,
         message,
         this.getAllFolderPaths(),
         async (fileName, folderPath, openFile, saveAsDefault) => {
@@ -316,7 +267,7 @@ class VaultUtils {
       );
       modal.open();
     });
-  }
+  };
 }
 
 export default VaultUtils;

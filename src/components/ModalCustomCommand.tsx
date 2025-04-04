@@ -1,25 +1,27 @@
-import { App, Modal, setTooltip } from "obsidian";
-import { DEFAULT_SETTINGS, QuillPluginSettings } from "@/settings";
-import { Command, IPluginServices } from "@/interfaces";
-import VaultUtils from "@/VaultUtils";
+import { DropdownComponent, Modal, setTooltip } from "obsidian";
 import { ELEM_CLASSES_IDS, OPENAI_MODELS } from "@/constants";
+import { Command, IPluginServices } from "@/interfaces";
+import { DEFAULT_SETTINGS, QuillPluginSettings } from "@/settings";
+import VaultUtils from "@/VaultUtils";
 
 class ModalCustomCommand extends Modal {
-  private onSubmit: (id: string, command: Command) => void;
-  private settings: QuillPluginSettings;
   private pluginServices: IPluginServices;
+  private settings: QuillPluginSettings;
+  private vaultUtils: VaultUtils;
+  private onSubmit: (id: string, command: Command) => void;
   private commandId?: string;
 
   constructor(
-    app: App,
-    settings: QuillPluginSettings,
     pluginServices: IPluginServices,
+    settings: QuillPluginSettings,
+    vaultUtils: VaultUtils,
     onSubmit: (id: string, command: Command) => void,
     commandId?: string
   ) {
-    super(app);
-    this.settings = settings;
+    super(pluginServices.app);
     this.pluginServices = pluginServices;
+    this.settings = settings;
+    this.vaultUtils = vaultUtils;
     this.onSubmit = onSubmit;
     this.shouldRestoreSelection = true;
     this.commandId = commandId || undefined;
@@ -37,6 +39,7 @@ class ModalCustomCommand extends Modal {
     const newCommandForm = contentEl.createEl("form", {
       attr: { id: "oq-newcommand-form" },
     });
+
     const commandToEdit: Command | undefined = this.commandId
       ? this.settings.commands[this.commandId]
       : undefined;
@@ -45,8 +48,8 @@ class ModalCustomCommand extends Modal {
     const checkRequiredFields = () => {
       if (
         commandNameEl.value.trim() &&
-        selectTemplateEl.value &&
-        selectOutputTargetEl.value
+        selectTemplateComp.getValue() &&
+        selectTargetComp.getValue()
       ) {
         saveButton.removeAttribute("disabled");
         setTooltip(saveButton, "");
@@ -64,6 +67,7 @@ class ModalCustomCommand extends Modal {
         id: "oq-newcommand-body",
       },
     });
+
     // NEW COMMAND NAME -------------------------------------------------------
     formBody.createEl("label", {
       text: "Command Name",
@@ -87,13 +91,12 @@ class ModalCustomCommand extends Modal {
     formBody.createEl("label", {
       text: "Template File",
       attr: {
-        for: ELEM_CLASSES_IDS.cmdTemplate,
+        for: ELEM_CLASSES_IDS.menuTemplates,
       },
     });
 
-    const selectTemplateEl = formBody.createEl("select", {
-      attr: { id: ELEM_CLASSES_IDS.cmdTemplate },
-    });
+    const selectTemplateComp = new DropdownComponent(formBody);
+    selectTemplateComp.selectEl.id = ELEM_CLASSES_IDS.menuTemplates;
 
     // Populate the menu with the list of markdown files in the templates folder
     (async () => {
@@ -102,55 +105,53 @@ class ModalCustomCommand extends Modal {
       const templateFiles = await vaultUtils.getListOfMarkdownFilesByPath(
         templatesFolder
       );
-      // Add a default option
-      selectTemplateEl.createEl("option", {
+      // Add a placeholder option
+      selectTemplateComp.selectEl.createEl("option", {
         text: `... in folder "${templatesFolder}"`,
         attr: {
           value: "",
           disabled: "disabled",
         },
       });
-
+      // Add options for each template file
       const fileNames = templateFiles.map((filepath: string) =>
         vaultUtils.getFilenameByPath(filepath)
       );
-      // Add options for each template file
       fileNames.forEach((filename: string) => {
         if (!filename) return;
-        const option = selectTemplateEl.createEl("option", {
-          text: filename.replace(".md", ""),
-          attr: {
-            value: filename,
-          },
-        });
-        selectTemplateEl.appendChild(option);
+        selectTemplateComp.addOption(filename, filename.replace(".md", ""));
       });
       // If editing a command, select the template file in the list.
       // If the commandToEdit.templateFile is not in the list, select the
       // default option
-      selectTemplateEl.value = "";
+      selectTemplateComp.setValue("");
       if (commandToEdit) {
         if (fileNames.includes(commandToEdit.templateFilename)) {
-          selectTemplateEl.value = commandToEdit.templateFilename;
+          selectTemplateComp.setValue(commandToEdit.templateFilename);
         } else {
-          selectTemplateEl.focus();
+          selectTemplateComp.selectEl.focus();
         }
       }
+      this.togglePlaceholderClass(selectTemplateComp);
       checkRequiredFields();
     })();
+
+    selectTemplateComp.onChange(() =>
+      this.togglePlaceholderClass(selectTemplateComp)
+    );
 
     // OUTPUT TARGET MENU ----------------------------------------------------
     // Select where the output of the command will be displayed
     formBody.createEl("label", {
-      text: "Output response to",
+      text: "Respond in...",
       attr: {
-        for: "oq-newcommand-target",
+        for: ELEM_CLASSES_IDS.menuTarget,
       },
     });
-    const selectOutputTargetEl = formBody.createEl("select", {
-      attr: { id: "oq-newcommand-target" },
-    });
-    selectOutputTargetEl.createEl("option", {
+    const selectTargetComp = new DropdownComponent(formBody);
+    selectTargetComp.selectEl.id = ELEM_CLASSES_IDS.menuTarget;
+    // Add a placeholder option
+    selectTargetComp.selectEl.createEl("option", {
       text: "Conversation or Note?",
       attr: {
         value: "",
@@ -162,17 +163,20 @@ class ModalCustomCommand extends Modal {
     outputTargets.forEach((target: string) => {
       const text =
         target === "view"
-          ? "Conversation View — Respond in a chat message"
-          : "Active Note — Where the cursor is in the note";
-      const option = selectOutputTargetEl.createEl("option", {
-        text: text,
-        attr: {
-          value: target,
-        },
-      });
-      selectOutputTargetEl.appendChild(option);
+          ? "Conversation (in the chat stream)"
+          : "Active Note (at the cursor position)";
+      selectTargetComp.addOption(target, text);
     });
-    selectOutputTargetEl.value = commandToEdit?.target || "";
+    selectTargetComp.setValue(commandToEdit?.target || "");
+
+    selectTargetComp.selectEl.toggleClass(
+      ELEM_CLASSES_IDS.menuPlaceholder,
+      selectTargetComp.getValue() === ""
+    );
+
+    selectTargetComp.onChange(() =>
+      this.togglePlaceholderClass(selectTargetComp)
+    );
 
     // MODEL SELECTION ------------------------------------------------
     formBody.createEl("label", {
@@ -181,30 +185,20 @@ class ModalCustomCommand extends Modal {
         for: "oq-newcommand-model",
       },
     });
-    const selectModel = formBody.createEl("select", {
-      attr: { id: "oq-newcommand-model" },
-    });
-    selectModel.createEl("option", {
-      text: `Default model (currently ${this.settings.openaiModel})`,
-      attr: {
-        value: "",
-      },
-    });
+    const selectModelComp = new DropdownComponent(formBody);
+    selectModelComp.addOption(
+      "",
+      `Default model (currently ${this.settings.openaiModel})`
+    );
     OPENAI_MODELS.user.forEach((model) => {
-      const option = selectOutputTargetEl.createEl("option", {
-        text: model.display,
-        attr: {
-          value: model.model,
-        },
-      });
-      selectModel.appendChild(option);
+      selectModelComp.addOption(model.model, model.display);
     });
-    selectModel.value = commandToEdit?.model || "";
+    selectModelComp.setValue(commandToEdit?.model || "");
 
     // Modal Footer
     const footer = newCommandForm.createDiv({
       attr: {
-        id: "oq-newcommand-footer",
+        id: ELEM_CLASSES_IDS.cmdFooter,
       },
     });
 
@@ -237,11 +231,11 @@ class ModalCustomCommand extends Modal {
       const commandId = this.commandId || this.generateCommandId();
       this.onSubmit(commandId, {
         name: commandNameEl.value.substring(0, 75).trim(),
-        target: selectOutputTargetEl.value as Command["target"],
+        target: selectTargetComp.getValue() as Command["target"],
         prompt: displayPromptEl.checked,
         sendSelectedText: false,
-        templateFilename: selectTemplateEl.value,
-        model: selectModel.value,
+        templateFilename: selectTemplateComp.getValue(),
+        model: selectModelComp.getValue(),
       });
       this.close();
     };
@@ -252,7 +246,7 @@ class ModalCustomCommand extends Modal {
         if (document.activeElement === commandNameEl) {
           event.preventDefault();
           saveButton.click();
-        } else if (document.activeElement === selectTemplateEl) {
+        } else if (document.activeElement === selectTemplateComp.selectEl) {
           event.preventDefault();
         }
       }
@@ -268,6 +262,13 @@ class ModalCustomCommand extends Modal {
     // This will return a random string of 13 characters
     return `oq-cmd-${Math.random().toString(36).substring(2, 15)}`;
   }
+
+  togglePlaceholderClass = (dropdown: DropdownComponent): void => {
+    dropdown.selectEl.toggleClass(
+      ELEM_CLASSES_IDS.menuPlaceholder,
+      dropdown.getValue() === ""
+    );
+  };
 }
 
 export default ModalCustomCommand;

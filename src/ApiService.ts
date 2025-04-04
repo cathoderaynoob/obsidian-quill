@@ -210,10 +210,10 @@ export default class ApiService {
     }
   }
 
-  async uploadFileFromVault(
+  uploadFileFromVault = async (
     file: TFile,
     purpose: OpenAI.FilePurpose
-  ): Promise<string | undefined> {
+  ): Promise<string | undefined> => {
     if (!file) {
       this.pluginServices.notifyError(
         "fileUploadError",
@@ -246,5 +246,5 @@ export default class ApiService {
       );
       return;
     }
-  }
+  };
 }

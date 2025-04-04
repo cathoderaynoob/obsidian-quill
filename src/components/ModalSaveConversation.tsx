@@ -1,20 +1,28 @@
-import { App, DropdownComponent, Modal } from "obsidian";
-import { DEFAULT_SETTINGS, QuillPluginSettings } from "@/settings";
+import { DropdownComponent, Modal } from "obsidian";
+import { IPluginServices } from "@/interfaces";
+import { ELEM_CLASSES_IDS } from "@/constants";
+import { QuillPluginSettings } from "@/settings";
+import DefaultFolderUtils from "@/DefaultFolderUtils";
+import VaultUtils from "@/VaultUtils";
 
 class ModalSaveConversation extends Modal {
-  private content: string;
-  private folderPaths: string[];
-  private onSubmit: (path: string) => void;
+  private pluginServices: IPluginServices;
   private settings: QuillPluginSettings;
+  private vaultUtils: VaultUtils;
+  private onSubmit: (path: string) => void;
+  private folderPaths: string[];
 
   constructor(
-    app: App,
+    pluginServices: IPluginServices,
     settings: QuillPluginSettings,
+    vaultUtils: VaultUtils,
     folderPaths: string[],
     onSubmit: (path: string) => void
   ) {
-    super(app);
+    super(pluginServices.app);
+    this.pluginServices = pluginServices;
     this.settings = settings;
+    this.vaultUtils = vaultUtils;
     this.folderPaths = folderPaths;
     this.onSubmit = onSubmit;
     this.shouldRestoreSelection = true;
@@ -25,10 +33,14 @@ class ModalSaveConversation extends Modal {
     const saveAsForm = contentEl.createEl("form", {
       attr: { id: "oq-saveas-form" },
     });
+    const { addDefaultFolderDropdown } = DefaultFolderUtils.getInstance(
+      this.pluginServices,
+      this.settings,
+      this.vaultUtils
+    );
 
-    this.setTitle("Save Conversation to...");
+    this.setTitle("Quill: Save Conversation to...");
     // Save conversation to folder...
-    const defaultConversationFolder = DEFAULT_SETTINGS.pathConversations;
     const settingsConversationsPath = this.settings.pathConversations;
     const isNewUser = settingsConversationsPath === "";
     const isMissingFolder = !this.folderPaths.includes(
@@ -40,56 +52,26 @@ class ModalSaveConversation extends Modal {
         ? "Select a folder for your saved conversations. You can change " +
           "this later in Settings."
         : "Your default conversations folder could not be found:";
-      saveAsForm
-        .createDiv({
-          cls: "oq-warn-text",
-          text: message,
-        })
-        .createDiv({
-          cls: "oq-filepath",
-          text: settingsConversationsPath,
-        });
+      saveAsForm.createDiv({
+        text: message,
+      });
+      saveAsForm.createDiv({
+        cls: ELEM_CLASSES_IDS.filePath,
+        text: settingsConversationsPath,
+      });
     }
 
     // Add select menu
-    const selectFieldsContainer = saveAsForm.createDiv({
+    const selectFieldContainer = saveAsForm.createEl("div", {
       cls: "oq-select-fields",
     });
-
-    const selectFolderComp = new DropdownComponent(selectFieldsContainer);
-
-    if (isNewUser) {
-      selectFolderComp.addOption(
-        defaultConversationFolder,
-        `${defaultConversationFolder}  (Quill plugin default)`
-      );
-    } else if (isMissingFolder) {
-      selectFolderComp.selectEl.createEl("option", {
-        text: "Save to folder and set as default...",
-        attr: {
-          value: "",
-          disabled: "disabled",
-        },
-      });
-    }
-    this.folderPaths.forEach((folderPath) => {
-      selectFolderComp.addOption(folderPath, folderPath);
-    });
-
-    const selectedPath = isNewUser
-      ? defaultConversationFolder
-      : isMissingFolder
-      ? ""
-      : settingsConversationsPath;
-
-    selectFolderComp.setValue(selectedPath);
-
-    // Style the empty selection option elem
-    selectFolderComp.selectEl.toggleClass("oq-disabled", selectedPath === "");
-    selectFolderComp.onChange(() => {
-      const isEmpty = selectFolderComp.getValue() === "";
-      selectFolderComp.selectEl.toggleClass("oq-disabled", isEmpty);
-    });
+    const selectFolderComp = new DropdownComponent(selectFieldContainer);
+    addDefaultFolderDropdown(selectFolderComp, "conversations", () =>
+      selectFolderComp.selectEl.removeClass(
+        ELEM_CLASSES_IDS.menuPlaceholder,
+        ELEM_CLASSES_IDS.menuDefault
+      )
+    );
 
     // Modal Footer
     const footer = saveAsForm.createDiv({

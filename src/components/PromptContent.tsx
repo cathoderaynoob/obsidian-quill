@@ -37,7 +37,7 @@ const PromptContent: React.FC<PromptContentProps> = ({
   const newConversationButtonRef = useRef<HTMLButtonElement>(null);
   const saveConversationButtonRef = useRef<HTMLButtonElement>(null);
   const settingsButtonRef = useRef<HTMLButtonElement>(null);
-  const clickableIconClass = APP_PROPS.clickableIcon;
+  const clickableIconClass = ELEM_CLASSES_IDS.clickableIcon;
   const textareaClass = ELEM_CLASSES_IDS.promptInput;
   const sendButtonClass = ELEM_CLASSES_IDS.promptSend;
 
@@ -71,14 +71,17 @@ const PromptContent: React.FC<PromptContentProps> = ({
     if (manuallySaveConv) {
       const saveConvElem = saveConversationButtonRef.current;
       if (saveConvElem) {
-        saveConvElem.className = APP_PROPS.clickableIcon;
+        saveConvElem.className = ELEM_CLASSES_IDS.clickableIcon;
         setIcon(
           saveConvElem,
           isConversationActive
             ? APP_PROPS.saveConversationIcon
             : APP_PROPS.noConvToSaveIcon
         );
-        saveConvElem.toggleClass("oq-disabled", !isConversationActive);
+        saveConvElem.toggleClass(
+          ELEM_CLASSES_IDS.disabled,
+          !isConversationActive
+        );
         const tooltipText = isConversationActive
           ? "Save conversation"
           : "No conversation to save";
@@ -107,7 +110,7 @@ const PromptContent: React.FC<PromptContentProps> = ({
         onClick={handleSend}
         disabled={disabled}
       />
-      <div id="oq-prompt-footer">
+      <div id={ELEM_CLASSES_IDS.promptFooter}>
         {newConversation && (
           <button
             ref={newConversationButtonRef}
