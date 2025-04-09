@@ -2,8 +2,8 @@ import { normalizePath, Notice, TFile, TFolder, Vault } from "obsidian";
 import { join } from "path";
 import { format } from "date-fns";
 import { IPluginServices } from "@/interfaces";
-import { MessageType } from "@/components/Message";
 import { QuillPluginSettings } from "@/settings";
+import { ConvoMessageType } from "@/components/Message";
 import ModalSaveMessageAs from "@/components/ModalSaveMessageAs";
 
 class VaultUtils {
@@ -164,7 +164,7 @@ class VaultUtils {
   };
 
   private formatLatestMessageForFile = async (
-    msg: MessageType,
+    msg: ConvoMessageType,
     file: TFile
   ): Promise<string> => {
     const fileContent = await this.vault.read(file);
@@ -191,7 +191,7 @@ class VaultUtils {
 
   appendLatestMessageToConvFile = async (
     conversationId: string,
-    latestMessage: MessageType,
+    latestMessage: ConvoMessageType,
     folderPath: string
   ): Promise<string | null> => {
     try {

@@ -96,9 +96,4 @@ export const PROMPTS = {
       "for specific content, since the entire output will be copied directly " +
       "to a note. ALWAYS REPLY, EVEN WHEN TESTING.",
   },
-  tellAJoke: {
-    role: "user",
-    content:
-      "Tell me a joke (and only the joke) in the style of Anthony Jeselnik.",
-  },
 };

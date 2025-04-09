@@ -1,9 +1,30 @@
+import { PROMPTS } from "@/constants";
+import { PayloadMessagesType } from "./interfaces";
+
 export interface Prompt {
   inputText?: string;
   templateText?: string;
   selectedText?: string;
   formattingGuidance?: string;
 }
+
+export const buildSystemPrompt = (isTargetView: boolean) => {
+  // Compose system prompt
+  const today = new Date().toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+  let systemContent = `Today is ${today}.`;
+  if (isTargetView) {
+    systemContent += ` ${PROMPTS.systemInitial.content}`;
+  }
+  const systemMsg: PayloadMessagesType = {
+    role: "system",
+    content: systemContent,
+  };
+  return systemMsg;
+};
 
 export const buildPromptPayload = ({
   inputText,

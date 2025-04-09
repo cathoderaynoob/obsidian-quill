@@ -1,8 +1,10 @@
 import {
   ButtonComponent,
   DropdownComponent,
+  normalizePath,
   Notice,
   setTooltip,
+  TFile,
   TFolder,
 } from "obsidian";
 import { APP_PROPS, ELEM_CLASSES_IDS } from "@/constants";
@@ -255,18 +257,42 @@ class DefaultFolderUtils {
     fileName: string,
     suppressPrompt?: boolean
   ): Promise<boolean> => {
-    const folderPath = await this.getDefaultFolderPath("templates", false);
-    const filePath = folderPath + "/" + fileName;
+    const filePath = await this.getTemplateFilePath(fileName);
 
+    // Check for missing template folder
     if (!(await this.hasValidDefaultFolder("templates"))) {
       !suppressPrompt && this.promptMissingTemplateFolder();
       return false;
     }
+    // Check for the file itself
     if (filePath === null || !this.vaultUtils.getFileByPath(filePath, true)) {
       !suppressPrompt && this.promptMissingTemplateFile(fileName);
       return false;
     }
     return true;
+  };
+
+  // This simply constructs and returns the path to the template file
+  getTemplateFilePath = async (fileName: string): Promise<string> => {
+    const folderPath = await this.getDefaultFolderPath("templates");
+    return normalizePath(`${folderPath}/${fileName}`);
+  };
+
+  getTemplateFile = async (fileName: string): Promise<TFile | null> => {
+    const templateFilePath = await this.getTemplateFilePath(fileName);
+    return this.vaultUtils.getFileByPath(templateFilePath);
+  };
+
+  getTemplateFileContent = async (fileName: string): Promise<string | null> => {
+    const templateFile = await this.getTemplateFile(fileName);
+    if (!templateFile) return null;
+    try {
+      return await this.vaultUtils.getFileContent(templateFile);
+    } catch (e) {
+      this.pluginServices.notifyError("fileReadError", e);
+      return null;
+    }
+    return null;
   };
 
   getDefaultFolderPath = async (

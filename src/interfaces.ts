@@ -1,4 +1,4 @@
-import { App, Editor } from "obsidian";
+import { App } from "obsidian";
 
 export interface Command {
   name: string;
@@ -8,7 +8,6 @@ export interface Command {
   templateFilename: string;
   model?: string;
 }
-
 export interface Commands {
   [key: string]: Command;
 }
@@ -41,8 +40,6 @@ export interface GptRequestPayload {
   temperature: number;
 }
 
-export type OutputTarget = Editor | "view" | "modal";
-
 export interface OpenAIModels {
   user: {
     model: string;
@@ -50,8 +47,11 @@ export interface OpenAIModels {
   }[];
 }
 
-export type Role = "system" | "user" | "assistant";
+export type OutputTarget = "editor" | "view" | "modal";
+
 export interface PayloadMessagesType {
   role: Role;
   content: string;
 }
+
+export type Role = "system" | "user" | "assistant";

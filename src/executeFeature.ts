@@ -1,11 +1,10 @@
-import { Editor, normalizePath, TFile } from "obsidian";
-import { PROMPTS } from "@/constants";
+import { Editor } from "obsidian";
 import {
   GptRequestPayload,
   PayloadMessagesType,
   OutputTarget,
 } from "@/interfaces";
-import { buildPromptPayload } from "@/promptBuilder";
+import { buildPromptPayload, buildSystemPrompt } from "@/promptBuilder";
 import { FeatureProperties } from "@/featuresRegistry";
 import { QuillPluginSettings } from "@/settings";
 import { Command, IPluginServices } from "@/interfaces";
@@ -14,17 +13,19 @@ import {
   deactivateEditorKeypress,
 } from "@/editorUtils";
 import ApiService from "@/ApiService";
+import DefaultFolderUtils from "@/DefaultFolderUtils";
 import emitter from "@/customEmitter";
-import PayloadMessages from "@/PayloadMessages";
+import PayloadUtils from "@/PayloadMessages";
 import VaultUtils from "@/VaultUtils";
 
 export interface ExecutionOptions {
-  id: string;
+  featureId: string;
   inputText?: string;
   selectedText?: string;
   command?: Command;
   formattingGuidance?: string;
   outputTarget?: OutputTarget;
+  editor?: Editor;
 }
 
 export const executeFeature = async (
@@ -32,44 +33,62 @@ export const executeFeature = async (
   options: ExecutionOptions,
   settings: QuillPluginSettings,
   apiService: ApiService,
-  payloadMessages: PayloadMessages,
   pluginServices: IPluginServices
 ): Promise<boolean> => {
   // options
   const {
-    id,
+    featureId,
     inputText,
     selectedText,
-    command: command,
+    command,
     formattingGuidance,
     outputTarget,
+    editor,
   } = options;
 
+  // Check for a valid API key
   if (!(await apiService.validateApiKey())) return false;
 
+  // Add dependencies
   const vaultUtils = VaultUtils.getInstance(pluginServices, settings);
-  const feature = featureRegistry[id];
+  const { getTemplateFileContent } = DefaultFolderUtils.getInstance(
+    pluginServices,
+    settings,
+    vaultUtils
+  );
+  const feature = featureRegistry[featureId];
   if (!feature) {
     pluginServices.notifyError("noFeature");
     return false;
   }
-  // Custom Command Template File
-  let commandTemplateContent: string | undefined;
-  if (command) {
-    // Read content from template file
-    const templateFilePath = normalizePath(
-      `${settings.pathTemplates}/${command.templateFilename}`
-    );
-    const templateFile: TFile | null =
-      vaultUtils.getFileByPath(templateFilePath);
-    if (templateFile) {
-      commandTemplateContent = await vaultUtils.getFileContent(templateFile);
-    } else {
-      return false;
-    }
+
+  // "view" output: Maintain persistent payload for the conversation context
+  // "editor" output: Fresh payload for each command run to ensure isolation
+  const payloadMessages =
+    feature.outputTarget === "view"
+      ? PayloadUtils.getViewInstance()
+      : PayloadUtils.getEditorInstance();
+
+  // If starting a new conversation or running a command to editor
+  const isFirstMessage = payloadMessages.getAll().length === 0;
+  let payloadMessagesArray: PayloadMessagesType[] = [];
+
+  // Add `system` prompt: For a new conversation
+  if (isFirstMessage) {
+    const systemMsg = buildSystemPrompt(true);
+    payloadMessagesArray = payloadMessages.addMessage(systemMsg);
   }
 
-  // Build prompt payload
+  // For a Custom Command: Get its template file content
+  let commandTemplateContent: string | null = null;
+  if (command) {
+    commandTemplateContent = await getTemplateFileContent(
+      command.templateFilename
+    );
+    if (!commandTemplateContent) return false;
+  }
+
+  // Build and add `user` role prompt
   const payloadPrompt = buildPromptPayload({
     inputText: feature.prompt(inputText) || undefined,
     templateText: commandTemplateContent || undefined,
@@ -78,33 +97,16 @@ export const executeFeature = async (
   });
   if (!payloadPrompt) return false; // Prevent empty requests
 
-  let payloadMessagesArray: PayloadMessagesType[] = [];
-  const newPayloadMessage: PayloadMessagesType = {
+  // Add message to payload
+  const userPayloadMessage: PayloadMessagesType = {
     role: "user",
     content: payloadPrompt,
   };
-
-  if (payloadMessages.getAll().length === 0) {
-    // Compose system prompt
-    const today = new Date().toLocaleDateString("en-US", {
-      month: "long",
-      day: "numeric",
-      year: "numeric",
-    });
-    let systemContent = `Today is ${today}.`;
-    if (feature.outputTarget === "view") {
-      systemContent += ` ${PROMPTS.systemInitial.content}`;
-    }
-    const systemMsg: PayloadMessagesType = {
-      role: "system",
-      content: systemContent,
-    };
-    payloadMessagesArray = payloadMessages.addMessage(systemMsg);
-  }
-  payloadMessagesArray = payloadMessages.addMessage(newPayloadMessage);
+  payloadMessagesArray = payloadMessages.addMessage(userPayloadMessage);
 
   const model = command?.model || feature.model || settings.openaiModel;
 
+  // If output is to view, display message in the conversation
   if (feature.outputTarget === "view") {
     const emitEvent = (
       event: string,
@@ -119,15 +121,17 @@ export const executeFeature = async (
         resolve();
       });
     };
+    // DISPLAY USER MESSAGE
     await emitEvent(
-      "newMessage",
+      "newConvoMessage",
       "user",
       model,
       inputText,
       selectedText,
       command?.name
     );
-    await emitEvent("newMessage", "assistant", model);
+    // DISPLAY ASSISTANT MESSAGE
+    await emitEvent("newConvoMessage", "assistant", model);
   }
 
   const payload: GptRequestPayload = {
@@ -136,38 +140,46 @@ export const executeFeature = async (
     temperature: feature.temperature || settings.openaiTemperature,
   };
 
-  if (feature.stream) {
-    let editorElem: HTMLElement | null = null;
-    if (outputTarget instanceof Editor) {
-      setTimeout(() => {
-        editorElem = document.querySelector(".cm-editor.cm-focused");
-        if (editorElem) {
-          editorElem.id = "oq-streaming";
-          activateEditorKeypress(editorElem, apiService);
-        }
-      }, 100);
-    }
-    const completedResponse = await apiService.getStreamingChatResponse(
-      payload,
-      feature.processResponse,
-      outputTarget
-    );
-    if (feature.outputTarget === "view") {
-      payloadMessages.addMessage({
-        role: "assistant",
-        content: completedResponse,
-      });
-    }
-    if (editorElem) {
-      (editorElem as HTMLElement).id = "";
-      deactivateEditorKeypress(editorElem);
-    }
-  } else {
+  // Non-streaming responses
+  if (!feature.stream) {
     await apiService.getNonStreamingChatResponse(
       payload,
       feature.processResponse,
       outputTarget
     );
+    return true;
+  }
+  // Streaming responses...
+  let editorElem: HTMLElement | null = null;
+  // ... to editor
+  if (outputTarget === "editor") {
+    // Highlight area of note for streaming output
+    setTimeout(() => {
+      editorElem = document.querySelector(".cm-editor.cm-focused");
+      if (editorElem) {
+        editorElem.id = "oq-streaming";
+        activateEditorKeypress(editorElem, apiService);
+      }
+    }, 100);
+  }
+  // Send payload, receive message
+  const completedResponse = await apiService.getStreamingChatResponse(
+    payload,
+    feature.processResponse,
+    outputTarget,
+    editor
+  );
+  // Remove highlight
+  if (editorElem) {
+    (editorElem as HTMLElement).id = "";
+    deactivateEditorKeypress(editorElem);
+  }
+  // ... to view
+  if (feature.outputTarget === "view") {
+    payloadMessages.addMessage({
+      role: "assistant",
+      content: completedResponse,
+    });
   }
   return true;
 };
