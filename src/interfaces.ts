@@ -2,7 +2,7 @@ import { App } from "obsidian";
 
 export interface Command {
   name: string;
-  target: "view" | "editor";
+  target: OutputTarget;
   prompt: boolean;
   sendSelectedText: boolean;
   templateFilename: string;
