@@ -165,9 +165,10 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature }) => {
       const content = commandName
         ? `*${commandName}*\n\n${inputText || ""}`
         : inputText || "";
+      const newMsgIndex = messages.length + 1;
       const newMessage: ConvoMessageType = {
         conversationId: getConversationId(),
-        msgIndex: messages.length + 1,
+        msgIndex: newMsgIndex,
         msgId: generateUniqueId(),
         role: role,
         model: model,
@@ -184,7 +185,7 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature }) => {
       prevScrollTop.current = containerElem.scrollTop;
       if (role === "assistant") {
         // Immediately scroll to the new message, regardless of the length
-        scrollToMessage(messages.length - 1);
+        scrollToMessage(newMsgIndex);
         setIsResponding(true);
       }
     };
@@ -200,22 +201,23 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature }) => {
   useEffect(() => {
     const handleResponseMessage = async (response: string) => {
       if (latestMessageRef.current) {
-        latestMessageRef.current.content += response;
+        const latestMsg = latestMessageRef.current;
+        latestMsg.content += response;
         setMessages((prevMessages) => {
           const updatedMessages = [...prevMessages];
           updatedMessages[updatedMessages.length - 1] = {
-            ...(latestMessageRef.current as ConvoMessageType),
+            ...(latestMsg as ConvoMessageType),
           };
           return updatedMessages;
         });
 
         // Scroll after a sufficient number of chars have been added
-        const contentLength = latestMessageRef.current.content.length;
+        const contentLength = latestMsg.content.length;
         if (
           contentLength >=
           prevContentLengthRef.current + SCROLL_CHARS_LIMIT
         ) {
-          await scrollToMessage(messages.length - 1);
+          await scrollToMessage(latestMsg.msgIndex);
           prevContentLengthRef.current = contentLength;
         }
       }
