@@ -11,7 +11,6 @@
   --oq-transition-color: color 0.2s ease;
   --oq-transition-opacity: opacity 0.2s ease;
 }
-
 .oq-warn-button {
   color: var(--text-error);
   cursor: help;
@@ -166,6 +165,12 @@
   mask-image: linear-gradient(to top, transparent 0, white 2rem);
   -webkit-mask-image: linear-gradient(to top, transparent 0, white 2rem);
   scroll-behavior: smooth;
+  & #oq-message-loading {
+    margin-left: 2.5rem;
+    opacity: 0;
+    height: 3rem;
+    transition: opacity 0.5s ease;
+  }
 }
 .oq-message {
   display: grid; /* Need this here to all pre scroll */
@@ -254,18 +259,52 @@
     }
   }
 }
-.oq-message-assistant {
-  .oq-message-content {
+/* Hide loader until a user message is present */
+.oq-message-loader,
+.oq-loader-error {
+  display: none;
+}
+/* Show loader when user message, but no assistant message */
+.oq-message-user + .oq-message-loader {
+  display: grid;
+}
+/* Assistant and loader containers are identical */
+.oq-message-assistant,
+.oq-message-loader {
+  min-height: 6rem;
+  & .oq-message-content {
     padding: 0 1rem 0.5rem 1rem;
     border: 1px solid var(--background-modifier-border);
     background: var(--background-primary);
     border-radius: 1rem;
     transition: border-color 0.5s ease;
   }
-  .oq-message-content.oq-message-streaming {
+  & .oq-message-content.oq-message-streaming {
     border-color: var(--oq-app-bright-color);
     transition: border-color 0.3s ease;
   }
+}
+.oq-message-loader.error {
+  & .oq-message-content {
+    border-color: var(--color-red);
+    animation: none;
+    opacity: 1;
+    & .oq-loader-error {
+      display: grid;
+      grid-template-columns: min-content 1fr;
+      column-gap: 0.66rem;
+      padding-top: 1rem;
+      padding-bottom: 1rem;
+      & .oq-icon-elem {
+        color: var(--color-red);
+      }
+    }
+  }
+}
+.oq-message-loader .oq-message-content {
+  border: 1px solid var(--oq-app-muted-color);
+  background: none;
+  animation: pulse 2s infinite ease;
 }
 .oq-message-streaming .oq-message-actions {
   visibility: hidden;
@@ -576,4 +615,17 @@ button.oq-prompt-send {
 .oq-file-button {
   box-shadow: none;
   padding: 0;
+}
+
+/* Animation */
+@keyframes pulse {
+  0% {
+    opacity: 0.1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 0.1;
+  }
 }

@@ -18,6 +18,15 @@ import VaultUtils from "@/VaultUtils";
 import DefaultFolderUtils from "@/DefaultFolderUtils";
 import ModalConfirm from "@/components/ModalConfirm";
 import ModalCustomCommand from "@/components/ModalCustomCommand";
+const {
+  validationEmpty,
+  menuPlaceholder,
+  menuDefault,
+  menuTemplates,
+  disabled,
+  btnWarn,
+  clickableIcon,
+} = ELEM_CLASSES_IDS;
 
 // Export the settings interface
 export interface QuillPluginSettings {
@@ -70,8 +79,8 @@ export class QuillSettingsTab extends PluginSettingTab {
     value: string
   ): Promise<void> => {
     !value
-      ? settingEl.controlEl.addClass(ELEM_CLASSES_IDS.validationEmpty)
-      : settingEl.controlEl.removeClass(ELEM_CLASSES_IDS.validationEmpty);
+      ? settingEl.controlEl.addClass(validationEmpty)
+      : settingEl.controlEl.removeClass(validationEmpty);
   };
 
   display(): void {
@@ -143,10 +152,7 @@ export class QuillSettingsTab extends PluginSettingTab {
       folderSetting: folderSettingNames,
       folderPath: string
     ): Promise<void> => {
-      dropdown.selectEl.removeClass(
-        ELEM_CLASSES_IDS.menuPlaceholder,
-        ELEM_CLASSES_IDS.menuDefault
-      );
+      dropdown.selectEl.removeClass(menuPlaceholder, menuDefault);
       settings[folderSetting] = folderPath;
       this.display();
       await this.pluginServices.saveSettings();
@@ -240,7 +246,7 @@ export class QuillSettingsTab extends PluginSettingTab {
             await onMenuChange(dropdown, "pathTemplates", folderPath);
           }
         );
-        dropdown.selectEl.id = ELEM_CLASSES_IDS.menuTemplates;
+        dropdown.selectEl.id = menuTemplates;
       })
       .addButton((button) => {
         addOpenFolderButton({
@@ -256,19 +262,15 @@ export class QuillSettingsTab extends PluginSettingTab {
     // If templates folder is not specified or is missing, disable
     // buttons that rely on it
     const disableIfNoTemplateFolder = (button: ButtonComponent): void => {
-      const menuTemplates = document.getElementById(
-        ELEM_CLASSES_IDS.menuTemplates
-      );
-      if (menuTemplates) {
-        const menuIsDisabled = menuTemplates.hasClass(
-          ELEM_CLASSES_IDS.disabled
-        );
+      const menuTemplatesElem = document.getElementById(menuTemplates);
+      if (menuTemplatesElem) {
+        const menuIsDisabled = menuTemplatesElem.hasClass(disabled);
         button.setDisabled(menuIsDisabled);
         if (menuIsDisabled)
           button.setTooltip("Select a Command Templates folder above.", {
             placement: "top",
           });
-        button.buttonEl.toggleClass(ELEM_CLASSES_IDS.disabled, menuIsDisabled);
+        button.buttonEl.toggleClass(disabled, menuIsDisabled);
       }
     };
 
@@ -347,10 +349,7 @@ export class QuillSettingsTab extends PluginSettingTab {
                 if (opened) this.closeSettings();
               }
             });
-          openTemplateButton.buttonEl.toggleClass(
-            ELEM_CLASSES_IDS.btnWarn,
-            !hasTemplateFile
-          );
+          openTemplateButton.buttonEl.toggleClass(btnWarn, !hasTemplateFile);
         })
         // Edit Command
         .addButton((button) => {
@@ -402,9 +401,9 @@ export class QuillSettingsTab extends PluginSettingTab {
               placement: "top",
             })
         );
-      // Add class ELEM_CLASSES_IDS.clicableIcon to each button in the setting
+      // Add class clicableIcon to each button in the setting
       customCommand.settingEl.findAll("button").forEach((btn) => {
-        btn.classList.add(ELEM_CLASSES_IDS.clickableIcon);
+        btn.classList.add(clickableIcon);
       });
     });
   }

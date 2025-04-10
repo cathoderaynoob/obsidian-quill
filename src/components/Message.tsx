@@ -82,12 +82,12 @@ const Message: React.FC<ConvoMessageProps> = ({
         >
           {role === "user" && <p className="oq-message-user-icon"></p>}
           <div
-            className={`oq-message-content ${
+            className={`${ELEM_CLASSES_IDS.msgContent} ${
               role === "assistant" ? ELEM_CLASSES_IDS.msgStreaming : ""
             }`}
           >
             {error ? (
-              <div className="oq-message-error">{error}</div>
+              <div className="oq-loader-error">{error}</div>
             ) : (
               <ReactMarkdown>{message}</ReactMarkdown>
             )}

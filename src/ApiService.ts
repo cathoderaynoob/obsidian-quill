@@ -2,7 +2,7 @@ import OpenAI from "openai";
 import { Editor, EditorPosition, TFile, Vault } from "obsidian";
 import { GptRequestPayload, IPluginServices, OutputTarget } from "@/interfaces";
 import { QuillPluginSettings } from "@/settings";
-import { STREAM_BUFFER_LIMIT } from "@/constants";
+import { ERROR_MESSAGES, STREAM_BUFFER_LIMIT } from "@/constants";
 import { ProcessResponse } from "@/featuresRegistry";
 import emitter from "@/customEmitter";
 import ModalConfirm from "@/components/ModalConfirm";
@@ -72,10 +72,10 @@ export default class ApiService {
     this.openai.apiKey = this.settings.openaiApiKey;
   }
 
-  async validateApiKey(suppressNotice?: boolean): Promise<boolean> {
+  async validateApiKey(suppressModal?: boolean): Promise<boolean> {
     // MISSING
     if (!this.settings.openaiApiKey) {
-      if (!suppressNotice) await this.openApiKeyProblemModal("missing");
+      if (!suppressModal) await this.openApiKeyProblemModal("missing");
       emitter.emit("responseEnd");
       return false;
     }
@@ -85,7 +85,7 @@ export default class ApiService {
     if (isApiKeyValid) {
       return true;
     } else {
-      if (!suppressNotice) await this.openApiKeyProblemModal("invalid");
+      if (!suppressModal) await this.openApiKeyProblemModal("invalid");
       emitter.emit("responseEnd");
       return false;
     }
@@ -99,6 +99,7 @@ export default class ApiService {
     editor?: Editor
   ): Promise<string> {
     const bufferLimit = STREAM_BUFFER_LIMIT;
+    let errorMsg: string | null = null;
     let bufferedContent = "";
     let completedMessage = "";
     let lastEditorPos: EditorPosition | null = null;
@@ -120,12 +121,15 @@ export default class ApiService {
     };
 
     try {
-      this.streamingContent = await this.openai.chat.completions.create({
-        model: payload.model,
-        messages: payload.messages,
-        stream: true,
-        temperature: payload.temperature,
-      });
+      this.streamingContent = await this.openai.chat.completions.create(
+        {
+          model: payload.model,
+          messages: payload.messages,
+          stream: true,
+          temperature: payload.temperature,
+        },
+        { timeout: 12000 }
+      );
 
       for await (const chunk of this.streamingContent) {
         const content = chunk.choices[0]?.delta?.content;
@@ -139,10 +143,8 @@ export default class ApiService {
         }
       }
     } catch (e) {
-      console.log(e.message);
-      if (e.status && e.status === 401) {
-        await this.validateApiKey();
-      }
+      errorMsg = this.handleNetworkError(e.message);
+      if (e.status === 401) await this.validateApiKey();
     } finally {
       if (outputTarget && bufferedContent.length > 0) {
         callback({
@@ -155,7 +157,7 @@ export default class ApiService {
       if (outputTarget === "view")
         // Give completedMessage time to be return before emitting responseEnd
         setTimeout(() => {
-          emitter.emit("responseEnd");
+          emitter.emit("responseEnd", errorMsg);
           emitter.emit("modalResponseEnd");
         }, 150);
     }
@@ -190,6 +192,26 @@ export default class ApiService {
         await this.validateApiKey();
       }
     }
+  }
+
+  handleNetworkError(errorMsg: string) {
+    let msgToUser = "";
+    errorMsg = errorMsg.toLowerCase();
+    switch (true) {
+      case errorMsg.includes("401") || errorMsg.includes("auth"):
+        msgToUser = "An issue with your API key was encountered.";
+        break;
+      case errorMsg.includes("connection"):
+        msgToUser = ERROR_MESSAGES.networkConnectionError;
+        break;
+      case errorMsg.includes("timed out"):
+        msgToUser = ERROR_MESSAGES.networkTimeout;
+        break;
+      default:
+        msgToUser = ERROR_MESSAGES.networkError;
+        break;
+    }
+    return msgToUser;
   }
 
   // FILES ====================================================================

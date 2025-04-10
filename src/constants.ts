@@ -26,20 +26,24 @@ export const ELEM_CLASSES_IDS = {
   cmdTarget: "oq-newcommand-target",
   disabled: "oq-disabled",
   filePath: "oq-filepath",
-  message: "oq-message",
-  messagePad: "oq-message-pad",
-  messages: "oq-messages",
+  iconEl: "oq-icon-elem",
   menuDefault: "oq-menu-default",
   menuPlaceholder: "oq-menu-placeholder",
   menuTarget: "oq-newcommand-target",
   menuTemplates: "oq-newcommand-template",
+  message: "oq-message",
+  messagePad: "oq-message-pad",
+  messages: "oq-messages",
+  msgContent: "oq-message-content",
   msgHighlight: "oq-message-highlight",
+  msgLoader: "oq-message-loader",
   msgStreaming: "oq-message-streaming",
   newConversation: "oq-btn-new-conv",
-  saveConversation: "oq-btn-save-conv",
   promptFooter: "oq-prompt-footer",
   promptInput: "oq-prompt-input",
   promptSend: "oq-prompt-send",
+  saveConversation: "oq-btn-save-conv",
+  textEl: "oq-text-elem",
   validationEmpty: "oq-validation-empty",
 };
 export const ERROR_MESSAGES = {
@@ -57,6 +61,13 @@ export const ERROR_MESSAGES = {
     "Error creating folder. Please check the console for details.",
   folderNotFound:
     "Cannot find folder at path provided. See console for details.",
+  networkConnectionError:
+    "A network connection issue was encountered. " +
+    "Are you connected to the internet?",
+  networkTimeout:
+    "Your request has timed out. Please check your connection " +
+    "and try again.",
+  networkError: "A network error occurred. See console for details.",
   noFeature: "Feature not found",
   saveError: "Unable to save to a note. Please check the console for details.",
   unknown: "An error occurred. Please check the console for details.",
