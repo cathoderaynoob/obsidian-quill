@@ -562,7 +562,7 @@ button.oq-prompt-send {
     margin-top: -0.75rem;
     padding-bottom: 1rem;
     & div {
-      font-weight: bold;
+      padding-bottom: 0.33rem;
     }
     & span {
       color: var(--oq-app-bright-color);

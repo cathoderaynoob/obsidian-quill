@@ -13,6 +13,7 @@ export type ProcessResponse = (params: ProcessResponseParams) => void;
 
 export interface FeatureProperties {
   id: string;
+  name?: string;
   prompt: (inputText?: string) => string;
   processResponse: ProcessResponse;
   outputTarget: OutputTarget;
@@ -28,6 +29,7 @@ export const FeaturesRegistry = (
     // NEW PROMPT
     openPrompt: {
       id: "openPrompt",
+      name: "Conversation Message",
       prompt: (inputText: string) => inputText,
       processResponse: ({ response }) =>
         emitter.emit("updateResponseMessage", response),
@@ -38,6 +40,7 @@ export const FeaturesRegistry = (
     // SEND SELECTED TEXT WITH PROMPT
     sendPromptWithSelectedText: {
       id: "sendPromptWithSelectedText",
+      name: "Send Selected Text",
       prompt: (inputText: string) => inputText,
       processResponse: ({ response }) =>
         emitter.emit("updateResponseMessage", response),

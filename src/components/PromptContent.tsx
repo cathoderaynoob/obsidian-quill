@@ -6,6 +6,7 @@ interface PromptContentProps {
   value: string;
   rows: number;
   model: string;
+  outputTarget?: string;
   handleInput: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   handleBlur: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   handleKeyPress: (e: React.KeyboardEvent) => void;
@@ -21,6 +22,7 @@ const PromptContent: React.FC<PromptContentProps> = ({
   value,
   rows,
   model,
+  outputTarget,
   handleInput,
   handleBlur,
   handleKeyPress,
@@ -40,6 +42,10 @@ const PromptContent: React.FC<PromptContentProps> = ({
   const clickableIconClass = ELEM_CLASSES_IDS.clickableIcon;
   const textareaClass = ELEM_CLASSES_IDS.promptInput;
   const sendButtonClass = ELEM_CLASSES_IDS.promptSend;
+
+  let targetName = "";
+  if (outputTarget)
+    targetName = outputTarget === "view" ? "Conversation" : "Note";
 
   useEffect(() => {
     // Text Field
@@ -119,7 +125,10 @@ const PromptContent: React.FC<PromptContentProps> = ({
             onClick={newConversation}
           />
         )}
-        <span>{model}</span>
+        <span>
+          {model}
+          {targetName && ` » ${targetName}`}
+        </span>
         {manuallySaveConv && (
           <button
             ref={saveConversationButtonRef}

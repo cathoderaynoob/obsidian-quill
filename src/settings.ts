@@ -283,7 +283,6 @@ export class QuillSettingsTab extends PluginSettingTab {
           new ModalCustomCommand(
             this.pluginServices,
             settings,
-            vaultUtils,
             async (id: string, command: Command) => {
               settings.commands[id] = command;
               await this.pluginServices.saveSettings();
@@ -364,7 +363,6 @@ export class QuillSettingsTab extends PluginSettingTab {
               new ModalCustomCommand(
                 this.pluginServices,
                 settings,
-                vaultUtils,
                 async (id: string, command: Command) => {
                   settings.commands[id] = command;
                   await this.pluginServices.saveSettings();

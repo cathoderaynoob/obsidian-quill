@@ -19,6 +19,15 @@ import ModalPrompt from "@/components/ModalPrompt";
 import QuillView from "@/components/view";
 import VaultUtils from "@/VaultUtils";
 
+type OpenModalPromptParams = {
+  featureId: string;
+  outputTarget: OutputTarget;
+  command?: Command;
+  customCommandId?: string;
+  editor?: Editor;
+  selectedText?: string;
+};
+
 export default class QuillPlugin extends Plugin implements IPluginServices {
   settings: QuillPluginSettings;
   apiService: ApiService;
@@ -124,7 +133,6 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
           const modal = new ModalCustomCommand(
             this.pluginServices,
             this.settings,
-            vaultUtils,
             async (id: string, command: Command) => {
               this.settings.commands[id] = command;
               await this.saveSettings();
@@ -142,35 +150,31 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 
   openModalPrompt({
     featureId,
+    outputTarget,
     command,
     customCommandId,
-    selectedText,
-    outputTarget = "view",
     editor,
-  }: {
-    featureId: string;
-    command?: Command;
-    customCommandId?: string;
-    selectedText?: string;
-    outputTarget?: OutputTarget;
-    editor?: Editor;
-  }): void {
+    selectedText = "",
+  }: OpenModalPromptParams): void {
     const modal = new ModalPrompt({
       settings: this.settings,
       pluginServices: this.pluginServices,
+      featureId,
+      outputTarget,
+      command,
+      customCommandId,
       onSend: async (userEntry) => {
         await this.features.executeFeature({
-          featureId: featureId,
           inputText: userEntry || "",
-          command: command || undefined,
-          selectedText: selectedText || undefined,
-          outputTarget: outputTarget || "view",
-          editor: editor,
+          featureId,
+          outputTarget,
+          editor,
+          command,
+          selectedText,
         });
       },
-      command: command || undefined,
-      customCommandId: customCommandId || undefined,
     });
+
     this.openModals.push(modal);
     modal.open();
   }

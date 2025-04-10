@@ -1,27 +1,24 @@
 import { DropdownComponent, Modal, setTooltip } from "obsidian";
 import { ELEM_CLASSES_IDS, OPENAI_MODELS } from "@/constants";
-import { Command, IPluginServices } from "@/interfaces";
+import { Command, IPluginServices, OutputTarget } from "@/interfaces";
 import { DEFAULT_SETTINGS, QuillPluginSettings } from "@/settings";
 import VaultUtils from "@/VaultUtils";
 
 class ModalCustomCommand extends Modal {
   private pluginServices: IPluginServices;
   private settings: QuillPluginSettings;
-  private vaultUtils: VaultUtils;
   private onSubmit: (id: string, command: Command) => void;
   private commandId?: string;
 
   constructor(
     pluginServices: IPluginServices,
     settings: QuillPluginSettings,
-    vaultUtils: VaultUtils,
     onSubmit: (id: string, command: Command) => void,
     commandId?: string
   ) {
     super(pluginServices.app);
     this.pluginServices = pluginServices;
     this.settings = settings;
-    this.vaultUtils = vaultUtils;
     this.onSubmit = onSubmit;
     this.shouldRestoreSelection = true;
     this.commandId = commandId || undefined;
@@ -159,7 +156,7 @@ class ModalCustomCommand extends Modal {
       },
     });
     // Populate the menu with the list of markdown files in the templates folder
-    const outputTargets = ["view", "editor"];
+    const outputTargets: OutputTarget[] = ["view", "editor"];
     outputTargets.forEach((target: string) => {
       const text =
         target === "view"
@@ -231,7 +228,7 @@ class ModalCustomCommand extends Modal {
       const commandId = this.commandId || this.generateCommandId();
       this.onSubmit(commandId, {
         name: commandNameEl.value.substring(0, 75).trim(),
-        target: selectTargetComp.getValue() as Command["target"],
+        target: selectTargetComp.getValue() as OutputTarget,
         prompt: displayPromptEl.checked,
         sendSelectedText: false,
         templateFilename: selectTemplateComp.getValue(),

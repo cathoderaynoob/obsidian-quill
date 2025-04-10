@@ -1,17 +1,17 @@
 import { ButtonComponent, Modal, Notice, TFile } from "obsidian";
 import { Root, createRoot } from "react-dom/client";
-import { Command, IPluginServices } from "@/interfaces";
+import { Command, IPluginServices, OutputTarget } from "@/interfaces";
 import { APP_PROPS, ELEM_CLASSES_IDS } from "@/constants";
 import { QuillPluginSettings } from "@/settings";
 import { getFeatureProperties } from "@/featuresRegistry";
 import emitter from "@/customEmitter";
 import ModalCustomCommand from "@/components/ModalCustomCommand";
 import PromptContent from "@/components/PromptContent";
-import VaultUtils from "@/VaultUtils";
 
 interface ModalPromptParams {
   settings: QuillPluginSettings;
   pluginServices: IPluginServices;
+  outputTarget: OutputTarget;
   onSend: (prompt: string) => void;
   featureId?: string;
   command?: Command;
@@ -20,18 +20,21 @@ interface ModalPromptParams {
 
 // GET PROMPT FROM USER MODAL =================================================
 class ModalPrompt extends Modal {
-  private modalRoot: Root | null = null;
-  private promptValue = "";
   private settings: QuillPluginSettings;
   private pluginServices: IPluginServices;
-  onSend: (prompt: string) => void;
-  featureId?: string | null;
-  command?: Command;
+  private outputTarget: string;
+  private onSend: (prompt: string) => void;
+  private featureId?: string | null;
+  private command?: Command;
   customCommandId?: string;
+
   commandTemplatePath?: string;
-  model: string;
-  rows = 6;
-  disabled = false;
+  private modalRoot: Root | null = null;
+  private promptValue = "";
+  private model: string;
+  private featureName: string | undefined;
+  private isDisabled = false;
+  private rows = 6;
 
   constructor({
     settings,
@@ -40,6 +43,7 @@ class ModalPrompt extends Modal {
     featureId,
     command,
     customCommandId,
+    outputTarget,
   }: ModalPromptParams) {
     super(pluginServices.app);
     this.settings = settings;
@@ -48,6 +52,7 @@ class ModalPrompt extends Modal {
     this.featureId = featureId;
     this.command = command;
     this.customCommandId = customCommandId;
+    this.outputTarget = outputTarget;
     this.handleResponseEnd = this.handleResponseEnd.bind(this);
     emitter.on("modalResponseEnd", this.handleResponseEnd);
   }
@@ -57,11 +62,11 @@ class ModalPrompt extends Modal {
   };
 
   enableSend = (): void => {
-    this.disabled = false;
+    this.isDisabled = false;
   };
 
   disableSend = (): void => {
-    this.disabled = true;
+    this.isDisabled = true;
   };
 
   handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -75,7 +80,7 @@ class ModalPrompt extends Modal {
 
   handleSend = () => {
     this.promptValue.trim();
-    if (this.disabled || this.promptValue === "") return;
+    if (this.isDisabled || this.promptValue === "") return;
     this.close();
     this.onSend(this.promptValue);
     this.disableSend();
@@ -87,7 +92,7 @@ class ModalPrompt extends Modal {
   };
 
   handleKeyPress = (e: React.KeyboardEvent) => {
-    if (this.disabled) this.disableSend();
+    if (this.isDisabled) this.disableSend();
     if (e.key === "Enter" && e.shiftKey) {
       return;
     } else if (e.key === "Enter") {
@@ -109,62 +114,33 @@ class ModalPrompt extends Modal {
     const feature = this.featureId
       ? getFeatureProperties(this.app, this.featureId)
       : null;
+    this.featureName = feature?.name;
     this.model =
       this.command?.model || feature?.model || this.settings.openaiModel;
     this.modalRoot = createRoot(this.contentEl);
     this.updateModal();
-
-    // Defer link generation logic to avoid slowing down modal rendering
-    setTimeout(() => {
-      if (this.command) {
-        const targetName =
-          this.command.target === "view"
-            ? "conversation"
-            : this.command.target === "editor"
-            ? "note"
-            : undefined;
-        const targetElement = this.contentEl.querySelector(
-          ELEM_CLASSES_IDS.promptFooter
-        );
-        if (targetElement) {
-          targetElement.textContent = `${this.model} ${
-            targetName && `• ${targetName}`
-          }`;
-          // Add a test link
-          targetElement.appendChild(this.generateFileButtonIcon(this.command));
-          if (this.customCommandId) {
-            targetElement.appendChild(
-              this.generateEditButtonIcon(this.customCommandId)
-            );
-          }
-        }
-      }
-    }, 0);
   }
 
-  generateFileButtonIcon(command: Command) {
-    const button = new ButtonComponent(this.contentEl);
-    button
-      .setClass(ELEM_CLASSES_IDS.clickableIcon)
-      .setIcon(APP_PROPS.fileIcon)
-      .setTooltip("Open template file")
-      .onClick(() => {
-        if (command?.templateFilename) {
-          const filePath =
-            this.settings.pathTemplates + "/" + command.templateFilename;
-          this.openFileInNewPane(filePath);
-        }
-        this.close();
-      });
-    return button.buttonEl;
-  }
+  // TODO:
+  // generateFileButtonIcon(command: Command) {
+  //   const button = new ButtonComponent(this.contentEl);
+  //   button
+  //     .setClass(ELEM_CLASSES_IDS.clickableIcon)
+  //     .setIcon(APP_PROPS.fileIcon)
+  //     .setTooltip("Open template file")
+  //     .onClick(() => {
+  //       if (command?.templateFilename) {
+  //         const filePath =
+  //           this.settings.pathTemplates + "/" + command.templateFilename;
+  //         this.openFileInNewPane(filePath);
+  //       }
+  //       this.close();
+  //     });
+  //   return button.buttonEl;
+  // }
 
   generateEditButtonIcon(customCommandId: string) {
     const button = new ButtonComponent(this.contentEl);
-    const vaultUtils = VaultUtils.getInstance(
-      this.pluginServices,
-      this.settings
-    );
     button
       .setClass(ELEM_CLASSES_IDS.clickableIcon)
       .setIcon(APP_PROPS.editIcon)
@@ -173,7 +149,6 @@ class ModalPrompt extends Modal {
         new ModalCustomCommand(
           this.pluginServices,
           this.settings,
-          vaultUtils,
           async (id: string, command: Command) => {
             this.settings.commands[customCommandId] = command;
             await this.pluginServices.saveSettings();
@@ -188,24 +163,29 @@ class ModalPrompt extends Modal {
   }
 
   updateModal() {
+    // Title differs for custom command vs native command
+    const titleContent =
+      this.command || this.featureName ? (
+        <div className="oq-modal-title">
+          <div>{this.command ? "Quill Custom Command" : "Quill Command"}</div>
+          <span>{this.command?.name || this.featureName}</span>
+        </div>
+      ) : null;
+
     this.modalRoot?.render(
       <div id="oq-prompt-modal">
-        {this.command && (
-          <div className="oq-modal-title">
-            <div>Quill Custom Command</div>
-            <span>{this.command.name}</span>
-          </div>
-        )}
+        {titleContent}
         <PromptContent
           value={this.promptValue}
           rows={this.rows}
           model={this.model}
+          outputTarget={this.outputTarget}
           handleInput={this.handleInput}
           handleKeyPress={this.handleKeyPress}
           handleSend={this.handleSend}
           handleOpenSettings={this.handleOpenSettings}
           handleBlur={this.handleBlur}
-          disabled={this.disabled} // TODO: Update this to disable sending (???)
+          disabled={this.isDisabled}
         />
       </div>
     );
