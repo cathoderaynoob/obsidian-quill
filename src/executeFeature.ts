@@ -46,8 +46,8 @@ export const executeFeature = async (
     editor,
   } = options;
 
-  // Check for a valid API key
-  if (!(await apiService.validateApiKey())) return false;
+  // Account for any updates to the API key
+  apiService.refreshApiKey();
 
   // Add dependencies
   const vaultUtils = VaultUtils.getInstance(pluginServices, settings);
