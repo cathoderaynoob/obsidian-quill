@@ -1,4 +1,4 @@
-import { Notice } from "obsidian";
+import { Notice, setIcon } from "obsidian";
 import { useEffect, useRef, useState } from "react";
 import { usePluginContext } from "@/components/PluginContext";
 import { Role } from "@/interfaces";
@@ -29,7 +29,17 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature }) => {
   const prevScrollTop = useRef<number>(0);
   const stopScrolling = useRef<boolean>(false);
   const payloadMessages = PayloadUtils.getViewInstance();
-  const clsMessageHighlight = ELEM_CLASSES_IDS.msgHighlight;
+  const {
+    iconEl: iconElClass,
+    message: messageElemId,
+    messages: messagesElemId,
+    msgContent,
+    msgLoader,
+    msgHighlight,
+    msgStreaming,
+    promptInput,
+    textEl: textElClass,
+  } = ELEM_CLASSES_IDS;
 
   const { getDefaultFolderPath } = DefaultFolderUtils.getInstance(
     pluginServices,
@@ -38,7 +48,11 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature }) => {
   );
 
   const getContainerElem = (): HTMLElement | null => {
-    return document.getElementById(ELEM_CLASSES_IDS.messages);
+    return document.getElementById(messagesElemId);
+  };
+
+  const getLoaderElem = (): HTMLElement | null => {
+    return document.querySelector(`.${msgLoader}`) as HTMLElement;
   };
 
   const getMessageElem = (index: number): HTMLElement | null => {
@@ -46,10 +60,8 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature }) => {
   };
 
   const focusPrompt = (): void => {
-    const promptInput = document.querySelector(
-      `.${ELEM_CLASSES_IDS.promptInput}`
-    ) as HTMLElement;
-    promptInput.focus();
+    const promptElem = document.querySelector(`.${promptInput}`) as HTMLElement;
+    promptElem.focus();
   };
   const clearMessages = (): void => {
     setMessages([]);
@@ -73,6 +85,15 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature }) => {
     const conversationId =
       latestMessageRef.current?.conversationId || vaultUtils.getDateTime();
     return conversationId;
+  };
+
+  const removeLastMessage = async (): Promise<void> => {
+    if (messages.length > 0)
+      setMessages((prevMessages) => {
+        const updatedMessages = [...prevMessages];
+        updatedMessages.pop();
+        return updatedMessages;
+      });
   };
 
   useEffect(() => {
@@ -122,8 +143,8 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature }) => {
     folderPath: string
   ): Promise<boolean> => {
     if (updatedMessage) {
-      // setTimeout prevents Obsidian indexing error
       return new Promise((resolve) => {
+        // setTimeout prevents Obsidian indexing error
         setTimeout(
           async () => {
             const filename = await vaultUtils.appendLatestMessageToConvFile(
@@ -148,6 +169,7 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature }) => {
   };
 
   // NEW MESSAGE ==============================================================
+
   // Adds a new message to the conversation, but
   // Does not include content of message (see `updateResponseMessage`)
   useEffect(() => {
@@ -161,6 +183,8 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature }) => {
       selectedText: string,
       commandName?: string
     ): Promise<void> => {
+      const loader = getLoaderElem();
+      if (loader) loader.removeClass("error");
       // If custom command, preface the user message with the command name
       const content = commandName
         ? `*${commandName}*\n\n${inputText || ""}`
@@ -183,11 +207,8 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature }) => {
         return [...prevMessages, newMessage];
       });
       prevScrollTop.current = containerElem.scrollTop;
-      if (role === "assistant") {
-        // Immediately scroll to the new message, regardless of the length
-        scrollToMessage(newMsgIndex);
-        setIsResponding(true);
-      }
+      scrollToBottom();
+      if (role === "assistant") setIsResponding(true);
     };
 
     emitter.on("newConvoMessage", handleNewConvoMessage);
@@ -200,6 +221,7 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature }) => {
   // Update the most recent message with streaming content from the API.
   useEffect(() => {
     const handleResponseMessage = async (response: string) => {
+      // Handle response message
       if (latestMessageRef.current) {
         const latestMsg = latestMessageRef.current;
         latestMsg.content += response;
@@ -228,11 +250,24 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature }) => {
     };
   }, [messages]);
 
-  // RESPONSE END ===============================================================
+  // RESPONSE END =============================================================
   useEffect(() => {
-    const handleResponseEnd = async () => {
+    const handleResponseEnd = async (errorMsg?: string) => {
+      // Error handling
+      if (errorMsg) {
+        const loader = getLoaderElem();
+        if (loader) {
+          loader.addClass("error");
+          const iconEl = loader.querySelector(`.${iconElClass}`) as HTMLElement;
+          if (iconEl) setIcon(iconEl, "circle-alert");
+          const textEl = loader.querySelector(`.${textElClass}`) as HTMLElement;
+          if (textEl) textEl.textContent = errorMsg;
+        }
+        // Remove the failed message
+        removeLastMessage();
+      }
       setIsResponding(false);
-      clearHighlights(ELEM_CLASSES_IDS.msgStreaming);
+      clearHighlights(msgStreaming);
       // Scroll to the last message when the stream ends,
       // even if the requisite chars haven't been added
       scrollToMessage(messages.length - 1);
@@ -241,7 +276,8 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature }) => {
       // Autosave
       const folderPath = await getDefaultFolderPath("conversations", true);
       if (folderPath !== "") {
-        // TODO: Refactor to save only the last message. THIS ISN'T A GOOD APPROACH
+        // TODO: Refactor to save only the last message.
+        // ? THIS ISN'T A GOOD APPROACH
         // Get the last two messages (i.e. user and assistant) and save them
         for (const message of messages.slice(-2)) {
           // If return is false, stop saving messages and show error
@@ -297,7 +333,7 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature }) => {
           break;
       }
       scrollToMessage(newIndex, true);
-      clearHighlights(clsMessageHighlight);
+      clearHighlights(msgHighlight);
       highlightMessage(newIndex);
       return newIndex;
     });
@@ -305,9 +341,7 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature }) => {
 
   // Keyboard navigation for messages
   const handleMessagesKeypress = (event: KeyboardEvent) => {
-    const promptElem = document.querySelector(
-      `.${ELEM_CLASSES_IDS.promptInput}`
-    ) as HTMLElement;
+    const promptElem = document.querySelector(`.${promptInput}`) as HTMLElement;
     if (document.activeElement !== promptElem) {
       switch (event.key) {
         case "j":
@@ -414,9 +448,9 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature }) => {
   // Utility functions for highlighting messages ==============================
   const highlightMessage = (index: number) => {
     const messageElement = getMessageElem(index);
-    messageElement?.classList.add(clsMessageHighlight);
+    messageElement?.classList.add(msgHighlight);
     setTimeout(() => {
-      clearHighlights(clsMessageHighlight);
+      clearHighlights(msgHighlight);
     }, 100);
   };
 
@@ -429,9 +463,20 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature }) => {
   };
 
   // Render the messages
+  const msgLoaderJsx = (
+    <div className={`${messageElemId} ${msgLoader}`}>
+      <div className={msgContent}>
+        <div className="oq-loader-error">
+          <div className={iconElClass}></div>
+          <div className={textElClass}></div>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <>
-      <div id={ELEM_CLASSES_IDS.messages} tabIndex={0}>
+      <div id={messagesElemId} tabIndex={0}>
         {messages.map((message, index) => (
           <Message
             key={message.msgId}
@@ -440,6 +485,7 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature }) => {
             handleOnCollapse={handleCollapseSelectedText}
           />
         ))}
+        {msgLoaderJsx}
       </div>
       <MessagePad
         executeFeature={executeFeature}

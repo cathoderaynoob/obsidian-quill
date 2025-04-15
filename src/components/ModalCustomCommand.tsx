@@ -3,6 +3,8 @@ import { ELEM_CLASSES_IDS, OPENAI_MODELS } from "@/constants";
 import { Command, IPluginServices, OutputTarget } from "@/interfaces";
 import { DEFAULT_SETTINGS, QuillPluginSettings } from "@/settings";
 import VaultUtils from "@/VaultUtils";
+const { cmdFooter, menuPlaceholder, menuTarget, menuTemplates } =
+  ELEM_CLASSES_IDS;
 
 class ModalCustomCommand extends Modal {
   private pluginServices: IPluginServices;
@@ -88,12 +90,12 @@ class ModalCustomCommand extends Modal {
     formBody.createEl("label", {
       text: "Template File",
       attr: {
-        for: ELEM_CLASSES_IDS.menuTemplates,
+        for: menuTemplates,
       },
     });
 
     const selectTemplateComp = new DropdownComponent(formBody);
-    selectTemplateComp.selectEl.id = ELEM_CLASSES_IDS.menuTemplates;
+    selectTemplateComp.selectEl.id = menuTemplates;
 
     // Populate the menu with the list of markdown files in the templates folder
     (async () => {
@@ -142,11 +144,11 @@ class ModalCustomCommand extends Modal {
     formBody.createEl("label", {
       text: "Respond in...",
       attr: {
-        for: ELEM_CLASSES_IDS.menuTarget,
+        for: menuTarget,
       },
     });
     const selectTargetComp = new DropdownComponent(formBody);
-    selectTargetComp.selectEl.id = ELEM_CLASSES_IDS.menuTarget;
+    selectTargetComp.selectEl.id = menuTarget;
     // Add a placeholder option
     selectTargetComp.selectEl.createEl("option", {
       text: "Conversation or Note?",
@@ -167,7 +169,7 @@ class ModalCustomCommand extends Modal {
     selectTargetComp.setValue(commandToEdit?.target || "");
 
     selectTargetComp.selectEl.toggleClass(
-      ELEM_CLASSES_IDS.menuPlaceholder,
+      menuPlaceholder,
       selectTargetComp.getValue() === ""
     );
 
@@ -195,7 +197,7 @@ class ModalCustomCommand extends Modal {
     // Modal Footer
     const footer = newCommandForm.createDiv({
       attr: {
-        id: ELEM_CLASSES_IDS.cmdFooter,
+        id: cmdFooter,
       },
     });
 
@@ -261,10 +263,7 @@ class ModalCustomCommand extends Modal {
   }
 
   togglePlaceholderClass = (dropdown: DropdownComponent): void => {
-    dropdown.selectEl.toggleClass(
-      ELEM_CLASSES_IDS.menuPlaceholder,
-      dropdown.getValue() === ""
-    );
+    dropdown.selectEl.toggleClass(menuPlaceholder, dropdown.getValue() === "");
   };
 }
 

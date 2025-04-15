@@ -39,9 +39,15 @@ const PromptContent: React.FC<PromptContentProps> = ({
   const newConversationButtonRef = useRef<HTMLButtonElement>(null);
   const saveConversationButtonRef = useRef<HTMLButtonElement>(null);
   const settingsButtonRef = useRef<HTMLButtonElement>(null);
-  const clickableIconClass = ELEM_CLASSES_IDS.clickableIcon;
-  const textareaClass = ELEM_CLASSES_IDS.promptInput;
-  const sendButtonClass = ELEM_CLASSES_IDS.promptSend;
+  const {
+    disabled: disabledClass,
+    promptSend: sendButtonClass,
+    promptInput: textareaClass,
+    clickableIcon: clickableIconClass,
+    saveConversation: saveConversationId,
+    newConversation: newConversationId,
+    promptFooter,
+  } = ELEM_CLASSES_IDS;
 
   let targetName = "";
   if (outputTarget)
@@ -77,17 +83,14 @@ const PromptContent: React.FC<PromptContentProps> = ({
     if (manuallySaveConv) {
       const saveConvElem = saveConversationButtonRef.current;
       if (saveConvElem) {
-        saveConvElem.className = ELEM_CLASSES_IDS.clickableIcon;
+        saveConvElem.className = clickableIconClass;
         setIcon(
           saveConvElem,
           isConversationActive
             ? APP_PROPS.saveConversationIcon
             : APP_PROPS.noConvToSaveIcon
         );
-        saveConvElem.toggleClass(
-          ELEM_CLASSES_IDS.disabled,
-          !isConversationActive
-        );
+        saveConvElem.toggleClass(disabledClass, !isConversationActive);
         const tooltipText = isConversationActive
           ? "Save conversation"
           : "No conversation to save";
@@ -116,11 +119,11 @@ const PromptContent: React.FC<PromptContentProps> = ({
         onClick={handleSend}
         disabled={disabled}
       />
-      <div id={ELEM_CLASSES_IDS.promptFooter}>
+      <div id={promptFooter}>
         {newConversation && (
           <button
             ref={newConversationButtonRef}
-            id={ELEM_CLASSES_IDS.newConversation}
+            id={newConversationId}
             className={clickableIconClass}
             onClick={newConversation}
           />
@@ -132,7 +135,7 @@ const PromptContent: React.FC<PromptContentProps> = ({
         {manuallySaveConv && (
           <button
             ref={saveConversationButtonRef}
-            id={ELEM_CLASSES_IDS.saveConversation}
+            id={saveConversationId}
             onClick={isConversationActive ? manuallySaveConv : undefined}
             disabled={!isConversationActive}
           />
