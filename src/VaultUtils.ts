@@ -3,15 +3,12 @@ import { join } from "path";
 import { format } from "date-fns";
 import { IPluginServices } from "@/interfaces";
 import { QuillPluginSettings } from "@/settings";
-import { ConvoMessageType } from "@/components/Message";
-import ModalSaveMessageAs from "@/components/ModalSaveMessageAs";
 
 class VaultUtils {
   private static instance: VaultUtils;
   private pluginServices: IPluginServices;
   private settings: QuillPluginSettings;
   private vault: Vault;
-  saveConversationManually: () => Promise<boolean>;
 
   constructor(pluginServices: IPluginServices, settings: QuillPluginSettings) {
     this.pluginServices = pluginServices;
@@ -29,8 +26,19 @@ class VaultUtils {
     return VaultUtils.instance;
   }
 
+  // Create a file in the vault
+  createFile = async (path: string, content: string): Promise<TFile> => {
+    return this.vault.create(path, content);
+  };
+
+  // Create a folder in the vault
   createFolder = async (path: string): Promise<TFolder> => {
     return this.vault.createFolder(path);
+  };
+
+  // Append content to a file
+  appendToFile = async (file: TFile, content: string): Promise<void> => {
+    return this.vault.append(file, content);
   };
 
   // Returns a list of markdown files in a folder
@@ -53,6 +61,19 @@ class VaultUtils {
       `File not found at \`${filePath}\`.`
     );
     return null;
+  };
+
+  validateFilename = (filename?: string) => {
+    filename = filename?.length ? filename : this.createFilenameAsDatetime();
+    const sanitizedFilename = this.sanitizeFilename(
+      filename.endsWith(".md") ? filename : filename + ".md"
+    );
+    return sanitizedFilename;
+  };
+
+  // Returns normalized path to file
+  getNormalizedFilepath = (folderPath: string, filename: string): string => {
+    return normalizePath(join(folderPath, filename));
   };
 
   // Returns the file object given its path
@@ -82,6 +103,7 @@ class VaultUtils {
     return null;
   };
 
+  // Sort the provided folder paths alphabetically
   sortFolderPaths = (folders: TFolder[]): string[] => {
     folders.map((folder) => folder.path);
     return folders
@@ -147,7 +169,7 @@ class VaultUtils {
     return match ? match[2] : "";
   }
 
-  private sanitizeFilename(filename: string) {
+  sanitizeFilename(filename: string) {
     const sanitized = normalizePath(filename)
       .replace(/[/\\]/g, "_") // Replace slashes with underscores
       .replace(/[^\w\s.-]/g, ""); // Remove disallowed characters
@@ -161,112 +183,6 @@ class VaultUtils {
     }
     console.log(`Unable to clear file content from ${file.path}`);
     return false;
-  };
-
-  private formatLatestMessageForFile = async (
-    msg: ConvoMessageType,
-    file: TFile
-  ): Promise<string> => {
-    const fileContent = await this.vault.read(file);
-    const matches = fileContent.match(/\[Message \d+\]/g)?.length || 0;
-    const messageNum = matches + 1;
-    let header = msg.role === "user" ? `# [Message ${messageNum}]\n` : "";
-    const separator = `\n___\n`;
-    switch (msg.role) {
-      case "user":
-        header += `#### [» Prompt]`;
-        break;
-      case "assistant":
-        header += `#### [« Response]\n\`${msg.model}\``;
-        break;
-    }
-    let fileText = `${header}\n\n${msg.content}\n`;
-    if (msg.selectedText) {
-      fileText += "\n```\n" + msg.selectedText + "\n```\n";
-    }
-    fileText += separator;
-
-    return fileText;
-  };
-
-  appendLatestMessageToConvFile = async (
-    conversationId: string,
-    latestMessage: ConvoMessageType,
-    folderPath: string
-  ): Promise<string | null> => {
-    try {
-      // Find the conversation file, or create it
-      const filename = `${conversationId}.md`;
-      const filePath = `${folderPath}/${filename}`;
-      let file = this.getFileByPath(filePath, true);
-      if (!file) {
-        file = await this.vault.create(filePath, "");
-      }
-      if (latestMessage.content.length) {
-        const messageText = await this.formatLatestMessageForFile(
-          latestMessage,
-          file
-        );
-        // Append the latest message
-        await this.vault.append(file, messageText);
-      }
-      return filename;
-    } catch (e) {
-      console.log(e);
-      return null;
-    }
-  };
-
-  // SAVE A MESSAGE TO A FILE AS...
-  saveMessageAs = async (
-    message: string
-  ): Promise<{ filename: string; path: string } | null> => {
-    const fileText = message;
-    if (!fileText.length) {
-      this.pluginServices.notifyError("saveError");
-      console.log("File contains no text");
-      return null;
-    }
-
-    return new Promise((resolve) => {
-      const modal = new ModalSaveMessageAs(
-        this.pluginServices.app,
-        this.settings,
-        this,
-        message,
-        this.getAllFolderPaths(),
-        async (fileName, folderPath, openFile, saveAsDefault) => {
-          if (!fileName.length) {
-            fileName = this.createFilenameAsDatetime();
-          }
-          const filename = this.sanitizeFilename(
-            fileName.endsWith(".md") ? fileName : fileName + ".md"
-          );
-          if (this.vault.getFolderByPath(folderPath) === null) {
-            this.vault.createFolder(folderPath);
-          }
-          const filepath = normalizePath(join(folderPath, filename));
-          try {
-            await this.vault.create(filepath, fileText);
-            new Notice(`${filename}\n\n  saved to\n\n${folderPath}`);
-            modal.close();
-            this.settings.openAfterSave = openFile;
-            if (openFile) {
-              await this.openFile(filepath, true);
-            }
-            if (saveAsDefault) {
-              this.settings.pathMessages = folderPath;
-              await this.pluginServices.saveSettings();
-            }
-            resolve({ filename, path: folderPath });
-          } catch (e) {
-            new Notice(e);
-            console.log(e);
-          }
-        }
-      );
-      modal.open();
-    });
   };
 }
 

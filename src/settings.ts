@@ -91,11 +91,7 @@ export class QuillSettingsTab extends PluginSettingTab {
       addDefaultFolderDropdown,
       addOpenFolderButton,
       validateTemplateFile,
-    } = DefaultFolderUtils.getInstance(
-      this.pluginServices,
-      settings,
-      vaultUtils
-    );
+    } = DefaultFolderUtils.getInstance(this.pluginServices, settings);
     containerEl.setAttr("id", "oq-settings");
     containerEl.empty();
 

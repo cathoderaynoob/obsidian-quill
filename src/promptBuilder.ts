@@ -1,5 +1,5 @@
 import { PROMPTS } from "@/constants";
-import { PayloadMessagesType } from "./interfaces";
+import { PayloadMessagesType } from "@/interfaces";
 
 export interface Prompt {
   inputText?: string;
