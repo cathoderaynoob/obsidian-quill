@@ -8,22 +8,16 @@ import VaultUtils from "@/VaultUtils";
 class ModalSaveConversation extends Modal {
   private pluginServices: IPluginServices;
   private settings: QuillPluginSettings;
-  private vaultUtils: VaultUtils;
   private onSubmit: (path: string) => void;
-  private folderPaths: string[];
 
   constructor(
     pluginServices: IPluginServices,
     settings: QuillPluginSettings,
-    vaultUtils: VaultUtils,
-    folderPaths: string[],
     onSubmit: (path: string) => void
   ) {
     super(pluginServices.app);
     this.pluginServices = pluginServices;
     this.settings = settings;
-    this.vaultUtils = vaultUtils;
-    this.folderPaths = folderPaths;
     this.onSubmit = onSubmit;
     this.shouldRestoreSelection = true;
   }
@@ -35,17 +29,19 @@ class ModalSaveConversation extends Modal {
     });
     const { addDefaultFolderDropdown } = DefaultFolderUtils.getInstance(
       this.pluginServices,
-      this.settings,
-      this.vaultUtils
+      this.settings
+    );
+    const { getAllFolderPaths } = VaultUtils.getInstance(
+      this.pluginServices,
+      this.settings
     );
 
     this.setTitle("Quill: Save Conversation to...");
     // Save conversation to folder...
     const settingsConversationsPath = this.settings.pathConversations;
     const isNewUser = settingsConversationsPath === "";
-    const isMissingFolder = !this.folderPaths.includes(
-      settingsConversationsPath
-    );
+    const allFolderPaths = getAllFolderPaths();
+    const isMissingFolder = !allFolderPaths.includes(settingsConversationsPath);
 
     if (isNewUser || isMissingFolder) {
       const message = isNewUser

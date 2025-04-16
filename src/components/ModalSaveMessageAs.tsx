@@ -1,13 +1,12 @@
 import { App, DropdownComponent, Modal } from "obsidian";
 import { IPluginServices } from "@/interfaces";
+import { ELEM_CLASSES_IDS } from "@/constants";
 import { QuillPluginSettings } from "@/settings";
 import DefaultFolderUtils from "@/DefaultFolderUtils";
 import VaultUtils from "@/VaultUtils";
-import { ELEM_CLASSES_IDS } from "@/constants";
 
 class ModalSaveMessageAs extends Modal {
   private content: string;
-  private folderPaths: string[];
   private onSubmit: (
     name: string,
     path: string,
@@ -16,14 +15,11 @@ class ModalSaveMessageAs extends Modal {
   ) => void;
   private settings: QuillPluginSettings;
   private pluginServices: IPluginServices;
-  private vaultUtils: VaultUtils;
 
   constructor(
     app: App,
     settings: QuillPluginSettings,
-    vaultUtils: VaultUtils,
     content: string,
-    folderPaths: string[],
     onSubmit: (
       name: string,
       path: string,
@@ -33,9 +29,7 @@ class ModalSaveMessageAs extends Modal {
   ) {
     super(app);
     this.settings = settings;
-    this.vaultUtils = vaultUtils;
     this.content = content;
-    this.folderPaths = folderPaths;
     this.onSubmit = onSubmit;
     this.shouldRestoreSelection = true;
   }
@@ -45,10 +39,13 @@ class ModalSaveMessageAs extends Modal {
     const saveAsForm = contentEl.createEl("form", {
       attr: { id: "oq-saveas-form" },
     });
+    const vaultUtils = VaultUtils.getInstance(
+      this.pluginServices,
+      this.settings
+    );
     const { addDefaultFolderDropdown } = DefaultFolderUtils.getInstance(
       this.pluginServices,
-      this.settings,
-      this.vaultUtils
+      this.settings
     );
 
     this.setTitle("Save Message as a Note");
@@ -78,9 +75,11 @@ class ModalSaveMessageAs extends Modal {
 
     // To folder...
     const settingsMessagesPath = this.settings.pathMessages;
-    const isMissingFolder = !this.folderPaths.includes(settingsMessagesPath);
+    const allFolderPaths = vaultUtils.getAllFolderPaths();
+    const isMissingFolder = !allFolderPaths.includes(settingsMessagesPath);
 
-    // Add an option to save the selected folder as default
+    // If the default messages folder is missing, add an option to
+    // save the selected folder as default
     let isSaveAsDefaultChecked = false;
     if (isMissingFolder) {
       const saveAsDefaultDiv = selectFieldsContainer.createDiv({

@@ -17,7 +17,6 @@ import Features from "@/Features";
 import ModalCustomCommand from "@/components/ModalCustomCommand";
 import ModalPrompt from "@/components/ModalPrompt";
 import QuillView from "@/components/view";
-import VaultUtils from "@/VaultUtils";
 
 type OpenModalPromptParams = {
   featureId: string;
@@ -49,16 +48,8 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
       openPluginSettings: this.openPluginSettings.bind(this),
       loadCommands: this.loadCommands.bind(this),
     };
-    const vaultUtils = VaultUtils.getInstance(
-      this.pluginServices,
-      this.settings
-    );
     const { hasValidDefaultFolder, promptMissingTemplateFolder } =
-      DefaultFolderUtils.getInstance(
-        this.pluginServices,
-        this.settings,
-        vaultUtils
-      );
+      DefaultFolderUtils.getInstance(this.pluginServices, this.settings);
 
     this.addSettingTab(
       new QuillSettingsTab(this.app, this, this.pluginServices)
@@ -226,14 +217,9 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
   // CUSTOM COMMAND LOADER ====================================================
   // Loads the user-created custom commands defined in the settings
   loadCommands = async () => {
-    const vaultUtils = VaultUtils.getInstance(
-      this.pluginServices,
-      this.settings
-    );
     const { validateTemplateFile } = DefaultFolderUtils.getInstance(
       this.pluginServices,
-      this.settings,
-      vaultUtils
+      this.settings
     );
     const commands: Commands = this.settings.commands;
 

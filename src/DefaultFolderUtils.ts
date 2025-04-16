@@ -14,9 +14,9 @@ import {
   IPluginServices,
 } from "@/interfaces";
 import { DEFAULT_SETTINGS, QuillPluginSettings } from "@/settings";
-import VaultUtils from "@/VaultUtils";
 import ModalConfirm from "@/components/ModalConfirm";
 import ModalSaveConversation from "@/components/ModalSaveConversation";
+import VaultUtils from "@/VaultUtils";
 
 type FolderButtonAction = "open" | "create" | "warn";
 
@@ -26,26 +26,20 @@ class DefaultFolderUtils {
   private settings: QuillPluginSettings;
   private vaultUtils: VaultUtils;
 
-  constructor(
-    pluginServices: IPluginServices,
-    settings: QuillPluginSettings,
-    vaultUtils: VaultUtils
-  ) {
+  constructor(pluginServices: IPluginServices, settings: QuillPluginSettings) {
     this.pluginServices = pluginServices;
     this.settings = settings;
-    this.vaultUtils = vaultUtils;
+    this.vaultUtils = VaultUtils.getInstance(pluginServices, settings);
   }
 
   public static getInstance(
     pluginServices: IPluginServices,
-    settings: QuillPluginSettings,
-    vaultUtils: VaultUtils
+    settings: QuillPluginSettings
   ): DefaultFolderUtils {
     if (!DefaultFolderUtils.instance) {
       DefaultFolderUtils.instance = new DefaultFolderUtils(
         pluginServices,
-        settings,
-        vaultUtils
+        settings
       );
     }
     return DefaultFolderUtils.instance;
@@ -56,10 +50,9 @@ class DefaultFolderUtils {
     folderType: DefaultSaveFolder,
     onChangeHandler?: (selectedFolder: string) => void
   ): void => {
-    const { getAllFolderPaths, getFolderByPath } = this.vaultUtils;
     const { pluginDefaultPath, userDefaultPath, settingName } =
       this.getDefaultFolderInfo(folderType);
-    const vaultFolderPaths = getAllFolderPaths();
+    const vaultFolderPaths = this.vaultUtils.getAllFolderPaths();
     const hasUserSetDefault = userDefaultPath !== "";
     const pluginDefaultExists = vaultFolderPaths.contains(pluginDefaultPath);
 
@@ -104,7 +97,7 @@ class DefaultFolderUtils {
 
     // Show the plugin's default folder
     if (shouldShowPluginDefault) {
-      if (!getFolderByPath(pluginDefaultPath, true)) {
+      if (!this.vaultUtils.getFolderByPath(pluginDefaultPath, true)) {
         dropdown.addOption(
           pluginDefaultPath,
           `${pluginDefaultPath} (Quill default)`
@@ -173,10 +166,8 @@ class DefaultFolderUtils {
     folderActionHandler?: (action: FolderButtonAction) => void;
   }): TFolder | false => {
     const app = this.pluginServices.app;
-    const { createFolder, getFolderByPath } = this.vaultUtils;
     // If we can use the file-explorer, let's, for a good user experience.
     // Otherwise, don't add the button.
-
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore: Property 'internalPlugins' does not exist on type 'App'.
     const fileExpl = app.internalPlugins.getEnabledPluginById("file-explorer");
@@ -189,8 +180,8 @@ class DefaultFolderUtils {
     // Which folder will the button open?
     const folderToOpen =
       this.settings[settingName] === "" ? pluginDefaultPath : userDefaultPath;
-    const folder = getFolderByPath(folderToOpen, true);
-    const { icon, tooltip, action, btnClass } = this.getButtonProps(
+    const folder = this.vaultUtils.getFolderByPath(folderToOpen, true);
+    const { icon, tooltip, action, btnClass } = this.getFolderButtonProps(
       userDefaultPath,
       pluginDefaultPath
     );
@@ -219,7 +210,7 @@ class DefaultFolderUtils {
       case "create":
         button.onClick(async () => {
           try {
-            await createFolder(folderToOpen);
+            await this.vaultUtils.createFolder(folderToOpen);
             this.settings[settingName] = folderToOpen;
             await this.pluginServices.saveSettings();
             new Notice(
@@ -244,19 +235,17 @@ class DefaultFolderUtils {
       folderType,
       createFolderIfMissing
     );
-    if (
-      folderPath === "" ||
-      this.vaultUtils.getFolderByPath(folderPath, true) === null
-    ) {
-      return false;
-    }
-    return true;
+    const hasValidFolder =
+      folderPath !== "" &&
+      this.vaultUtils.getFolderByPath(folderPath, true) !== null;
+    return hasValidFolder;
   };
 
   validateTemplateFile = async (
     fileName: string,
     suppressPrompt?: boolean
   ): Promise<boolean> => {
+    const { getFileByPath } = this.vaultUtils;
     const filePath = await this.getTemplateFilePath(fileName);
 
     // Check for missing template folder
@@ -265,7 +254,7 @@ class DefaultFolderUtils {
       return false;
     }
     // Check for the file itself
-    if (filePath === null || !this.vaultUtils.getFileByPath(filePath, true)) {
+    if (filePath === null || !getFileByPath(filePath, true)) {
       !suppressPrompt && this.promptMissingTemplateFile(fileName);
       return false;
     }
@@ -359,8 +348,6 @@ class DefaultFolderUtils {
       const modal = new ModalSaveConversation(
         this.pluginServices,
         this.settings,
-        this.vaultUtils,
-        this.vaultUtils.getAllFolderPaths(),
         async (folderPath) => {
           this.settings.pathConversations = folderPath;
           this.pluginServices.saveSettings();
@@ -373,7 +360,7 @@ class DefaultFolderUtils {
   };
 
   // Helper function to determine button properties
-  private getButtonProps = (
+  private getFolderButtonProps = (
     settingsPath: string,
     defaultPath: string
   ): {

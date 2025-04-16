@@ -16,7 +16,6 @@ import ApiService from "@/ApiService";
 import DefaultFolderUtils from "@/DefaultFolderUtils";
 import emitter from "@/customEmitter";
 import PayloadUtils from "@/PayloadMessages";
-import VaultUtils from "@/VaultUtils";
 
 export interface ExecutionOptions {
   featureId: string;
@@ -50,11 +49,9 @@ export const executeFeature = async (
   apiService.refreshApiKey();
 
   // Add dependencies
-  const vaultUtils = VaultUtils.getInstance(pluginServices, settings);
   const { getTemplateFileContent } = DefaultFolderUtils.getInstance(
     pluginServices,
-    settings,
-    vaultUtils
+    settings
   );
   const feature = featureRegistry[featureId];
   if (!feature) {

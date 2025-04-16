@@ -4,6 +4,7 @@ import ReactMarkdown from "react-markdown";
 import { APP_PROPS, ELEM_CLASSES_IDS } from "@/constants";
 import { Role } from "@/interfaces";
 import { usePluginContext } from "@/components/PluginContext";
+import MessageUtils from "@/MessageUtils";
 
 export interface ConvoMessageType {
   conversationId: string;
@@ -30,13 +31,18 @@ const Message: React.FC<ConvoMessageProps> = ({
   error,
   handleOnCollapse,
 }) => {
-  const { vaultUtils } = usePluginContext();
+  const { pluginServices, settings, vaultUtils } = usePluginContext();
+  const messageUtils = MessageUtils.getInstance(
+    pluginServices,
+    settings,
+    vaultUtils
+  );
   const copyMessageButtonRef = useRef<HTMLButtonElement>(null);
   const saveMessageButtonRef = useRef<HTMLButtonElement>(null);
   const clickableIconClass = ELEM_CLASSES_IDS.clickableIcon;
 
   const saveMessageAs = async () => {
-    vaultUtils.saveMessageAs(message);
+    messageUtils.promptSaveMessageAs(message);
   };
 
   const copyMessageToClipboard = () => {
