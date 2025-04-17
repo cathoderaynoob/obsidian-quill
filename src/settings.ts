@@ -6,7 +6,12 @@ import {
   PluginSettingTab,
   Setting,
 } from "obsidian";
-import { APP_PROPS, ELEM_CLASSES_IDS, OPENAI_MODELS } from "@/constants";
+import {
+  APP_PROPS,
+  ELEM_CLASSES_IDS,
+  EXTERNAL_LINKS,
+  OPENAI_MODELS,
+} from "@/constants";
 import {
   Command,
   Commands,
@@ -78,9 +83,22 @@ export class QuillSettingsTab extends PluginSettingTab {
     settingEl: Setting,
     value: string
   ): Promise<void> => {
-    !value
-      ? settingEl.controlEl.addClass(validationEmpty)
-      : settingEl.controlEl.removeClass(validationEmpty);
+    settingEl.controlEl.toggleClass(validationEmpty, !value);
+  };
+
+  private createDescWithLink = (
+    desc: string,
+    linkText: string,
+    linkHref: string
+  ): DocumentFragment => {
+    return createFragment((descEl) => {
+      const link = descEl.createEl("a", {
+        text: linkText,
+        href: linkHref,
+      });
+      descEl.appendText(desc);
+      descEl.append(link);
+    });
   };
 
   display(): void {
@@ -104,34 +122,40 @@ export class QuillSettingsTab extends PluginSettingTab {
       text: "OpenAI",
     });
     // OpenAI API Key
-    const apikeySetting = new Setting(containerEl)
+    const apiKeySetting = new Setting(containerEl)
       .setName("OpenAI API Key")
-      .setDesc("Enter your OpenAI API key.")
       .addText((text) => {
         text
-          .setPlaceholder("Enter your key")
+          .setPlaceholder("Enter your API key")
           .setValue(settings.openaiApiKey)
           .onChange(async (value) => {
             settings.openaiApiKey = value;
-            await this.highlightIfEmpty(apikeySetting, settings.openaiApiKey);
+            await this.highlightIfEmpty(apiKeySetting, settings.openaiApiKey);
           });
         text.inputEl.onfocus = async () => {
-          await this.highlightIfEmpty(apikeySetting, settings.openaiApiKey);
+          await this.highlightIfEmpty(apiKeySetting, settings.openaiApiKey);
         };
         text.inputEl.onblur = async () => {
           await this.pluginServices.saveSettings();
         };
       });
 
-    // OpenAI Model
-    new Setting(containerEl)
-      .setName("OpenAI Model")
-      .setDesc(
-        "Set the default model for Quill commands. (Some commands will " +
-          "use a different model tailored to their specific purpose.)"
+    apiKeySetting.setDesc(
+      this.createDescWithLink(
+        "Sign up for an OpenAI Platform account to obtain an API key.",
+        "OpenAI Platform: API Keys",
+        EXTERNAL_LINKS.linkOpenAIMyAPIKeys
       )
+    );
+
+    // OpenAI Model
+    const modelSetting = new Setting(containerEl)
+      .setName("OpenAI Model")
       .addDropdown((dropdown) => {
-        OPENAI_MODELS.user.forEach((model) =>
+        const sortedModels = OPENAI_MODELS.user.sort((a, b) =>
+          a.display.localeCompare(b.display)
+        );
+        sortedModels.forEach((model) =>
           dropdown.addOption(model.model, model.display)
         );
         dropdown.setValue(settings.openaiModel);
@@ -141,6 +165,15 @@ export class QuillSettingsTab extends PluginSettingTab {
           this.display();
         });
       });
+
+    modelSetting.setDesc(
+      this.createDescWithLink(
+        "Set the default model for Quill commands. You can choose specific " +
+          "models for each of your custom commands below.",
+        "OpenAI Platform: Models",
+        EXTERNAL_LINKS.linkOpenAIAboutModels
+      )
+    );
 
     // Section: Saving Conversations and Messages =============================
     const onMenuChange = async (
