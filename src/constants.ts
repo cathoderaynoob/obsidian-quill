@@ -79,8 +79,20 @@ export type ErrorCode = keyof typeof ERROR_MESSAGES;
 export const QUILL_VIEW_TYPE = "quill-chat-view";
 export const SCROLL_CHARS_LIMIT = 400;
 export const STREAM_BUFFER_LIMIT = 300;
+export const EXTERNAL_LINKS = {
+  linkOpenAIMyAPIKeys: "https://platform.openai.com/api-keys",
+  linkOpenAIAboutModels: "https://platform.openai.com/docs/models",
+};
 export const OPENAI_MODELS: OpenAIModels = {
   user: [
+    {
+      model: "gpt-4.1",
+      display: "GPT-4.1",
+    },
+    {
+      model: "gpt-4.1-nano",
+      display: "GPT-4.1 nano",
+    },
     {
       model: "gpt-4o",
       display: "GPT-4o",
@@ -88,6 +100,10 @@ export const OPENAI_MODELS: OpenAIModels = {
     {
       model: "gpt-4o-mini",
       display: "GPT-4o Mini",
+    },
+    {
+      model: "chatgpt-4o-latest",
+      display: "ChatGPT-4o",
     },
   ],
 };

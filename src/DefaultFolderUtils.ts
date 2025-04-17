@@ -123,7 +123,7 @@ class DefaultFolderUtils {
 
     // When a folder is selected, run the callback
     dropdown.onChange(async (selectedFolder) => {
-      onChangeHandler && onChangeHandler(selectedFolder);
+      if (onChangeHandler) onChangeHandler(selectedFolder);
     });
   };
 
@@ -199,7 +199,7 @@ class DefaultFolderUtils {
           if (!folder) return;
           try {
             fileExpl.revealInFolder(folder);
-            folderActionHandler && folderActionHandler("open");
+            if (folderActionHandler) folderActionHandler("open");
           } catch (error) {
             new Notice("Error opening folder.");
             console.error(`Error opening ${folderType} folder:`, error);
@@ -216,7 +216,7 @@ class DefaultFolderUtils {
             new Notice(
               `Folder created successfully and\nset to default:\n\n"${folderToOpen}"`
             );
-            folderActionHandler && folderActionHandler("create");
+            if (folderActionHandler) folderActionHandler("create");
           } catch (e) {
             this.pluginServices.notifyError("folderCreateError", e);
           }
@@ -250,12 +250,12 @@ class DefaultFolderUtils {
 
     // Check for missing template folder
     if (!(await this.hasValidDefaultFolder("templates"))) {
-      !suppressPrompt && this.promptMissingTemplateFolder();
+      if (!suppressPrompt) this.promptMissingTemplateFolder();
       return false;
     }
     // Check for the file itself
     if (filePath === null || !getFileByPath(filePath, true)) {
-      !suppressPrompt && this.promptMissingTemplateFile(fileName);
+      if (!suppressPrompt) this.promptMissingTemplateFile(fileName);
       return false;
     }
     return true;

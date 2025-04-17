@@ -45,6 +45,11 @@
     grid-gap: 0.5rem;
     grid-template-columns: 1fr 40%;
   }
+  & .setting-item-description > a {
+    display: block;
+    margin-top: 0.33rem;
+    width: max-content;
+  }
   & input,
   & select {
     width: 100%;

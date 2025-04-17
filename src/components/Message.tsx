@@ -50,6 +50,7 @@ const Message: React.FC<ConvoMessageProps> = ({
       navigator.clipboard.writeText(message);
       new Notice("Message copied to clipboard");
     } catch (e) {
+      console.log(e);
       new Notice("Failed to copy message to clipboard");
     }
   };

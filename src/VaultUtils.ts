@@ -125,10 +125,7 @@ class VaultUtils {
       const content = this.vault.read(file);
       return content;
     } catch (e) {
-      this.pluginServices.notifyError(
-        "fileReadError",
-        `Error reading file: ${file.path}`
-      );
+      this.pluginServices.notifyError("fileReadError", e);
       return "";
     }
   };
