@@ -13,12 +13,18 @@ import {
   folderSettingNames,
   IPluginServices,
 } from "@/interfaces";
-import { DEFAULT_SETTINGS, QuillPluginSettings } from "@/settings";
+import { QuillPluginSettings } from "@/settings";
 import ModalConfirm from "@/components/ModalConfirm";
 import ModalSaveConversation from "@/components/ModalSaveConversation";
 import VaultUtils from "@/VaultUtils";
 
 type FolderButtonAction = "open" | "create" | "warn";
+
+const DEFAULT_FOLDERS = {
+  pathConversations: `${APP_PROPS.appName}/Conversations`,
+  pathMessages: `${APP_PROPS.appName}/Messages`,
+  pathTemplates: `${APP_PROPS.appName}/Templates`,
+};
 
 class DefaultFolderUtils {
   private static instance: DefaultFolderUtils;
@@ -137,17 +143,17 @@ class DefaultFolderUtils {
       }
     > = {
       conversations: {
-        pluginDefaultPath: DEFAULT_SETTINGS.pathConversations,
+        pluginDefaultPath: DEFAULT_FOLDERS.pathConversations,
         userDefaultPath: this.settings.pathConversations,
         settingName: "pathConversations",
       },
       messages: {
-        pluginDefaultPath: DEFAULT_SETTINGS.pathMessages,
+        pluginDefaultPath: DEFAULT_FOLDERS.pathMessages,
         userDefaultPath: this.settings.pathMessages,
         settingName: "pathMessages",
       },
       templates: {
-        pluginDefaultPath: DEFAULT_SETTINGS.pathTemplates,
+        pluginDefaultPath: DEFAULT_FOLDERS.pathTemplates,
         userDefaultPath: this.settings.pathTemplates,
         settingName: "pathTemplates",
       },

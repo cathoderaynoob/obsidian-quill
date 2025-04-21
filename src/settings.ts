@@ -52,9 +52,9 @@ export const DEFAULT_SETTINGS: QuillPluginSettings = {
   openaiModel: "gpt-4o",
   openaiTemperature: 0.7,
   autoSaveConvos: false,
-  pathConversations: `${APP_PROPS.appName}/Conversations`,
-  pathMessages: `${APP_PROPS.appName}/Messages`,
-  pathTemplates: `${APP_PROPS.appName}/Templates`,
+  pathConversations: "",
+  pathMessages: "",
+  pathTemplates: "",
   openAfterSave: false,
   commands: {},
 };
