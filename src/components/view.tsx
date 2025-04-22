@@ -41,6 +41,13 @@ export default class QuillView extends ItemView {
     return APP_PROPS.appName;
   }
 
+  focusMessagePad(chatViewContainer: HTMLElement): void {
+    chatViewContainer.tabIndex = 0;
+    chatViewContainer.focus();
+    const chatViewInput = chatViewContainer?.querySelector("textarea");
+    chatViewInput?.focus();
+  }
+
   async onOpen(): Promise<void> {
     const chatViewContainer = this.containerEl.children[1] as HTMLElement;
 
@@ -58,12 +65,14 @@ export default class QuillView extends ItemView {
       </PluginContextProvider>
     );
 
-    // Add the New Chat icon
     setTimeout(() => {
+      // Focus the textarea
+      this.focusMessagePad(chatViewContainer);
+      // Add the New Chat icon
       const newChatButton = document.getElementById(
         ELEM_CLASSES_IDS.newConversation
       ) as HTMLElement;
-      setIcon(newChatButton, APP_PROPS.appIcon);
+      if (newChatButton) setIcon(newChatButton, APP_PROPS.appIcon);
     }, 0);
   }
 

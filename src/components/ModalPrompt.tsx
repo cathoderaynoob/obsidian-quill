@@ -121,7 +121,7 @@ class ModalPrompt extends Modal {
     this.updateModal();
   }
 
-  // TODO:
+  // TODO: Add this. There will be some associated css updates needed
   // generateFileButtonIcon(command: Command) {
   //   const button = new ButtonComponent(this.contentEl);
   //   button

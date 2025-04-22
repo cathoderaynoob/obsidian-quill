@@ -35,13 +35,12 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
   openModals: ModalPrompt[] = [];
 
   async onload(): Promise<void> {
-    console.clear(); // TODO: Remove this line before publishing
     await this.loadSettings();
     this.apiService = new ApiService(this, this.settings);
     this.features = new Features(this.app, this.apiService, this.settings);
     this.pluginServices = {
       app: this.app,
-      toggleView: this.toggleView.bind(this),
+      activateView: this.activateView.bind(this),
       getViewElem: this.getViewElem.bind(this),
       notifyError: this.notifyError.bind(this),
       saveSettings: this.saveSettings.bind(this),
@@ -62,20 +61,16 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
     // RIBBON AND COMMANDS
 
     // App icon
-    this.addRibbonIcon(
-      APP_PROPS.appIcon,
-      APP_PROPS.appName,
-      (evt: MouseEvent) => {
-        this.toggleView();
-      }
-    );
+    this.addRibbonIcon(APP_PROPS.appIcon, APP_PROPS.appName, () => {
+      this.activateView();
+    });
 
     // Show Quill view command
     this.addCommand({
       id: "show-quill",
       name: "Show Quill",
       callback: () => {
-        this.toggleView();
+        this.activateView();
       },
     });
 
@@ -84,7 +79,7 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
       id: "new-prompt",
       name: "Open prompt",
       callback: async () => {
-        this.toggleView();
+        this.activateView();
         this.openModalPrompt({
           featureId: "openPrompt",
           outputTarget: "view",
@@ -100,7 +95,7 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
         if (checking) return true;
         const selectedText = editor.getSelection().trim();
         if (!selectedText) return false;
-        this.toggleView();
+        this.activateView();
         this.openModalPrompt({
           featureId: "sendPromptWithSelectedText",
           selectedText: selectedText,
@@ -171,41 +166,44 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
   }
 
   // VIEW =====================================================================
-  // TODO: Add activate and deactivate, then use them in the toggleView method
-  viewIsActive = false;
-
-  async toggleView(): Promise<void> {
+  async activateView(): Promise<void> {
     const { workspace } = this.app;
-    let leaf: WorkspaceLeaf | null =
-      workspace.getLeavesOfType(QUILL_VIEW_TYPE)[0];
+    let leaf = this.getActiveLeaf();
 
     if (!leaf) {
       leaf = workspace.getRightLeaf(false);
+      if (!leaf) {
+        this.notifyError("viewError");
+        return;
+      }
+
+      try {
+        await leaf.setViewState({
+          type: QUILL_VIEW_TYPE,
+          active: true,
+        });
+      } catch (e) {
+        leaf.detach();
+        this.notifyError("viewError", e);
+      }
     }
 
-    if (leaf) {
-      await leaf.setViewState({
-        type: QUILL_VIEW_TYPE,
-        active: true,
-      });
-      workspace.revealLeaf(leaf);
-      const chatViewContainer = leaf.view.containerEl
-        .children[1] as HTMLElement;
-      chatViewContainer.tabIndex = 0;
-      chatViewContainer.focus();
-      const chatViewInput = chatViewContainer?.querySelector("textarea");
-      chatViewInput?.focus();
-    } else {
-      this.notifyError("viewError");
+    workspace.revealLeaf(leaf);
+  }
+
+  getActiveLeaf(): WorkspaceLeaf | null {
+    const leaf = this.app.workspace.getLeavesOfType(QUILL_VIEW_TYPE).first();
+    if (leaf && leaf.view instanceof QuillView) {
+      return leaf;
     }
+    leaf?.detach();
+    return null;
   }
 
   getViewElem(): HTMLElement | null {
-    const leaf = this.app.workspace.getLeavesOfType(QUILL_VIEW_TYPE)[0];
-    if (leaf) {
-      return leaf.view.containerEl;
-    }
-    return null;
+    const leaf = this.getActiveLeaf();
+    if (!leaf) return null;
+    return leaf.view.containerEl;
   }
 
   onunload(): void {
@@ -260,7 +258,7 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
         const featureId = "customCommandToView";
         callback = async () => {
           if (!(await validateTemplateFile(command.templateFilename))) return;
-          this.toggleView();
+          this.activateView();
           if (command.prompt) {
             this.openModalPrompt({
               featureId: featureId,
@@ -305,9 +303,6 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 
   // Open Quill settings tab
   async openPluginSettings(): Promise<void> {
-    // Thanks to the community
-    // https://discord.com/channels/
-    //   686053708261228577/840286264964022302/1091000197645090856
     const tabId = this.manifest.id;
     try {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment

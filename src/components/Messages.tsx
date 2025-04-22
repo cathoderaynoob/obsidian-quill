@@ -379,7 +379,7 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature }) => {
     return () => {
       activeViewElem?.removeEventListener("keydown", handleMessagesKeypress);
     };
-  }, [apiService, pluginServices, messages.length]);
+  }, [messages.length]);
 
   const getMessagePos = (
     containerElem: HTMLElement,
