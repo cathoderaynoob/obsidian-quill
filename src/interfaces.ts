@@ -20,7 +20,7 @@ export type folderSettingNames =
 
 export interface IPluginServices {
   app: App;
-  toggleView(): Promise<void>;
+  activateView(): Promise<void>;
   getViewElem(): HTMLElement | null;
   notifyError(errorCode: string, consoleMsg?: string): void;
   saveSettings(): Promise<void>;
