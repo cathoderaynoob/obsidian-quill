@@ -245,7 +245,7 @@ export default class ApiService {
     if (!file) {
       this.pluginServices.notifyError(
         "fileUploadError",
-        "No file provided to upload."
+        "No note provided to upload."
       );
       return;
     }
@@ -270,7 +270,7 @@ export default class ApiService {
     } else {
       this.pluginServices.notifyError(
         "fileUploadError",
-        `Error reading file ${file.path}`
+        `Error reading note ${file.path}`
       );
       return;
     }

@@ -126,7 +126,7 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature }) => {
       // If so, clear note of previous messages first
       const success = await vaultUtils.emptyFileContent(savedFile);
       if (!success) {
-        new Notice("Unable to clear file content. Please check the console.");
+        new Notice("Unable to clear note content. Please check the console.");
         return false;
       }
     }

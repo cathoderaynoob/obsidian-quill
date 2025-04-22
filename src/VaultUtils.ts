@@ -178,7 +178,7 @@ class VaultUtils {
     if ((await this.vault.read(file)) === "") {
       return true;
     }
-    console.log(`Unable to clear file content from ${file.path}`);
+    console.log(`Unable to clear note content from ${file.path}`);
     return false;
   };
 }

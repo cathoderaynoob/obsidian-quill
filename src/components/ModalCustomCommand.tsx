@@ -25,7 +25,7 @@ class ModalCustomCommand extends Modal {
     this.shouldRestoreSelection = true;
     this.commandId = commandId || undefined;
     this.setTitle(
-      commandId ? "Edit Custom Command" : "New Quill Custom Command"
+      commandId ? "Quill: Edit Custom Command" : "Quill: New Custom Command"
     );
   }
 
@@ -88,7 +88,7 @@ class ModalCustomCommand extends Modal {
     // SELECT TEMPLATE MENU ---------------------------------------------------
     // Select command template from templates folder defined by user in Settings
     formBody.createEl("label", {
-      text: "Template File",
+      text: "Template Note",
       attr: {
         for: menuTemplates,
       },

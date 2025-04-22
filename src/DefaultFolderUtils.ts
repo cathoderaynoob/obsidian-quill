@@ -337,9 +337,9 @@ class DefaultFolderUtils {
     new ModalConfirm(
       this.pluginServices.app,
       "Quill: Command Template Missing",
-      `Your command template file can't be found: ` +
+      `Your command template note can't be found: ` +
         `<span class="${ELEM_CLASSES_IDS.filePath}">${filename}</span>` +
-        `You can select a different file in Settings, ` +
+        `You can select a different note in Settings, ` +
         `or restore the original and try again.`,
       "Open Settings",
       false,
