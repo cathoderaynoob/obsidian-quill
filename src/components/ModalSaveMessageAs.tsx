@@ -48,14 +48,14 @@ class ModalSaveMessageAs extends Modal {
       this.settings
     );
 
-    this.setTitle("Save Message as a Note");
+    this.setTitle("Save message as a note");
     // Save message as...
     const filenameEl = saveAsForm.createEl("input", {
       attr: {
         type: "text",
         id: "oq-saveas-filename",
         placeholder:
-          "Enter a file name, or leave blank to use the date and time",
+          "Enter a note name, or leave blank to use the date and time",
         value: this.createFilename(this.content),
       },
     });
@@ -121,7 +121,7 @@ class ModalSaveMessageAs extends Modal {
     });
     openFile.checked = this.settings.openAfterSave;
     footer.createEl("label", {
-      text: "Open file after saving",
+      text: "Open note after saving",
       attr: {
         for: "oq-saveas-openfile",
       },

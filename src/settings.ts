@@ -70,7 +70,6 @@ export class QuillSettingsTab extends PluginSettingTab {
   }
 
   private closeSettings(): void {
-    // I can't find anything in the api to close the Settings panel
     const escKeyEvent = new KeyboardEvent("keydown", {
       key: "Escape",
       code: "Escape",
@@ -113,17 +112,11 @@ export class QuillSettingsTab extends PluginSettingTab {
     containerEl.setAttr("id", "oq-settings");
     containerEl.empty();
 
-    this.containerEl.createEl("h3", {
-      text: "Obsidian Quill",
-    });
+    new Setting(containerEl).setName("OpenAI").setHeading();
 
-    // Section: OpenAI ========================================================
-    this.containerEl.createEl("h4", {
-      text: "OpenAI",
-    });
     // OpenAI API Key
     const apiKeySetting = new Setting(containerEl)
-      .setName("OpenAI API Key")
+      .setName("API key")
       .addText((text) => {
         text
           .setPlaceholder("Enter your API key")
@@ -150,7 +143,7 @@ export class QuillSettingsTab extends PluginSettingTab {
 
     // OpenAI Model
     const modelSetting = new Setting(containerEl)
-      .setName("OpenAI Model")
+      .setName("Model")
       .addDropdown((dropdown) => {
         const sortedModels = OPENAI_MODELS.user.sort((a, b) =>
           a.display.localeCompare(b.display)
@@ -168,8 +161,8 @@ export class QuillSettingsTab extends PluginSettingTab {
 
     modelSetting.setDesc(
       this.createDescWithLink(
-        "Set the default model for Quill commands. You can choose specific " +
-          "models for each of your custom commands below.",
+        "Choose the default model for generating responses. " +
+          "You can override this setting for your individual custom commands.",
         "OpenAI Platform: Models",
         EXTERNAL_LINKS.linkOpenAIAboutModels
       )
@@ -187,12 +180,12 @@ export class QuillSettingsTab extends PluginSettingTab {
       await this.pluginServices.saveSettings();
     };
 
-    this.containerEl.createEl("h4", {
-      text: "Saving Conversations and Messages",
-    });
+    new Setting(containerEl)
+      .setName("Save Conversations and Messages")
+      .setHeading();
     // Save Conversations Automatically
     new Setting(containerEl)
-      .setName("Save Conversations Automatically")
+      .setName("Save conversations automatically")
       .setDesc("Save each conversation to a note automatically.")
       .addToggle((toggle) => {
         toggle.setValue(settings.autoSaveConvos);
@@ -204,7 +197,7 @@ export class QuillSettingsTab extends PluginSettingTab {
 
     // Save Conversations To...
     new Setting(containerEl)
-      .setName("Save Conversations To...")
+      .setName("Save conversations to...")
       .setDesc("Choose the default folder for saved conversations.")
       .addDropdown((dropdown) => {
         addDefaultFolderDropdown(
@@ -228,7 +221,7 @@ export class QuillSettingsTab extends PluginSettingTab {
 
     // Save Messages Preferences
     new Setting(containerEl)
-      .setName("Save Messages To...")
+      .setName("Save messages to...")
       .setDesc("Choose the default folder for saving individual messages.")
       .addDropdown((dropdown) =>
         addDefaultFolderDropdown(
@@ -253,18 +246,17 @@ export class QuillSettingsTab extends PluginSettingTab {
     // Section: My Custom Commands ============================================
     new Setting(containerEl)
       .setName("My Custom Commands")
-      .setClass("oq-settings-section-title")
+      .setHeading()
       .setDesc(
         "Each custom command is a combination of a template note and a " +
           "command definition."
       );
     new Setting(containerEl)
-      .setName("Command Templates")
+      .setName("Store command templates in...")
       .setDesc(
-        "Store all your command templates in the folder selected here. " +
-          "To add a new command, first create a note in the templates folder. " +
-          "The note may contain template structure, instruction, and any " +
-          "other information you find most effective for the desired response."
+        "Store all your command templates in this folder. " +
+          "To add a new command, first create a note template here, " +
+          "then create a command definition."
       )
       // Command Templates Folder ---------------------------------------------
       .addDropdown((dropdown) => {
@@ -305,12 +297,12 @@ export class QuillSettingsTab extends PluginSettingTab {
 
     // Add New Custom Command -------------------------------------------------
     new Setting(containerEl)
-      .setName("Command Definitions")
+      .setName("Command definitions")
       .setDesc(
         "Have a template ready? Next, create a custom command to use it."
       )
       .addButton((button) => {
-        button.setButtonText("New Custom Command").onClick(async () => {
+        button.setButtonText("New custom command").onClick(async () => {
           new ModalCustomCommand(
             this.pluginServices,
             settings,
@@ -346,7 +338,7 @@ export class QuillSettingsTab extends PluginSettingTab {
         : APP_PROPS.fileMissingIcon;
       const tooltip = hasTemplateFile
         ? `Open "${command.templateFilename}"`
-        : `Template file not found.\nEdit command to assign one.`;
+        : `Template note not found.\nEdit command to assign one.`;
 
       const modelString = command.model || `(${settings.openaiModel})`;
       const targetString = command.target === "view" ? "Conversation" : "Note";
@@ -356,7 +348,7 @@ export class QuillSettingsTab extends PluginSettingTab {
         .setName(command.name)
         .setDesc(`${modelString} » ${targetString} ${promptString}`)
         .setClass("oq-settings-custom-command")
-        // Open Template File
+        // Open Template Note
         .addButton((button) => {
           const openTemplateButton = button
             .setIcon(templateIcon)
@@ -414,7 +406,7 @@ export class QuillSettingsTab extends PluginSettingTab {
                 `Delete Custom Command`,
                 `Are you sure you want to permanently delete this command?` +
                   `<span class="oq-confirm-cmdname">${command.name}</span>` +
-                  `The template file will remain in your vault.`,
+                  `The template note will remain in your vault.`,
                 "Delete",
                 true,
                 async () => {
