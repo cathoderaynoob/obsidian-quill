@@ -1,8 +1,17 @@
 import OpenAI from "openai";
 import { Editor, EditorPosition, TFile, Vault } from "obsidian";
-import { GptRequestPayload, IPluginServices, OutputTarget } from "@/interfaces";
+import {
+  GptRequestPayload,
+  IPluginServices,
+  OpenAIModelsSupported,
+  OutputTarget,
+} from "@/interfaces";
 import { QuillPluginSettings } from "@/settings";
-import { ERROR_MESSAGES, STREAM_BUFFER_LIMIT } from "@/constants";
+import {
+  ERROR_MESSAGES,
+  OPENAI_MODELS,
+  STREAM_BUFFER_LIMIT,
+} from "@/constants";
 import { ProcessResponse } from "@/featuresRegistry";
 import emitter from "@/customEmitter";
 import ModalConfirm from "@/components/ModalConfirm";
@@ -34,6 +43,27 @@ export default class ApiService {
       return false;
     }
   }
+
+  isSupportedModel = (model: string, suppressNotify?: boolean): boolean => {
+    const supportedModels: OpenAIModelsSupported[] = OPENAI_MODELS.model.map(
+      (model) => model.id
+    );
+    if (supportedModels.includes(model)) return true;
+    if (!suppressNotify) {
+      new ModalConfirm(
+        this.pluginServices.app,
+        `Quill: OpenAI model no longer supported`,
+        `The model "${model}" that this command uses is no longer supported. ` +
+          `Please update your command with a currently supported model.`,
+        "Open settings",
+        false,
+        async () => {
+          this.pluginServices.openPluginSettings();
+        }
+      ).open();
+    }
+    return false;
+  };
 
   async openApiKeyProblemModal(problem: "missing" | "invalid"): Promise<void> {
     const modalContent = {
