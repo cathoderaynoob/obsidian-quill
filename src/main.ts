@@ -33,8 +33,12 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
   features: Features;
   pluginServices: IPluginServices;
   openModals: ModalPrompt[] = [];
+  isSupportedModel(model: string, suppressNotify?: boolean): boolean {
+    return this.apiService.isSupportedModel(model, suppressNotify);
+  }
 
   async onload(): Promise<void> {
+    console.clear(); // TODO: Remove this before publishing
     await this.loadSettings();
     this.apiService = new ApiService(this, this.settings);
     this.features = new Features(this.app, this.apiService, this.settings);
@@ -46,6 +50,7 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
       saveSettings: this.saveSettings.bind(this),
       openPluginSettings: this.openPluginSettings.bind(this),
       loadCommands: this.loadCommands.bind(this),
+      isSupportedModel: this.apiService.isSupportedModel.bind(this),
     };
     const { hasValidDefaultFolder, promptMissingTemplateFolder } =
       DefaultFolderUtils.getInstance(this.pluginServices, this.settings);
@@ -233,6 +238,7 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
         const featureId = "customCommandToEditor";
         cmdEditorCheckCallback = async (checking: boolean, editor: Editor) => {
           if (checking) return;
+          if (!this.apiService.isSupportedModel(command.model)) return;
           if (!(await validateTemplateFile(command.templateFilename))) return;
           if (command.prompt) {
             this.openModalPrompt({
@@ -257,6 +263,7 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
       if (command.target === "view") {
         const featureId = "customCommandToView";
         callback = async () => {
+          if (!this.apiService.isSupportedModel(command.model)) return;
           if (!(await validateTemplateFile(command.templateFilename))) return;
           this.activateView();
           if (command.prompt) {

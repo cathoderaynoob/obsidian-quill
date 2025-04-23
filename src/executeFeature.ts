@@ -59,6 +59,10 @@ export const executeFeature = async (
     return false;
   }
 
+  const model = command?.model || feature.model || settings.openaiModel;
+  if (command?.model && !apiService.isSupportedModel(command.model))
+    return false;
+
   // "view" output: Maintain persistent payload for the conversation context
   // "editor" output: Fresh payload for each command run to ensure isolation
   const payloadMessages =
@@ -100,8 +104,6 @@ export const executeFeature = async (
     content: payloadPrompt,
   };
   payloadMessagesArray = payloadMessages.addMessage(userPayloadMessage);
-
-  const model = command?.model || feature.model || settings.openaiModel;
 
   // If output is to view, display message in the conversation
   if (feature.outputTarget === "view") {

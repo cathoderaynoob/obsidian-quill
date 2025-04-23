@@ -189,10 +189,14 @@ class ModalCustomCommand extends Modal {
       "",
       `Default model (currently ${this.settings.openaiModel})`
     );
-    OPENAI_MODELS.user.forEach((model) => {
-      selectModelComp.addOption(model.model, model.display);
+    OPENAI_MODELS.model.forEach((model) => {
+      selectModelComp.addOption(model.id, model.name);
     });
-    selectModelComp.setValue(commandToEdit?.model || "");
+    if (
+      commandToEdit &&
+      this.pluginServices.isSupportedModel(commandToEdit.model, true)
+    )
+      selectModelComp.setValue(commandToEdit?.model || "");
 
     // Modal Footer
     const footer = newCommandForm.createDiv({

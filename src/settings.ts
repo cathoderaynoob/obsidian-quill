@@ -145,11 +145,11 @@ export class QuillSettingsTab extends PluginSettingTab {
     const modelSetting = new Setting(containerEl)
       .setName("Model")
       .addDropdown((dropdown) => {
-        const sortedModels = OPENAI_MODELS.user.sort((a, b) =>
-          a.display.localeCompare(b.display)
+        const sortedModels = OPENAI_MODELS.model.sort((a, b) =>
+          a.name.localeCompare(b.name)
         );
         sortedModels.forEach((model) =>
-          dropdown.addOption(model.model, model.display)
+          dropdown.addOption(model.id, model.name)
         );
         dropdown.setValue(settings.openaiModel);
         dropdown.onChange(async (model) => {
@@ -340,7 +340,11 @@ export class QuillSettingsTab extends PluginSettingTab {
         ? `Open "${command.templateFilename}"`
         : `Template note not found.\nEdit command to assign one.`;
 
-      const modelString = command.model || `(${settings.openaiModel})`;
+      const hasValidModel =
+        command.model === "" ||
+        this.pluginServices.isSupportedModel(command.model, true);
+      let modelString = command.model || `(${settings.openaiModel})`;
+      if (!hasValidModel) modelString += " (unsupported)";
       const targetString = command.target === "view" ? "Conversation" : "Note";
       const promptString = command.prompt ? "+ Prompt" : "";
 
@@ -374,11 +378,8 @@ export class QuillSettingsTab extends PluginSettingTab {
         })
         // Edit Command
         .addButton((button) => {
-          button
+          const editCommandBtn = button
             .setIcon(APP_PROPS.editIcon)
-            .setTooltip("Edit", {
-              placement: "top",
-            })
             .onClick(async () => {
               new ModalCustomCommand(
                 this.pluginServices,
@@ -393,8 +394,19 @@ export class QuillSettingsTab extends PluginSettingTab {
                 command.id
               ).open();
             });
+
           // If no template folder selected
           disableIfNoTemplateFolder(button);
+          editCommandBtn.setTooltip(
+            hasValidModel
+              ? "Edit"
+              : `Model "${command.model}" is no longer supported.\n` +
+                  `Edit command...`,
+            {
+              placement: "top",
+            }
+          );
+          editCommandBtn.buttonEl.toggleClass(btnWarn, !hasValidModel);
         })
         // Delete Command
         .addButton((button) =>

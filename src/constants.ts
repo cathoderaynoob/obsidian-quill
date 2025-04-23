@@ -84,26 +84,26 @@ export const EXTERNAL_LINKS = {
   linkOpenAIAboutModels: "https://platform.openai.com/docs/models",
 };
 export const OPENAI_MODELS: OpenAIModels = {
-  user: [
+  model: [
     {
-      model: "gpt-4.1",
-      display: "GPT-4.1",
+      id: "gpt-4.1",
+      name: "GPT-4.1",
     },
     {
-      model: "gpt-4.1-nano",
-      display: "GPT-4.1 nano",
+      id: "gpt-4.1-nano",
+      name: "GPT-4.1 nano",
     },
     {
-      model: "gpt-4o",
-      display: "GPT-4o",
+      id: "gpt-4o",
+      name: "GPT-4o",
     },
     {
-      model: "gpt-4o-mini",
-      display: "GPT-4o Mini",
+      id: "gpt-4o-mini",
+      name: "GPT-4o Mini",
     },
     {
-      model: "chatgpt-4o-latest",
-      display: "ChatGPT-4o",
+      id: "chatgpt-4o-latest",
+      name: "ChatGPT-4o",
     },
   ],
 };

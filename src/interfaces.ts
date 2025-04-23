@@ -1,4 +1,5 @@
 import { App } from "obsidian";
+import { OPENAI_MODELS } from "@/constants";
 
 export interface Command {
   name: string;
@@ -6,7 +7,7 @@ export interface Command {
   prompt: boolean;
   sendSelectedText: boolean;
   templateFilename: string;
-  model?: string;
+  model: OpenAIModelsSupported;
 }
 export interface Commands {
   [key: string]: Command;
@@ -26,6 +27,7 @@ export interface IPluginServices {
   saveSettings(): Promise<void>;
   openPluginSettings(): Promise<void>;
   loadCommands(): Promise<void>;
+  isSupportedModel(model: string, suppressNotify?: boolean): boolean;
 }
 
 export interface GptEngines {
@@ -41,11 +43,13 @@ export interface GptRequestPayload {
 }
 
 export interface OpenAIModels {
-  user: {
-    model: string;
-    display: string;
+  model: {
+    id: string;
+    name: string;
   }[];
 }
+export type OpenAIModelsSupported =
+  (typeof OPENAI_MODELS)["model"][number]["id"];
 
 export type OutputTarget = "editor" | "view" | "modal";
 
