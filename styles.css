@@ -6,8 +6,6 @@
   --oq-app-bright-color: var(--text-accent);
   --oq-app-muted-color: var(--text-muted);
   --oq-app-faint-color: var(--color-base-40);
-  --oq-message-pad-height: 6.25rem;
-  --oq-highlight-width: 3px;
   --oq-transition-color: color 0.2s ease;
   --oq-transition-opacity: opacity 0.2s ease;
 }
@@ -33,27 +31,27 @@
   color: var(--text-accent);
 }
 .oq-filepath {
-  font-style: normal;
   font-family: monospace;
   font-size: medium;
+  font-style: normal;
 }
 
 /* Settings ================================================================ */
 #oq-settings {
-  & .setting-item {
-    display: grid;
-    grid-gap: 0.5rem;
-    grid-template-columns: 1fr 40%;
-  }
   & .setting-item-heading {
     display: block;
     & .setting-item-name {
       color: var(--text-accent);
     }
   }
+  & .setting-item {
+    display: grid;
+    grid-gap: 0.5em;
+    grid-template-columns: 1fr 40%;
+  }
   & .setting-item-description > a {
     display: block;
-    margin-top: 0.33rem;
+    margin-top: 0.33em;
     width: max-content;
   }
   & input,
@@ -73,7 +71,7 @@
 }
 
 .oq-settings-custom-command {
-  padding-left: 1rem;
+  padding-left: 1em;
   & .setting-item-name {
     font-size: 1rem;
     font-style: italic;
@@ -90,10 +88,9 @@
 }
 #oq-streaming {
   .cm-active {
-    padding: 0.5rem 0 0.5rem 0.75rem !important;
-    border-radius: 0.33rem;
-    /* --oq-app-bright-color doesn't work here */
+    padding: 0.5em 0 0.5em 0.75em !important;
     background-color: var(--text-accent);
+    border-radius: 0.33em;
     color: var(--text-on-accent);
     transition: background-color 1s ease;
     &::before {
@@ -125,11 +122,10 @@
 }
 #oq-btn-new-conv,
 #oq-btn-save-conv {
+  cursor: pointer;
   line-height: 0.66;
-  width: fit-content;
-  cursor: pointer;
   white-space: nowrap;
-  cursor: pointer;
+  width: fit-content;
   &:hover::after {
     color: var(--oq-app-bright-color);
     transition: var(--oq-transition-color);
@@ -152,26 +148,26 @@
 #oq-messages {
   display: grid;
   grid-auto-rows: min-content;
-  gap: 0.5rem;
-  padding-bottom: 1.25rem;
+  gap: 0.5em;
+  padding-bottom: 1.25em;
   max-height: 100%;
-  overflow-y: scroll;
-  line-height: var(--line-height-normal);
   font-size: small;
-  mask-image: linear-gradient(to top, transparent 0, white 2rem);
-  -webkit-mask-image: linear-gradient(to top, transparent 0, white 2rem);
+  line-height: var(--line-height-normal);
+  overflow-y: scroll;
   scroll-behavior: smooth;
+  mask-image: linear-gradient(to top, transparent 0, white 2em);
+  -webkit-mask-image: linear-gradient(to top, transparent 0, white 2em);
   & #oq-message-loading {
-    margin-left: 2.5rem;
+    margin-left: 2.5em;
+    height: 3em;
     opacity: 0;
-    height: 3rem;
     transition: opacity 0.5s ease;
   }
 }
 .oq-message {
   display: grid; /* Need this here to all pre scroll */
-  padding: 0 1rem;
-  border-left: var(--oq-highlight-width) solid transparent;
+  border-left: 3px solid transparent;
+  padding: 0 1em;
   user-select: text;
   -webkit-user-select: text;
   transition: border-color 1.5s ease;
@@ -179,8 +175,8 @@
     white-space: pre-wrap; /* Respect line breaks */
   }
   & pre {
-    padding: 0.5rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 0.5em;
     white-space: pre-wrap;
     background: var(--background-secondary);
   }
@@ -194,34 +190,36 @@
   transition: border-color 0.1s ease;
 }
 .oq-message-user {
-  grid-template-columns: 1rem 1fr;
+  grid-template-columns: 1em 1fr;
+  column-gap: 0.25em;
+  padding-left: 1.5em;
   & pre {
-    border-radius: 0.5rem;
     border: 1px solid var(--background-modifier-border-hover);
+    border-radius: 0.5em;
     background: var(--code-background);
   }
   & code[class*="language-"] {
-    opacity: 0.8;
+    position: relative;
     display: block;
+    max-height: 12em;
     --max-lines: 5;
     overflow: scroll;
-    max-height: 12rem;
-    position: relative;
-    mask-image: linear-gradient(to top, transparent, black 2rem);
-    -webkit-mask-image: linear-gradient(to top, transparent, black 2rem);
+    mask-image: linear-gradient(to top, transparent, black 2em);
+    -webkit-mask-image: linear-gradient(to top, transparent, black 2em);
+    opacity: 0.8;
     transition: opacity 0.15s ease;
   }
 }
 .oq-message-user-icon::before {
-  line-height: 1;
   content: "»";
-  text-align: left;
+  line-height: 1;
   font-size: larger;
   font-weight: bold;
+  text-align: left;
   color: var(--oq-app-bright-color);
 }
 .oq-message-content {
-  padding-right: 1rem;
+  padding-right: 1em;
   overflow-x: scroll; /* Important: Allows pre scroll in grid */
 }
 .oq-message-footer {
@@ -232,14 +230,15 @@
 .oq-message-actions {
   display: grid;
   grid-template-columns: auto auto;
-  padding-bottom: 0.33rem;
+  margin-left: calc(-1 * var(--size-2-2));
+  padding-bottom: 0.33em;
   & button {
     color: var(--oq-app-faint-color);
     transition: var(--oq-transition-color);
     &:focus {
+      cursor: pointer;
       color: var(--oq-app-bright-color);
       transition: var(--oq-transition-color);
-      cursor: pointer;
     }
   }
 }
@@ -249,9 +248,9 @@
     transition: var(--oq-transition-color);
     &:hover,
     &:focus {
+      cursor: pointer;
       color: var(--oq-app-bright-color);
       transition: var(--oq-transition-color);
-      cursor: pointer;
     }
   }
 }
@@ -267,12 +266,12 @@
 /* Assistant and loader containers are identical */
 .oq-message-assistant,
 .oq-message-loader {
-  min-height: 6rem;
+  min-height: 6em;
   & .oq-message-content {
-    padding: 0 1rem 0.5rem 1rem;
     border: 1px solid var(--background-modifier-border);
+    border-radius: 1em;
+    padding: 0 1.5em 0.5em 1.5em;
     background: var(--background-primary);
-    border-radius: 1rem;
     transition: border-color 0.5s ease;
   }
   & .oq-message-content.oq-message-streaming {
@@ -288,9 +287,9 @@
     & .oq-loader-error {
       display: grid;
       grid-template-columns: min-content 1fr;
-      column-gap: 0.66rem;
-      padding-top: 1rem;
-      padding-bottom: 1rem;
+      column-gap: 0.66em;
+      padding-top: 1em;
+      padding-bottom: 1em;
       & .oq-icon-elem {
         color: var(--color-red);
       }
@@ -306,24 +305,24 @@
   visibility: hidden;
 }
 .oq-message-selectedtext {
+  margin: 0.75em 0;
   border-left: 3px solid var(--background-modifier-border);
-  padding: 0.25rem 1rem 0.25rem 1rem;
-  margin: 0.75rem 0;
+  padding: 0.25em 1em 0.25em 1em;
 }
 
 /* Start WDS technique */
 /* https://youtu.be/OhCzEjXvY9A?si=AKxDg-pzGHF5VAeK&t=214 */
 .oq-message-selectedtext-content {
-  opacity: 0.4;
-  display: block;
-  --max-lines: 5;
-  line-height: var(--line-height-tight);
-  max-height: 5rem;
-  overflow: hidden;
   position: relative;
-  mask-image: linear-gradient(to top, transparent, black 2rem);
-  -webkit-mask-image: linear-gradient(to top, transparent, black 2rem);
+  display: block;
+  max-height: 5em;
+  line-height: var(--line-height-tight);
+  --max-lines: 5;
+  overflow: hidden;
+  mask-image: linear-gradient(to top, transparent, black 2em);
+  -webkit-mask-image: linear-gradient(to top, transparent, black 2em);
   cursor: pointer;
+  opacity: 0.4;
   transition: opacity 0.5s ease;
   &:hover {
     opacity: 0.8;
@@ -344,7 +343,6 @@
   mask-image: none;
   -webkit-mask-image: none;
   transition: max-height 0.5s ease;
-  /* cursor: auto; */ /* <- Not sure about this. Has trade offs. */
 }
 /* End WDS technique */
 
@@ -358,19 +356,19 @@
 
 /* Message Pad ============================================================= */
 #oq-message-pad {
-  z-index: 1000;
-  width: 100%;
-  padding: 1rem 1rem 2.5rem 1rem;
-  background: var(--background-primary);
   border-top: 2px solid var(--oq-app-muted-color);
+  padding: 1em 1em 2.5em 1em;
+  width: 100%;
+  z-index: 1000;
+  background: var(--background-primary);
 }
 
 /* Prompt Container (for both modal and message pad ======================= */
 #oq-prompt-container {
   position: relative;
   display: grid;
-  grid-gap: 0.75rem;
-  grid-template-columns: 1fr 2.5rem;
+  grid-gap: 0.75em;
+  grid-template-columns: 1fr 2.5em;
   &:focus-within {
     .oq-prompt-input {
       box-shadow: none;
@@ -389,8 +387,8 @@
 }
 .oq-prompt-input {
   border-color: transparent;
-  border-radius: 0.5rem;
-  padding: 0.75rem 1rem;
+  border-radius: 0.5em;
+  padding: 0.75em 1em;
   overflow-y: auto;
   resize: none;
   box-shadow: none;
@@ -416,8 +414,8 @@
   }
 }
 button.oq-prompt-send {
-  --icon-size: 22px; /* btwn --icon-m & lg */
   position: relative;
+  --icon-size: 22px; /* btwn --icon-m & lg */
   border: none;
   box-shadow: none;
   padding: 0;
@@ -427,7 +425,7 @@ button.oq-prompt-send {
   opacity: 0.6;
   &::before {
     position: absolute;
-    top: 1.55rem;
+    top: 1.55em;
     content: "send";
   }
   &:hover {
@@ -444,20 +442,19 @@ button.oq-prompt-send {
     color: var(--oq-app-muted-color) !important;
     transition: var(--oq-transition-color);
     &::before {
-      font-weight: 800;
       content: "•••";
+      font-weight: 800;
     }
   }
 }
 #oq-prompt-footer {
+  display: grid;
+  grid-template-columns: auto 1fr max-content auto;
+  align-items: center;
+  justify-items: start;
   font-size: x-small;
   font-weight: normal;
   color: var(--text-normal);
-
-  display: grid;
-  align-items: center;
-  grid-template-columns: auto 1fr max-content auto;
-  justify-items: start;
   & button:nth-child(1),
   button:nth-child(2) {
     justify-self: end;
@@ -468,7 +465,7 @@ button.oq-prompt-send {
     transition: var(--oq-transition-color);
   }
   & button + span {
-    margin-left: 0.5rem;
+    margin-left: 0.5em;
   }
 }
 
@@ -477,11 +474,11 @@ button.oq-prompt-send {
 #oq-newcommand-form,
 #oq-confirm-form {
   display: grid;
-  padding-right: 1.25rem;
-  grid-row-gap: 1.33rem;
-  padding-top: 0.5rem;
+  grid-row-gap: 1.33em;
+  padding-top: 0.5em;
+  padding-right: 1.25em;
   & .oq-filepath {
-    padding-left: 1rem;
+    padding-left: 1em;
   }
   & .oq-modal-title {
     white-space: break-spaces;
@@ -522,23 +519,23 @@ button.oq-prompt-send {
   }
   & span.oq-warn {
     font-size: small;
-    padding-left: 0.66rem;
+    padding-left: 0.66em;
   }
 }
 .oq-saveas-default-container {
   display: grid;
-  align-items: center;
   grid-template-columns: min-content max-content;
-  padding-left: 0.66rem;
+  align-items: center;
+  padding-left: 0.66em;
 }
 .oq-select-fields {
   display: grid;
-  grid-row-gap: 1rem;
+  grid-row-gap: 1em;
 }
 #oq-newcommand-body {
   display: grid;
-  grid-gap: 1rem;
   grid-template-columns: auto 1fr;
+  grid-gap: 1em;
   max-width: 100%;
   & > label {
     text-align: right;
@@ -559,11 +556,11 @@ button.oq-prompt-send {
   }
 }
 .oq-confirm-cmdname {
-  padding-left: 1.5rem;
+  padding-left: 1.5em;
+  max-width: 100%;
+  overflow-wrap: anywhere;
   font-style: italic;
   color: var(--text-accent);
-  overflow-wrap: anywhere;
-  max-width: 100%;
 }
 #oq-saveas-message-footer,
 #oq-saveas-convo-footer,
@@ -571,9 +568,9 @@ button.oq-prompt-send {
   display: grid;
   grid-template-columns: max-content max-content 1fr min-content;
   align-items: center;
-  padding-left: 0.75rem;
+  padding-left: 0.75em;
   & button + button {
-    margin-left: 0.5rem;
+    margin-left: 0.5em;
     justify-self: end;
   }
 }
@@ -583,21 +580,21 @@ button.oq-prompt-send {
 #oq-confirm-footer {
   display: grid;
   grid-template-columns: 1fr auto;
-  align-items: center;
   gap: var(--size-4-2);
-  padding-top: 0.66rem;
+  align-items: center;
+  padding-top: 0.66em;
 }
 
 #oq-prompt-modal {
-  padding-right: 1.25rem;
+  padding-right: 1.25em;
   & .oq-modal-title {
     display: block;
-    font-size: var(--font-ui-medium);
+    margin-top: -0.75em;
+    padding-bottom: 1em;
     white-space: break-spaces;
-    margin-top: -0.75rem;
-    padding-bottom: 1rem;
+    font-size: var(--font-ui-medium);
     & div {
-      padding-bottom: 0.33rem;
+      padding-bottom: 0.33em;
     }
     & span {
       color: var(--oq-app-bright-color);
@@ -605,7 +602,7 @@ button.oq-prompt-send {
   }
 }
 #oq-output-modal {
-  padding: 0.5rem;
+  padding: 0.5em;
   user-select: text;
 }
 .oq-file-button {
