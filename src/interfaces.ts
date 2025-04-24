@@ -28,6 +28,7 @@ export interface IPluginServices {
   openPluginSettings(): Promise<void>;
   loadCommands(): Promise<void>;
   isSupportedModel(model: string, suppressNotify?: boolean): boolean;
+  getModelById(modelId: string): OpenAIModel | undefined;
 }
 
 export interface GptEngines {
@@ -42,14 +43,15 @@ export interface GptRequestPayload {
   temperature: number;
 }
 
+export interface OpenAIModel {
+  id: string;
+  name: string;
+}
 export interface OpenAIModels {
-  model: {
-    id: string;
-    name: string;
-  }[];
+  models: OpenAIModel[];
 }
 export type OpenAIModelsSupported =
-  (typeof OPENAI_MODELS)["model"][number]["id"];
+  (typeof OPENAI_MODELS)["models"][number]["id"];
 
 export type OutputTarget = "editor" | "view" | "modal";
 

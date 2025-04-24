@@ -415,17 +415,19 @@
 }
 button.oq-prompt-send {
   position: relative;
+  top: 0.2em;
   --icon-size: 22px; /* btwn --icon-m & lg */
   border: none;
   box-shadow: none;
   padding: 0;
   background: none;
+  align-items: baseline;
   color: var(--oq-app-muted-color);
   transition: var(--oq-transition-color);
   opacity: 0.6;
   &::before {
     position: absolute;
-    top: 1.55em;
+    top: 1.5em;
     content: "send";
   }
   &:hover {

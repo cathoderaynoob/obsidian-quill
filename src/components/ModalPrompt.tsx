@@ -31,7 +31,7 @@ class ModalPrompt extends Modal {
   commandTemplatePath?: string;
   private modalRoot: Root | null = null;
   private promptValue = "";
-  private model: string;
+  private modelDesc: string;
   private featureName: string | undefined;
   private isDisabled = false;
   private rows = 6;
@@ -115,8 +115,9 @@ class ModalPrompt extends Modal {
       ? getFeatureProperties(this.app, this.featureId)
       : null;
     this.featureName = feature?.name;
-    this.model =
+    const model =
       this.command?.model || feature?.model || this.settings.openaiModel;
+    this.modelDesc = this.pluginServices.getModelById(model)?.name || model;
     this.modalRoot = createRoot(this.contentEl);
     this.updateModal();
   }
@@ -178,7 +179,7 @@ class ModalPrompt extends Modal {
         <PromptContent
           value={this.promptValue}
           rows={this.rows}
-          model={this.model}
+          modelDesc={this.modelDesc}
           outputTarget={this.outputTarget}
           handleInput={this.handleInput}
           handleKeyPress={this.handleKeyPress}
