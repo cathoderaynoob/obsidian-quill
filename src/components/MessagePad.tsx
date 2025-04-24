@@ -21,6 +21,10 @@ const MessagePad: React.FC<MessagePadProps> = ({
   const [promptValue, setPromptValue] = useState<string>("");
   const [rows] = useState<number>(1);
 
+  const modelDesc =
+    pluginServices.getModelById(settings.openaiModel)?.name ||
+    settings.openaiModel;
+
   // Setting dynamic height for textarea as number of rows change
   const setTextareaSize = () => {
     setTimeout(() => {
@@ -92,7 +96,7 @@ const MessagePad: React.FC<MessagePadProps> = ({
       <PromptContent
         value={promptValue}
         rows={rows}
-        model={settings.openaiModel}
+        modelDesc={modelDesc}
         handleBlur={handleBlur}
         handleInput={handleInput}
         handleKeyPress={handleKeyPress}

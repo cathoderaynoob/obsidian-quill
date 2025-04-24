@@ -84,7 +84,7 @@ export const EXTERNAL_LINKS = {
   linkOpenAIAboutModels: "https://platform.openai.com/docs/models",
 };
 export const OPENAI_MODELS: OpenAIModels = {
-  model: [
+  models: [
     {
       id: "gpt-4.1",
       name: "GPT-4.1",

@@ -10,7 +10,13 @@ import {
   QuillPluginSettings,
   QuillSettingsTab,
 } from "@/settings";
-import { Command, Commands, IPluginServices, OutputTarget } from "@/interfaces";
+import {
+  Command,
+  Commands,
+  IPluginServices,
+  OpenAIModel,
+  OutputTarget,
+} from "@/interfaces";
 import ApiService from "@/ApiService";
 import DefaultFolderUtils from "@/DefaultFolderUtils";
 import Features from "@/Features";
@@ -36,6 +42,9 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
   isSupportedModel(model: string, suppressNotify?: boolean): boolean {
     return this.apiService.isSupportedModel(model, suppressNotify);
   }
+  getModelById(modelId: string): OpenAIModel | undefined {
+    return this.apiService.getModelById(modelId);
+  }
 
   async onload(): Promise<void> {
     console.clear(); // TODO: Remove this before publishing
@@ -51,6 +60,7 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
       openPluginSettings: this.openPluginSettings.bind(this),
       loadCommands: this.loadCommands.bind(this),
       isSupportedModel: this.apiService.isSupportedModel.bind(this),
+      getModelById: this.apiService.getModelById.bind(this),
     };
     const { hasValidDefaultFolder, promptMissingTemplateFolder } =
       DefaultFolderUtils.getInstance(this.pluginServices, this.settings);

@@ -151,7 +151,7 @@ class ModalCustomCommand extends Modal {
     selectTargetComp.selectEl.id = menuTarget;
     // Add a placeholder option
     selectTargetComp.selectEl.createEl("option", {
-      text: "Conversation or Note?",
+      text: "Conversation, or active note?",
       attr: {
         value: "",
         disabled: "disabled",
@@ -163,7 +163,7 @@ class ModalCustomCommand extends Modal {
       const text =
         target === "view"
           ? "Conversation (in the chat stream)"
-          : "Active Note (at the cursor position)";
+          : "Active note (at the cursor position)";
       selectTargetComp.addOption(target, text);
     });
     selectTargetComp.setValue(commandToEdit?.target || "");
@@ -189,7 +189,7 @@ class ModalCustomCommand extends Modal {
       "",
       `Default model (currently ${this.settings.openaiModel})`
     );
-    OPENAI_MODELS.model.forEach((model) => {
+    OPENAI_MODELS.models.forEach((model) => {
       selectModelComp.addOption(model.id, model.name);
     });
     if (

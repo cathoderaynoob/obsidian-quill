@@ -101,6 +101,8 @@ export class QuillSettingsTab extends PluginSettingTab {
   };
 
   display(): void {
+    const { getModelById, isSupportedModel, loadCommands, saveSettings } =
+      this.pluginServices;
     const { containerEl } = this;
     const settings = this.plugin.settings;
     const vaultUtils = VaultUtils.getInstance(this.pluginServices, settings);
@@ -129,7 +131,7 @@ export class QuillSettingsTab extends PluginSettingTab {
           await this.highlightIfEmpty(apiKeySetting, settings.openaiApiKey);
         };
         text.inputEl.onblur = async () => {
-          await this.pluginServices.saveSettings();
+          await saveSettings();
         };
       });
 
@@ -145,7 +147,7 @@ export class QuillSettingsTab extends PluginSettingTab {
     const modelSetting = new Setting(containerEl)
       .setName("Model")
       .addDropdown((dropdown) => {
-        const sortedModels = OPENAI_MODELS.model.sort((a, b) =>
+        const sortedModels = OPENAI_MODELS.models.sort((a, b) =>
           a.name.localeCompare(b.name)
         );
         sortedModels.forEach((model) =>
@@ -154,7 +156,7 @@ export class QuillSettingsTab extends PluginSettingTab {
         dropdown.setValue(settings.openaiModel);
         dropdown.onChange(async (model) => {
           settings.openaiModel = model;
-          await this.pluginServices.saveSettings();
+          await saveSettings();
           this.display();
         });
       });
@@ -177,7 +179,7 @@ export class QuillSettingsTab extends PluginSettingTab {
       dropdown.selectEl.removeClass(menuPlaceholder, menuDefault);
       settings[folderSetting] = folderPath;
       this.display();
-      await this.pluginServices.saveSettings();
+      await saveSettings();
     };
 
     new Setting(containerEl)
@@ -191,7 +193,7 @@ export class QuillSettingsTab extends PluginSettingTab {
         toggle.setValue(settings.autoSaveConvos);
         toggle.onChange(async () => {
           settings.autoSaveConvos = toggle.getValue();
-          await this.pluginServices.saveSettings();
+          await saveSettings();
         });
       });
 
@@ -308,8 +310,8 @@ export class QuillSettingsTab extends PluginSettingTab {
             settings,
             async (id: string, command: Command) => {
               settings.commands[id] = command;
-              await this.pluginServices.saveSettings();
-              await this.pluginServices.loadCommands();
+              await saveSettings();
+              await loadCommands();
               new Notice(
                 `New command created:\n\n    ${command.name}\n\n ` +
                   `It should now appear in the list below.`
@@ -329,6 +331,7 @@ export class QuillSettingsTab extends PluginSettingTab {
       .sort((a, b) => a.name.localeCompare(b.name));
 
     sortedCommands.forEach(async (command) => {
+      // Template file validation
       const hasTemplateFile = await validateTemplateFile(
         command.templateFilename,
         true
@@ -340,17 +343,21 @@ export class QuillSettingsTab extends PluginSettingTab {
         ? `Open "${command.templateFilename}"`
         : `Template note not found.\nEdit command to assign one.`;
 
-      const hasValidModel =
-        command.model === "" ||
-        this.pluginServices.isSupportedModel(command.model, true);
-      let modelString = command.model || `(${settings.openaiModel})`;
-      if (!hasValidModel) modelString += " (unsupported)";
-      const targetString = command.target === "view" ? "Conversation" : "Note";
-      const promptString = command.prompt ? "+ Prompt" : "";
+      // Model validation
+      const hasValidModel = isSupportedModel(command.model, true);
+
+      // Custom command description
+      const modelDesc = hasValidModel
+        ? getModelById(command.model)?.name ||
+          `${getModelById(settings.openaiModel)?.name} (default)`
+        : `${command.model} (unsupported)`;
+
+      const targetDesc = command.target === "view" ? "Conversation" : "Note";
+      const promptDesc = command.prompt ? "+ Prompt" : "";
 
       const customCommand = new Setting(containerEl)
         .setName(command.name)
-        .setDesc(`${modelString} » ${targetString} ${promptString}`)
+        .setDesc(`${modelDesc} » ${targetDesc} ${promptDesc}`)
         .setClass("oq-settings-custom-command")
         // Open Template Note
         .addButton((button) => {
@@ -386,8 +393,8 @@ export class QuillSettingsTab extends PluginSettingTab {
                 settings,
                 async (id: string, command: Command) => {
                   settings.commands[id] = command;
-                  await this.pluginServices.saveSettings();
-                  await this.pluginServices.loadCommands();
+                  await saveSettings();
+                  await loadCommands();
                   this.display();
                   new Notice(`Updated command:\n${command.name}`);
                 },
@@ -423,7 +430,7 @@ export class QuillSettingsTab extends PluginSettingTab {
                 true,
                 async () => {
                   delete commands[command.id];
-                  await this.pluginServices.saveSettings();
+                  await saveSettings();
                   this.plugin.removeCommand(command.id);
                   this.display(); // Refresh the list
                   new Notice(`Deleted command:\n${command.name}`);

@@ -5,7 +5,7 @@ import { APP_PROPS, ELEM_CLASSES_IDS } from "@/constants";
 interface PromptContentProps {
   value: string;
   rows: number;
-  model: string;
+  modelDesc: string;
   outputTarget?: string;
   handleInput: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   handleBlur: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
@@ -21,7 +21,7 @@ interface PromptContentProps {
 const PromptContent: React.FC<PromptContentProps> = ({
   value,
   rows,
-  model,
+  modelDesc,
   outputTarget,
   handleInput,
   handleBlur,
@@ -129,7 +129,7 @@ const PromptContent: React.FC<PromptContentProps> = ({
           />
         )}
         <span>
-          {model}
+          {modelDesc}
           {targetName && ` » ${targetName}`}
         </span>
         {manuallySaveConv && (

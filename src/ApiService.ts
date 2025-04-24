@@ -3,6 +3,7 @@ import { Editor, EditorPosition, TFile, Vault } from "obsidian";
 import {
   GptRequestPayload,
   IPluginServices,
+  OpenAIModel,
   OpenAIModelsSupported,
   OutputTarget,
 } from "@/interfaces";
@@ -34,7 +35,8 @@ export default class ApiService {
     this.vault = pluginServices.app.vault;
   }
 
-  async getModels(): Promise<OpenAI.Models.ModelsPage | false> {
+  // Gets list of models from OpenAI
+  async getModelsFromOpenAI(): Promise<OpenAI.Models.ModelsPage | false> {
     try {
       const models = await this.openai.models.list();
       return models || undefined;
@@ -44,17 +46,34 @@ export default class ApiService {
     }
   }
 
-  isSupportedModel = (model: string, suppressNotify?: boolean): boolean => {
-    const supportedModels: OpenAIModelsSupported[] = OPENAI_MODELS.model.map(
+  // Returns OpenAIModel object
+  getModelById = (modelId: string): OpenAIModel | undefined => {
+    const model = OPENAI_MODELS.models.find((model) => model.id === modelId);
+    return model;
+  };
+
+  // Returns array of supported model IDs
+  getSupportedModelIds = (): string[] => {
+    const supportedModelIds: OpenAIModelsSupported[] = OPENAI_MODELS.models.map(
       (model) => model.id
     );
-    if (supportedModels.includes(model)) return true;
+    return supportedModelIds;
+  };
+
+  // Validate model is supported by plugin, or is using plugin default.
+  isSupportedModel = (modelId: string, suppressNotify?: boolean): boolean => {
+    // Return if using plugin default
+    if (modelId === "") return true;
+    const supportedModelIds = this.getSupportedModelIds();
+    // Return if model is supported
+    if (supportedModelIds.includes(modelId)) return true;
+    // Display modal if an unsupported model is being used.
     if (!suppressNotify) {
       new ModalConfirm(
         this.pluginServices.app,
         `Quill: OpenAI model no longer supported`,
-        `The model "${model}" that this command uses is no longer supported. ` +
-          `Please update your command with a currently supported model.`,
+        `This command uses model ${modelId} which is no longer supported. ` +
+          `Please select a different model for this command in Settings.`,
         "Open settings",
         false,
         async () => {
@@ -111,7 +130,7 @@ export default class ApiService {
     }
     // INVALID
     this.refreshApiKey();
-    const isApiKeyValid = await this.getModels();
+    const isApiKeyValid = await this.getModelsFromOpenAI();
     if (isApiKeyValid) {
       return true;
     } else {
