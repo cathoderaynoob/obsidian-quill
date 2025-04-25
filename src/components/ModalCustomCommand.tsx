@@ -89,9 +89,6 @@ class ModalCustomCommand extends Modal {
     // Select command template from templates folder defined by user in Settings
     formBody.createEl("label", {
       text: "Template Note",
-      attr: {
-        for: menuTemplates,
-      },
     });
 
     const selectTemplateComp = new DropdownComponent(formBody);
@@ -139,6 +136,46 @@ class ModalCustomCommand extends Modal {
       this.togglePlaceholderClass(selectTemplateComp)
     );
 
+    // DISPLAY PROMPT OPTION -------------------------------------------------
+    formBody.createEl("label", {
+      text: "Show Prompt",
+    });
+    const openPromptDiv = formBody.createDiv();
+    const displayPromptEl = openPromptDiv.createEl("input", {
+      attr: {
+        id: "oq-newcommand-displayprompt",
+        type: "checkbox",
+      },
+    });
+    displayPromptEl.checked = commandToEdit ? commandToEdit.prompt : false;
+    // Span allows text-wrapping while keeping only the text clickable
+    openPromptDiv.createEl("span").createEl("label", {
+      text: "Prompt me for info when this command is run",
+      attr: {
+        for: "oq-newcommand-displayprompt",
+      },
+    });
+
+    // SEND SELECTED TEXT
+    // Option to send the selected text in the active note
+    formBody.createEl("label", {
+      text: "Send Selected Text",
+    });
+    const sendTextDiv = formBody.createDiv();
+    const sendTextEl = sendTextDiv.createEl("input", {
+      attr: {
+        id: "oq-newcommand-sendtext",
+        type: "checkbox",
+      },
+    });
+    sendTextEl.checked = commandToEdit ? commandToEdit.sendSelectedText : false;
+    sendTextDiv.createEl("span").createEl("label", {
+      text: "From the active note, include any text that’s selected",
+      attr: {
+        for: "oq-newcommand-sendtext",
+      },
+    });
+
     // OUTPUT TARGET MENU ----------------------------------------------------
     // Select where the output of the command will be displayed
     formBody.createEl("label", {
@@ -185,9 +222,14 @@ class ModalCustomCommand extends Modal {
       },
     });
     const selectModelComp = new DropdownComponent(formBody);
+    const defaultModelName = this.pluginServices.getModelById(
+      this.settings.openaiModel
+    )?.name;
     selectModelComp.addOption(
       "",
-      `Default model (currently ${this.settings.openaiModel})`
+      `Default model (currently ${
+        defaultModelName || this.settings.openaiModel
+      })`
     );
     OPENAI_MODELS.models.forEach((model) => {
       selectModelComp.addOption(model.id, model.name);
@@ -202,21 +244,6 @@ class ModalCustomCommand extends Modal {
     const footer = newCommandForm.createDiv({
       attr: {
         id: cmdFooter,
-      },
-    });
-
-    // DISPLAY PROMPT OPTION -------------------------------------------------
-    const displayPromptEl = footer.createEl("input", {
-      attr: {
-        id: "oq-newcommand-displayprompt",
-        type: "checkbox",
-      },
-    });
-    displayPromptEl.checked = commandToEdit ? commandToEdit.prompt : false;
-    footer.createEl("label", {
-      text: "Command should open a prompt for additional info",
-      attr: {
-        for: "oq-newcommand-displayprompt",
       },
     });
 
@@ -236,7 +263,7 @@ class ModalCustomCommand extends Modal {
         name: commandNameEl.value.substring(0, 75).trim(),
         target: selectTargetComp.getValue() as OutputTarget,
         prompt: displayPromptEl.checked,
-        sendSelectedText: false,
+        sendSelectedText: sendTextEl.checked,
         templateFilename: selectTemplateComp.getValue(),
         model: selectModelComp.getValue(),
       });

@@ -107,16 +107,17 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
       id: "send-text-with-prompt",
       name: "Send selected text with my prompt",
       editorCheckCallback: (checking: boolean, editor: Editor) => {
-        if (checking) return true;
         const selectedText = editor.getSelection().trim();
-        if (!selectedText) return false;
-        this.activateView();
-        this.openModalPrompt({
-          featureId: "sendPromptWithSelectedText",
-          selectedText: selectedText,
-          outputTarget: "view",
-        });
-
+        if (checking) {
+          if (!selectedText) return false;
+        } else {
+          this.activateView();
+          this.openModalPrompt({
+            featureId: "sendPromptWithSelectedText",
+            selectedText: selectedText,
+            outputTarget: "view",
+          });
+        }
         return true;
       },
     });
@@ -129,7 +130,6 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
       callback: async () => {
         let isTemplateFolderSet = false;
         isTemplateFolderSet = await hasValidDefaultFolder("templates");
-
         if (isTemplateFolderSet) {
           const modal = new ModalCustomCommand(
             this.pluginServices,
@@ -240,57 +240,99 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
       const command = commands[commandId];
       let callback: (() => void) | undefined = undefined;
       let cmdEditorCheckCallback:
-        | ((checking: boolean, editor: Editor) => void)
+        | ((checking: boolean, editor: Editor) => boolean | void)
         | undefined = undefined;
 
-      // Command Output to Note (Editor)
+      const commandIsValid = async (command: Command) => {
+        if (!this.apiService.isSupportedModel(command.model)) return false;
+        if (!(await validateTemplateFile(command.templateFilename)))
+          return false;
+        return true;
+      };
+
+      const executeCommand = async (
+        command: Command,
+        featureId: string,
+        outputTarget: OutputTarget,
+        editor?: Editor,
+        selectedText?: string
+      ) => {
+        if (outputTarget === "view") this.activateView();
+
+        if (command.prompt) {
+          this.openModalPrompt({
+            featureId,
+            command,
+            customCommandId: commandId,
+            outputTarget,
+            editor,
+            selectedText,
+          });
+        } else {
+          await this.features.executeFeature({
+            featureId,
+            command,
+            outputTarget,
+            editor,
+            selectedText,
+          });
+        }
+      };
+
       if (command.target === "editor") {
         const featureId = "customCommandToEditor";
-        cmdEditorCheckCallback = async (checking: boolean, editor: Editor) => {
-          if (checking) return;
-          if (!this.apiService.isSupportedModel(command.model)) return;
-          if (!(await validateTemplateFile(command.templateFilename))) return;
-          if (command.prompt) {
-            this.openModalPrompt({
-              featureId: featureId,
-              command: command,
-              customCommandId: commandId,
-              outputTarget: "editor",
-              editor: editor,
-            });
+        cmdEditorCheckCallback = (checking: boolean, editor: Editor) => {
+          console.log("command to editor", checking);
+          const selectedText = editor.getSelection().trim();
+          if (checking) {
+            if (!selectedText) return false;
           } else {
-            await this.features.executeFeature({
-              featureId: featureId,
-              command: command,
-              outputTarget: "editor",
-              editor: editor,
-            });
+            (async () => {
+              if (await commandIsValid(command)) {
+                await executeCommand(
+                  command,
+                  featureId,
+                  "editor",
+                  editor,
+                  selectedText
+                );
+              }
+            })();
           }
+          return true;
         };
       }
 
-      // Command Output to Conversation View (View)
       if (command.target === "view") {
         const featureId = "customCommandToView";
-        callback = async () => {
-          if (!this.apiService.isSupportedModel(command.model)) return;
-          if (!(await validateTemplateFile(command.templateFilename))) return;
-          this.activateView();
-          if (command.prompt) {
-            this.openModalPrompt({
-              featureId: featureId,
-              command: command,
-              customCommandId: commandId,
-              outputTarget: "view",
-            });
-          } else {
-            await this.features.executeFeature({
-              featureId: featureId,
-              command: command,
-              outputTarget: "view",
-            });
-          }
-        };
+        if (command.sendSelectedText) {
+          cmdEditorCheckCallback = (checking: boolean, editor: Editor) => {
+            console.log("command to view", checking);
+            const selectedText = editor.getSelection().trim();
+            if (checking) {
+              if (!selectedText) return false;
+            } else {
+              (async () => {
+                if (await commandIsValid(command)) {
+                  await executeCommand(
+                    command,
+                    featureId,
+                    "view",
+                    undefined,
+                    selectedText
+                  );
+                }
+              })();
+            }
+            return true;
+          };
+        } else {
+          callback = async () => {
+            if (await commandIsValid(command)) {
+              await executeCommand(command, featureId, "view");
+            }
+          };
+        }
       }
 
       this.addCommand({

@@ -319,11 +319,11 @@
   line-height: var(--line-height-tight);
   --max-lines: 5;
   overflow: hidden;
-  mask-image: linear-gradient(to top, transparent, black 2em);
-  -webkit-mask-image: linear-gradient(to top, transparent, black 2em);
   cursor: pointer;
   opacity: 0.4;
   transition: opacity 0.5s ease;
+  mask-image: linear-gradient(to top, rgba(0, 0, 0, 0.7), black 2em);
+  -webkit-mask-image: linear-gradient(to top, rgba(0, 0, 0, 0.7), black 2em);
   &:hover {
     opacity: 0.8;
   }
@@ -524,6 +524,15 @@ button.oq-prompt-send {
     padding-left: 0.66em;
   }
 }
+#oq-newcommand-body > div {
+  display: grid;
+  grid-template-columns: min-content 1fr;
+  align-items: center;
+  & span {
+    font-style: italic;
+    display: inline-block;
+  }
+}
 .oq-saveas-default-container {
   display: grid;
   grid-template-columns: min-content max-content;
@@ -537,6 +546,7 @@ button.oq-prompt-send {
 #oq-newcommand-body {
   display: grid;
   grid-template-columns: auto 1fr;
+  grid-template-rows: repeat(6, 1fr);
   grid-gap: 1em;
   max-width: 100%;
   & > label {
@@ -547,6 +557,9 @@ button.oq-prompt-send {
   > select {
     width: 100%;
   }
+}
+#oq-newcommand-name {
+  color: var(--oq-app-bright-color);
 }
 #oq-confirm-form {
   & button[type="submit"].mod-warning {
@@ -575,6 +588,9 @@ button.oq-prompt-send {
     margin-left: 0.5em;
     justify-self: end;
   }
+}
+#oq-newcommand-footer {
+  grid-template-columns: none;
 }
 #oq-saveas-convo-footer {
   grid-template-columns: 1fr min-content;
