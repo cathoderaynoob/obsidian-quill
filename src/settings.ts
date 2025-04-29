@@ -352,12 +352,18 @@ export class QuillSettingsTab extends PluginSettingTab {
           `${getModelById(settings.openaiModel)?.name} (default)`
         : `${command.model} (unsupported)`;
 
-      const targetDesc = command.target === "view" ? "Conversation" : "Note";
-      const promptDesc = command.prompt ? "+ Prompt" : "";
+      const targetDesc =
+        command.target === "view" ? "Conversation" : "Active note";
+      const promptDesc = command.prompt ? "| Show prompt" : "";
+      const selectedTextDesc = command.sendSelectedText
+        ? " | Send selected text"
+        : "";
 
       const customCommand = new Setting(containerEl)
         .setName(command.name)
-        .setDesc(`${modelDesc} » ${targetDesc} ${promptDesc}`)
+        .setDesc(
+          `${modelDesc} | ${targetDesc} ${promptDesc} ${selectedTextDesc}`
+        )
         .setClass("oq-settings-custom-command")
         // Open Template Note
         .addButton((button) => {
