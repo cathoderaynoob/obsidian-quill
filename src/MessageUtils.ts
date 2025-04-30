@@ -45,12 +45,14 @@ class MessageUtils {
     const messageNum = messageCount + 1;
     let header = msg.role === "user" ? `# [Message ${messageNum}]\n` : "";
     const separator = `\n___\n`;
+    const modelDisplay =
+      this.pluginServices.getModelById(msg.modelId)?.name || msg.modelId;
     switch (msg.role) {
       case "user":
         header += `#### [» Prompt]`;
         break;
       case "assistant":
-        header += `#### [« Response]\n\`${msg.model}\``;
+        header += `#### [« Response]\n\`${modelDisplay}\``;
         break;
     }
     let fileText = `${header}\n\n${msg.content}\n`;
@@ -97,16 +99,17 @@ class MessageUtils {
 
   // SAVE A MESSAGE TO A FILE AS...
   promptSaveMessageAs = async (
-    message: string
+    content: string,
+    commandFolderPath?: string
   ): Promise<{ filename: string; path: string } | null> => {
     const { getNormalizedFilepath, createFile, openFile } = this.vaultUtils;
-    const fileText = message;
+    const fileText = content;
 
     return new Promise((resolve) => {
       const modal = new ModalSaveMessageAs(
         this.pluginServices.app,
         this.settings,
-        message,
+        content,
         async (filename, folderPath, openFileAfterSave, saveAsNewDefault) => {
           filename = this.vaultUtils.validateFilename(filename);
           const filePath = getNormalizedFilepath(folderPath, filename);
@@ -126,7 +129,8 @@ class MessageUtils {
             new Notice(e);
             console.log(e);
           }
-        }
+        },
+        commandFolderPath
       );
       modal.open();
     });

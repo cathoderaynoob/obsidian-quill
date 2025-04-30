@@ -4,10 +4,11 @@ import { OPENAI_MODELS } from "@/constants";
 export interface Command {
   name: string;
   target: OutputTarget;
+  saveMsgFolder?: string;
   prompt: boolean;
   sendSelectedText: boolean;
   templateFilename: string;
-  model: OpenAIModelsSupported;
+  modelId: OpenAIModelsSupported;
 }
 export interface Commands {
   [key: string]: Command;
@@ -27,7 +28,7 @@ export interface IPluginServices {
   saveSettings(): Promise<void>;
   openPluginSettings(): Promise<void>;
   loadCommands(): Promise<void>;
-  isSupportedModel(model: string, suppressNotify?: boolean): boolean;
+  isSupportedModel(modelId: string, suppressNotify?: boolean): boolean;
   getModelById(modelId: string): OpenAIModel | undefined;
 }
 
@@ -38,7 +39,7 @@ export interface GptEngines {
 }
 
 export interface GptRequestPayload {
-  model: string;
+  modelId: string;
   messages: PayloadMessagesType[];
   temperature: number;
 }

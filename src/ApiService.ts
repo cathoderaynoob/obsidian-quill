@@ -172,7 +172,7 @@ export default class ApiService {
     try {
       this.streamingContent = await this.openai.chat.completions.create(
         {
-          model: payload.model,
+          model: payload.modelId,
           messages: payload.messages,
           stream: true,
           temperature: payload.temperature,
@@ -225,7 +225,7 @@ export default class ApiService {
   ): Promise<void> {
     try {
       const completion = await this.openai.chat.completions.create({
-        model: payload.model,
+        model: payload.modelId,
         messages: payload.messages,
         temperature: payload.temperature,
       });

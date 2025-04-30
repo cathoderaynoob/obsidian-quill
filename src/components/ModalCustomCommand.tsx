@@ -136,47 +136,7 @@ class ModalCustomCommand extends Modal {
       this.togglePlaceholderClass(selectTemplateComp)
     );
 
-    // DISPLAY PROMPT OPTION -------------------------------------------------
-    formBody.createEl("label", {
-      text: "Show Prompt",
-    });
-    const openPromptDiv = formBody.createDiv();
-    const displayPromptEl = openPromptDiv.createEl("input", {
-      attr: {
-        id: "oq-newcommand-displayprompt",
-        type: "checkbox",
-      },
-    });
-    displayPromptEl.checked = commandToEdit ? commandToEdit.prompt : false;
-    // Span allows text-wrapping while keeping only the text clickable
-    openPromptDiv.createEl("span").createEl("label", {
-      text: "Prompt me for info when this command is run",
-      attr: {
-        for: "oq-newcommand-displayprompt",
-      },
-    });
-
-    // SEND SELECTED TEXT
-    // Option to send the selected text in the active note
-    formBody.createEl("label", {
-      text: "Send Selected Text",
-    });
-    const sendTextDiv = formBody.createDiv();
-    const sendTextEl = sendTextDiv.createEl("input", {
-      attr: {
-        id: "oq-newcommand-sendtext",
-        type: "checkbox",
-      },
-    });
-    sendTextEl.checked = commandToEdit ? commandToEdit.sendSelectedText : false;
-    sendTextDiv.createEl("span").createEl("label", {
-      text: "From the active note, include any text that’s selected",
-      attr: {
-        for: "oq-newcommand-sendtext",
-      },
-    });
-
-    // OUTPUT TARGET MENU ----------------------------------------------------
+    // OUTPUT TARGET MENU -----------------------------------------------------
     // Select where the output of the command will be displayed
     formBody.createEl("label", {
       text: "Respond in...",
@@ -204,17 +164,80 @@ class ModalCustomCommand extends Modal {
       selectTargetComp.addOption(target, text);
     });
     selectTargetComp.setValue(commandToEdit?.target || "");
+    this.togglePlaceholderClass(selectTargetComp);
 
-    selectTargetComp.selectEl.toggleClass(
-      menuPlaceholder,
-      selectTargetComp.getValue() === ""
+    // Enable "save message to folder" menu for conversation output
+    const updateFolderCompState = () => {
+      const isView = selectTargetComp.getValue() === "view";
+      selectFolderComp.selectEl.toggleClass("oq-hidden", !isView);
+    };
+    selectTargetComp.onChange(() => {
+      this.togglePlaceholderClass(selectTargetComp);
+      updateFolderCompState();
+    });
+
+    // SAVE MESSAGE TO FOLDER -------------------------------------------------
+    formBody.createEl("label", {
+      text: "",
+    });
+    const selectFolderComp = new DropdownComponent(formBody);
+    updateFolderCompState();
+    // Add a placeholder option
+    selectFolderComp.selectEl.createEl("option", {
+      text: "(optional) Default folder for saved responses...",
+      value: "",
+    });
+    const vaultFolderPaths = vaultUtils.getAllFolderPaths();
+    vaultFolderPaths.forEach((folderPath: string) => {
+      selectFolderComp.addOption(folderPath, folderPath);
+    });
+    selectFolderComp.setValue(commandToEdit?.saveMsgFolder || "");
+    this.togglePlaceholderClass(selectFolderComp);
+    selectFolderComp.onChange(() =>
+      this.togglePlaceholderClass(selectFolderComp)
     );
 
-    selectTargetComp.onChange(() =>
-      this.togglePlaceholderClass(selectTargetComp)
-    );
+    // DISPLAY PROMPT OPTION --------------------------------------------------
+    formBody.createEl("label", {
+      text: "Show Prompt",
+    });
+    const openPromptDiv = formBody.createDiv();
+    const displayPromptEl = openPromptDiv.createEl("input", {
+      attr: {
+        id: "oq-newcommand-displayprompt",
+        type: "checkbox",
+      },
+    });
+    displayPromptEl.checked = commandToEdit ? commandToEdit.prompt : false;
+    // Span allows text-wrapping while keeping only the text clickable
+    openPromptDiv.createEl("span").createEl("label", {
+      text: "Prompt me for info when this command is run",
+      attr: {
+        for: "oq-newcommand-displayprompt",
+      },
+    });
 
-    // MODEL SELECTION ------------------------------------------------
+    // SEND SELECTED TEXT -----------------------------------------------------
+    // Option to send the selected text in the active note
+    formBody.createEl("label", {
+      text: "Send Selected Text",
+    });
+    const sendTextDiv = formBody.createDiv();
+    const sendTextEl = sendTextDiv.createEl("input", {
+      attr: {
+        id: "oq-newcommand-sendtext",
+        type: "checkbox",
+      },
+    });
+    sendTextEl.checked = commandToEdit ? commandToEdit.sendSelectedText : false;
+    sendTextDiv.createEl("span").createEl("label", {
+      text: "From the active note, include any text that’s selected",
+      attr: {
+        for: "oq-newcommand-sendtext",
+      },
+    });
+
+    // MODEL SELECTION --------------------------------------------------------
     formBody.createEl("label", {
       text: "Model",
       attr: {
@@ -223,12 +246,12 @@ class ModalCustomCommand extends Modal {
     });
     const selectModelComp = new DropdownComponent(formBody);
     const defaultModelName = this.pluginServices.getModelById(
-      this.settings.openaiModel
+      this.settings.openaiModelId
     )?.name;
     selectModelComp.addOption(
       "",
       `Default model (currently ${
-        defaultModelName || this.settings.openaiModel
+        defaultModelName || this.settings.openaiModelId
       })`
     );
     OPENAI_MODELS.models.forEach((model) => {
@@ -236,9 +259,9 @@ class ModalCustomCommand extends Modal {
     });
     if (
       commandToEdit &&
-      this.pluginServices.isSupportedModel(commandToEdit.model, true)
+      this.pluginServices.isSupportedModel(commandToEdit.modelId, true)
     )
-      selectModelComp.setValue(commandToEdit?.model || "");
+      selectModelComp.setValue(commandToEdit?.modelId || "");
 
     // Modal Footer
     const footer = newCommandForm.createDiv({
@@ -262,10 +285,11 @@ class ModalCustomCommand extends Modal {
       this.onSubmit(commandId, {
         name: commandNameEl.value.substring(0, 75).trim(),
         target: selectTargetComp.getValue() as OutputTarget,
+        saveMsgFolder: selectFolderComp.getValue(),
         prompt: displayPromptEl.checked,
         sendSelectedText: sendTextEl.checked,
         templateFilename: selectTemplateComp.getValue(),
-        model: selectModelComp.getValue(),
+        modelId: selectModelComp.getValue(),
       });
       this.close();
     };

@@ -22,8 +22,8 @@ const MessagePad: React.FC<MessagePadProps> = ({
   const [rows] = useState<number>(1);
 
   const modelDesc =
-    pluginServices.getModelById(settings.openaiModel)?.name ||
-    settings.openaiModel;
+    pluginServices.getModelById(settings.openaiModelId)?.name ||
+    settings.openaiModelId;
 
   // Setting dynamic height for textarea as number of rows change
   const setTextareaSize = () => {

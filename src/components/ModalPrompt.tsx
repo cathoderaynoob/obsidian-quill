@@ -115,9 +115,9 @@ class ModalPrompt extends Modal {
       ? getFeatureProperties(this.app, this.featureId)
       : null;
     this.featureName = feature?.name;
-    const model =
-      this.command?.model || feature?.model || this.settings.openaiModel;
-    this.modelDesc = this.pluginServices.getModelById(model)?.name || model;
+    const modelId =
+      this.command?.modelId || feature?.modelId || this.settings.openaiModelId;
+    this.modelDesc = this.pluginServices.getModelById(modelId)?.name || modelId;
     this.modalRoot = createRoot(this.contentEl);
     this.updateModal();
   }

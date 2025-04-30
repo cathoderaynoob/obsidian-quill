@@ -17,6 +17,7 @@ import {
   Commands,
   folderSettingNames,
   IPluginServices,
+  OpenAIModelsSupported,
 } from "@/interfaces";
 import QuillPlugin from "@/main";
 import VaultUtils from "@/VaultUtils";
@@ -36,7 +37,7 @@ const {
 // Export the settings interface
 export interface QuillPluginSettings {
   openaiApiKey: string;
-  openaiModel: string;
+  openaiModelId: OpenAIModelsSupported;
   openaiTemperature: number;
   autoSaveConvos: boolean;
   pathConversations: string;
@@ -49,7 +50,7 @@ export interface QuillPluginSettings {
 // Export the default settings
 export const DEFAULT_SETTINGS: QuillPluginSettings = {
   openaiApiKey: "",
-  openaiModel: "gpt-4o",
+  openaiModelId: "gpt-4o",
   openaiTemperature: 0.7,
   autoSaveConvos: false,
   pathConversations: "",
@@ -153,9 +154,9 @@ export class QuillSettingsTab extends PluginSettingTab {
         sortedModels.forEach((model) =>
           dropdown.addOption(model.id, model.name)
         );
-        dropdown.setValue(settings.openaiModel);
+        dropdown.setValue(settings.openaiModelId);
         dropdown.onChange(async (model) => {
-          settings.openaiModel = model;
+          settings.openaiModelId = model;
           await saveSettings();
           this.display();
         });
@@ -344,13 +345,13 @@ export class QuillSettingsTab extends PluginSettingTab {
         : `Template note not found.\nEdit command to assign one.`;
 
       // Model validation
-      const hasValidModel = isSupportedModel(command.model, true);
+      const hasValidModel = isSupportedModel(command.modelId, true);
 
       // Custom command description
       const modelDesc = hasValidModel
-        ? getModelById(command.model)?.name ||
-          `${getModelById(settings.openaiModel)?.name} (default)`
-        : `${command.model} (unsupported)`;
+        ? getModelById(command.modelId)?.name ||
+          `${getModelById(settings.openaiModelId)?.name} (default)`
+        : `${command.modelId} (unsupported)`;
 
       const targetDesc =
         command.target === "view" ? "Conversation" : "Active note";
@@ -413,7 +414,7 @@ export class QuillSettingsTab extends PluginSettingTab {
           editCommandBtn.setTooltip(
             hasValidModel
               ? "Edit"
-              : `Model "${command.model}" is no longer supported.\n` +
+              : `Model "${command.modelId}" is no longer supported.\n` +
                   `Edit command...`,
             {
               placement: "top",

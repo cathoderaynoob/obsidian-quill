@@ -2,7 +2,7 @@ import { Notice, setIcon, setTooltip } from "obsidian";
 import { useEffect, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import { APP_PROPS, ELEM_CLASSES_IDS } from "@/constants";
-import { Role } from "@/interfaces";
+import { Command, Role } from "@/interfaces";
 import { usePluginContext } from "@/components/PluginContext";
 import MessageUtils from "@/MessageUtils";
 
@@ -12,7 +12,8 @@ export interface ConvoMessageType {
   msgId: string;
   role: Role;
   content: string;
-  model: string;
+  modelId: string;
+  command?: Command;
   selectedText?: string;
   error?: string;
 }
@@ -25,8 +26,9 @@ const Message: React.FC<ConvoMessageProps> = ({
   msgIndex,
   msgId,
   role,
-  content: message,
-  model,
+  content,
+  modelId,
+  command,
   selectedText,
   error,
   handleOnCollapse,
@@ -42,12 +44,12 @@ const Message: React.FC<ConvoMessageProps> = ({
   const clickableIconClass = ELEM_CLASSES_IDS.clickableIcon;
 
   const saveMessageAs = async () => {
-    messageUtils.promptSaveMessageAs(message);
+    messageUtils.promptSaveMessageAs(content, command?.saveMsgFolder);
   };
 
   const copyMessageToClipboard = () => {
     try {
-      navigator.clipboard.writeText(message);
+      navigator.clipboard.writeText(content);
       new Notice("Message copied to clipboard");
     } catch (e) {
       console.log(e);
@@ -78,11 +80,13 @@ const Message: React.FC<ConvoMessageProps> = ({
         placement: "top",
       });
     }
-  }, [message]);
+  }, [content]);
+
+  const modelDisplay = pluginServices.getModelById(modelId)?.name || modelId;
 
   return (
     <>
-      {message ? (
+      {content ? (
         <div
           className={`${ELEM_CLASSES_IDS.message} oq-message-${role}`}
           data-msg-idx={msgIndex}
@@ -96,7 +100,7 @@ const Message: React.FC<ConvoMessageProps> = ({
             {error ? (
               <div className="oq-loader-error">{error}</div>
             ) : (
-              <ReactMarkdown>{message}</ReactMarkdown>
+              <ReactMarkdown>{content}</ReactMarkdown>
             )}
             {selectedText && (
               <div className="oq-message-selectedtext">
@@ -132,7 +136,7 @@ const Message: React.FC<ConvoMessageProps> = ({
                     />
                   )}
                 </div>
-                <div className="oq-message-model">{model}</div>
+                <div className="oq-message-model">{modelDisplay}</div>
               </div>
             )}
           </div>
