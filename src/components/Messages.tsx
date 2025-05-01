@@ -1,7 +1,7 @@
 import { Notice, setIcon } from "obsidian";
 import { useEffect, useRef, useState } from "react";
 import { usePluginContext } from "@/components/PluginContext";
-import { Role } from "@/interfaces";
+import { Command, Role } from "@/interfaces";
 import {
   ELEM_CLASSES_IDS,
   ERROR_MESSAGES,
@@ -182,28 +182,30 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature }) => {
 
     const handleNewConvoMessage = async (
       role: Role,
-      model: string,
+      modelId: string,
       inputText: string,
       selectedText: string,
-      commandName?: string
+      command?: Command
     ): Promise<void> => {
       // Clear any previous loader error messages
       const loader = getLoaderElem();
       if (loader) loader.removeClass("error");
 
       // If custom command, preface the user message with the command name
-      const content = commandName
-        ? `*${commandName}*\n\n${inputText || ""}`
-        : inputText || "";
+      const content =
+        command && role === "user"
+          ? `*${command.name}*\n\n${inputText || ""}`
+          : inputText || "";
       const newMsgIndex = messages.length + 1;
       const newMessage: ConvoMessageType = {
         conversationId: getConversationId(),
         msgIndex: newMsgIndex,
         msgId: generateUniqueId(),
-        role: role,
-        model: model,
-        content: content,
-        selectedText: selectedText,
+        role,
+        content,
+        modelId,
+        command,
+        selectedText,
       };
       latestMessageRef.current = newMessage;
       prevContentLengthRef.current = 0;

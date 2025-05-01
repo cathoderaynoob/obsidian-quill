@@ -59,8 +59,8 @@ export const executeFeature = async (
     return false;
   }
 
-  const model = command?.model || feature.model || settings.openaiModel;
-  if (command?.model && !apiService.isSupportedModel(command.model))
+  const modelId = command?.modelId || feature.modelId || settings.openaiModelId;
+  if (command?.modelId && !apiService.isSupportedModel(command.modelId))
     return false;
 
   // "view" output: Maintain persistent payload for the conversation context
@@ -107,34 +107,46 @@ export const executeFeature = async (
 
   // If output is to view, display message in the conversation
   if (feature.outputTarget === "view") {
-    const emitEvent = (
-      event: string,
-      role: string,
-      model?: string,
-      prompt?: string,
-      selectedText?: string,
-      commandName?: string
-    ): Promise<void> => {
+    const emitEvent = ({
+      event,
+      role,
+      modelId,
+      prompt,
+      selectedText,
+      command,
+    }: {
+      event: string;
+      role: string;
+      modelId?: string;
+      prompt?: string;
+      selectedText?: string;
+      command?: Command;
+    }): Promise<void> => {
       return new Promise<void>((resolve) => {
-        emitter.emit(event, role, model, prompt, selectedText, commandName);
+        emitter.emit(event, role, modelId, prompt, selectedText, command);
         resolve();
       });
     };
     // DISPLAY USER MESSAGE
-    await emitEvent(
-      "newConvoMessage",
-      "user",
-      model,
-      inputText,
+    await emitEvent({
+      event: "newConvoMessage",
+      role: "user",
+      modelId,
+      prompt: inputText,
       selectedText,
-      command?.name
-    );
+      command,
+    });
     // DISPLAY ASSISTANT MESSAGE
-    await emitEvent("newConvoMessage", "assistant", model);
+    await emitEvent({
+      event: "newConvoMessage",
+      role: "assistant",
+      modelId,
+      command,
+    });
   }
 
   const payload: GptRequestPayload = {
-    model: model,
+    modelId: modelId,
     messages: payloadMessagesArray,
     temperature: feature.temperature || settings.openaiTemperature,
   };

@@ -39,8 +39,8 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
   features: Features;
   pluginServices: IPluginServices;
   openModals: ModalPrompt[] = [];
-  isSupportedModel(model: string, suppressNotify?: boolean): boolean {
-    return this.apiService.isSupportedModel(model, suppressNotify);
+  isSupportedModel(modelId: string, suppressNotify?: boolean): boolean {
+    return this.apiService.isSupportedModel(modelId, suppressNotify);
   }
   getModelById(modelId: string): OpenAIModel | undefined {
     return this.apiService.getModelById(modelId);
@@ -244,7 +244,7 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
         | undefined = undefined;
 
       const commandIsValid = async (command: Command) => {
-        if (!this.apiService.isSupportedModel(command.model)) return false;
+        if (!this.apiService.isSupportedModel(command.modelId)) return false;
         if (!(await validateTemplateFile(command.templateFilename)))
           return false;
         return true;
@@ -282,10 +282,9 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
       if (command.target === "editor") {
         const featureId = "customCommandToEditor";
         cmdEditorCheckCallback = (checking: boolean, editor: Editor) => {
-          console.log("command to editor", checking);
           const selectedText = editor.getSelection().trim();
           if (checking) {
-            if (!selectedText) return false;
+            if (command.sendSelectedText && !selectedText) return false;
           } else {
             (async () => {
               if (await commandIsValid(command)) {
@@ -307,7 +306,6 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
         const featureId = "customCommandToView";
         if (command.sendSelectedText) {
           cmdEditorCheckCallback = (checking: boolean, editor: Editor) => {
-            console.log("command to view", checking);
             const selectedText = editor.getSelection().trim();
             if (checking) {
               if (!selectedText) return false;

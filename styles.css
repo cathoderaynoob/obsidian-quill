@@ -9,6 +9,10 @@
   --oq-transition-color: color 0.2s ease;
   --oq-transition-opacity: opacity 0.2s ease;
 }
+.oq-hidden {
+  opacity: 0 !important;
+  transition: var(--oq-transition-opacity);
+}
 .oq-warn-button {
   color: var(--text-error);
   cursor: help;
@@ -20,6 +24,7 @@
 }
 .oq-menu-placeholder {
   opacity: 1;
+  transition: var(--oq-transition-opacity);
   color: var(--text-muted);
 }
 .oq-menu-default {

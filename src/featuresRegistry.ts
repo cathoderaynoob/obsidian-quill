@@ -17,7 +17,7 @@ export interface FeatureProperties {
   prompt: (inputText?: string) => string;
   processResponse: ProcessResponse;
   outputTarget: OutputTarget;
-  model?: string;
+  modelId?: string;
   temperature?: number;
   stream?: boolean;
 }

@@ -6,15 +6,16 @@ import DefaultFolderUtils from "@/DefaultFolderUtils";
 import VaultUtils from "@/VaultUtils";
 
 class ModalSaveMessageAs extends Modal {
+  private pluginServices: IPluginServices;
+  private settings: QuillPluginSettings;
   private content: string;
   private onSubmit: (
     name: string,
-    path: string,
+    folderPath: string,
     openFile: boolean,
     saveAsDefault: boolean
   ) => void;
-  private settings: QuillPluginSettings;
-  private pluginServices: IPluginServices;
+  private commandFolderPath?: string;
 
   constructor(
     app: App,
@@ -22,15 +23,17 @@ class ModalSaveMessageAs extends Modal {
     content: string,
     onSubmit: (
       name: string,
-      path: string,
+      folderPath: string,
       openFile: boolean,
       saveAsDefault: boolean
-    ) => void
+    ) => void,
+    commandFolderPath?: string
   ) {
     super(app);
     this.settings = settings;
     this.content = content;
     this.onSubmit = onSubmit;
+    this.commandFolderPath = commandFolderPath;
     this.shouldRestoreSelection = true;
   }
 
@@ -72,6 +75,8 @@ class ModalSaveMessageAs extends Modal {
         ELEM_CLASSES_IDS.menuDefault
       )
     );
+    if (this.commandFolderPath && this.commandFolderPath !== "")
+      selectFolderComp.setValue(this.commandFolderPath);
 
     // To folder...
     const settingsMessagesPath = this.settings.pathMessages;
