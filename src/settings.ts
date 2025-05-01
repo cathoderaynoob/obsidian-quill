@@ -324,7 +324,7 @@ export class QuillSettingsTab extends PluginSettingTab {
         disableIfNoTemplateFolder(button);
       });
 
-    // Custom Commands List ---------------------------------------------------
+    // Custom Commands List ===================================================
     const commands = settings.commands;
 
     const sortedCommands = Object.keys(commands)
@@ -347,7 +347,7 @@ export class QuillSettingsTab extends PluginSettingTab {
       // Model validation
       const hasValidModel = isSupportedModel(command.modelId, true);
 
-      // Custom command description
+      // Custom command description -------------------------------------------
       const modelDesc = hasValidModel
         ? getModelById(command.modelId)?.name ||
           `${getModelById(settings.openaiModelId)?.name} (default)`
@@ -366,7 +366,7 @@ export class QuillSettingsTab extends PluginSettingTab {
           `${modelDesc} | ${targetDesc} ${promptDesc} ${selectedTextDesc}`
         )
         .setClass("oq-settings-custom-command")
-        // Open Template Note
+        // Open Template Note -------------------------------------------------
         .addButton((button) => {
           const openTemplateButton = button
             .setIcon(templateIcon)
@@ -390,7 +390,7 @@ export class QuillSettingsTab extends PluginSettingTab {
             });
           openTemplateButton.buttonEl.toggleClass(btnWarn, !hasTemplateFile);
         })
-        // Edit Command
+        // Edit Command -------------------------------------------------------
         .addButton((button) => {
           const editCommandBtn = button
             .setIcon(APP_PROPS.editIcon)
@@ -422,7 +422,7 @@ export class QuillSettingsTab extends PluginSettingTab {
           );
           editCommandBtn.buttonEl.toggleClass(btnWarn, !hasValidModel);
         })
-        // Delete Command
+        // Delete Command -----------------------------------------------------
         .addButton((button) =>
           button
             .setIcon(APP_PROPS.trashIcon)

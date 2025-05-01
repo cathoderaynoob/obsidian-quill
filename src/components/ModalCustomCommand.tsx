@@ -159,7 +159,7 @@ class ModalCustomCommand extends Modal {
     outputTargets.forEach((target: string) => {
       const text =
         target === "view"
-          ? "Conversation (in the chat stream)"
+          ? "Conversation (in the message thread)"
           : "Active note (at the cursor position)";
       selectTargetComp.addOption(target, text);
     });
@@ -168,8 +168,10 @@ class ModalCustomCommand extends Modal {
 
     // Enable "save message to folder" menu for conversation output
     const updateFolderCompState = () => {
-      const isView = selectTargetComp.getValue() === "view";
-      selectFolderComp.selectEl.toggleClass("oq-hidden", !isView);
+      const isViewSelected = selectTargetComp.getValue() === "view";
+      selectFolderLabel.toggleClass("oq-fade-out", !isViewSelected);
+      selectFolderComp.selectEl.toggleClass("oq-fade-out", !isViewSelected);
+      selectFolderComp.setDisabled(!isViewSelected);
     };
     selectTargetComp.onChange(() => {
       this.togglePlaceholderClass(selectTargetComp);
@@ -177,14 +179,14 @@ class ModalCustomCommand extends Modal {
     });
 
     // SAVE MESSAGE TO FOLDER -------------------------------------------------
-    formBody.createEl("label", {
-      text: "",
+    const selectFolderLabel = formBody.createEl("label", {
+      text: "Save to Folder",
     });
     const selectFolderComp = new DropdownComponent(formBody);
     updateFolderCompState();
     // Add a placeholder option
     selectFolderComp.selectEl.createEl("option", {
-      text: "(optional) Default folder for saved responses...",
+      text: "Save message to this folder instead of default...",
       value: "",
     });
     const vaultFolderPaths = vaultUtils.getAllFolderPaths();
@@ -263,7 +265,7 @@ class ModalCustomCommand extends Modal {
     )
       selectModelComp.setValue(commandToEdit?.modelId || "");
 
-    // Modal Footer
+    // MODAL FOOTER ===========================================================
     const footer = newCommandForm.createDiv({
       attr: {
         id: cmdFooter,
@@ -305,6 +307,18 @@ class ModalCustomCommand extends Modal {
         }
       }
     });
+
+    // CANCEL BUTTON ----------------------------------------------------------
+    footer.createEl("button", {
+      text: "Cancel",
+      cls: "oq-confirm-cancel",
+      attr: {
+        type: "button",
+      },
+    }).onclick = () => {
+      this.close();
+      return false;
+    };
   }
 
   onClose() {

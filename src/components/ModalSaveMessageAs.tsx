@@ -59,7 +59,7 @@ class ModalSaveMessageAs extends Modal {
         id: "oq-saveas-filename",
         placeholder:
           "Enter a note name, or leave blank to use the date and time",
-        value: this.createFilename(this.content),
+        value: vaultUtils.createFilenameFromTitle(this.content),
       },
     });
     filenameEl.select();
@@ -170,16 +170,6 @@ class ModalSaveMessageAs extends Modal {
       }
     });
   }
-
-  // This function finds the first existing heading in the message and
-  // returns it so it can be presented as the default filename
-  createFilename = (content: string) => {
-    const headingRegex = /^(#+)\s+(.*)$/m;
-    const match = content.match(headingRegex);
-    // This returns the first heading
-    const filename = match ? match[2] : "";
-    return filename;
-  };
 
   onClose() {
     const { contentEl } = this;

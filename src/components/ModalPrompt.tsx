@@ -1,12 +1,12 @@
-import { ButtonComponent, Modal, Notice, TFile } from "obsidian";
+import { Modal, Notice } from "obsidian";
 import { Root, createRoot } from "react-dom/client";
 import { Command, IPluginServices, OutputTarget } from "@/interfaces";
-import { APP_PROPS, ELEM_CLASSES_IDS } from "@/constants";
 import { QuillPluginSettings } from "@/settings";
 import { getFeatureProperties } from "@/featuresRegistry";
 import emitter from "@/customEmitter";
 import ModalCustomCommand from "@/components/ModalCustomCommand";
 import PromptContent from "@/components/PromptContent";
+import VaultUtils from "@/VaultUtils";
 
 interface ModalPromptParams {
   settings: QuillPluginSettings;
@@ -86,6 +86,38 @@ class ModalPrompt extends Modal {
     this.disableSend();
   };
 
+  handleOpenTemplate = async () => {
+    if (!this.command) return;
+    const vaultUtils = VaultUtils.getInstance(
+      this.pluginServices,
+      this.settings
+    );
+    const filePath =
+      this.settings.pathTemplates + "/" + this.command.templateFilename;
+    if (vaultUtils.getFileByPath(filePath)) {
+      const opened = await vaultUtils.openFile(
+        `${this.settings.pathTemplates}/${this.command.templateFilename}`,
+        true
+      );
+      if (opened) this.close();
+    }
+  };
+
+  handleEditCommand = () => {
+    new ModalCustomCommand(
+      this.pluginServices,
+      this.settings,
+      async (id: string, command: Command) => {
+        this.settings.commands[id] = command;
+        await this.pluginServices.saveSettings();
+        await this.pluginServices.loadCommands();
+        new Notice(`Updated command:\n${command.name}`);
+      },
+      this.customCommandId
+    ).open();
+    this.close();
+  };
+
   handleOpenSettings = () => {
     this.pluginServices.openPluginSettings();
     this.close();
@@ -102,14 +134,6 @@ class ModalPrompt extends Modal {
     }
   };
 
-  openFileInNewPane = (filePath: string) => {
-    const app = this.pluginServices.app;
-    const file = app.vault.getAbstractFileByPath(filePath);
-    if (file && file instanceof TFile) {
-      app.workspace.getLeaf(true).openFile(file);
-    }
-  };
-
   onOpen() {
     const feature = this.featureId
       ? getFeatureProperties(this.app, this.featureId)
@@ -122,47 +146,6 @@ class ModalPrompt extends Modal {
     this.updateModal();
   }
 
-  // TODO: Add this. There will be some associated css updates needed
-  // generateFileButtonIcon(command: Command) {
-  //   const button = new ButtonComponent(this.contentEl);
-  //   button
-  //     .setClass(ELEM_CLASSES_IDS.clickableIcon)
-  //     .setIcon(APP_PROPS.fileIcon)
-  //     .setTooltip("Open template file")
-  //     .onClick(() => {
-  //       if (command?.templateFilename) {
-  //         const filePath =
-  //           this.settings.pathTemplates + "/" + command.templateFilename;
-  //         this.openFileInNewPane(filePath);
-  //       }
-  //       this.close();
-  //     });
-  //   return button.buttonEl;
-  // }
-
-  generateEditButtonIcon(customCommandId: string) {
-    const button = new ButtonComponent(this.contentEl);
-    button
-      .setClass(ELEM_CLASSES_IDS.clickableIcon)
-      .setIcon(APP_PROPS.editIcon)
-      .setTooltip("Edit command")
-      .onClick(() => {
-        new ModalCustomCommand(
-          this.pluginServices,
-          this.settings,
-          async (id: string, command: Command) => {
-            this.settings.commands[customCommandId] = command;
-            await this.pluginServices.saveSettings();
-            await this.pluginServices.loadCommands();
-            new Notice(`Updated command:\n${command.name}`);
-          },
-          customCommandId
-        ).open();
-        this.close();
-      });
-    return button.buttonEl;
-  }
-
   updateModal() {
     // Title differs for custom command vs native command
     const titleContent =
@@ -172,6 +155,11 @@ class ModalPrompt extends Modal {
           <span>{this.command?.name || this.featureName}</span>
         </div>
       ) : null;
+
+    const handleOpenTemplate = this.command
+      ? this.handleOpenTemplate
+      : undefined;
+    const handleEditCommand = this.command ? this.handleEditCommand : undefined;
 
     this.modalRoot?.render(
       <div id="oq-prompt-modal">
@@ -184,6 +172,8 @@ class ModalPrompt extends Modal {
           handleInput={this.handleInput}
           handleKeyPress={this.handleKeyPress}
           handleSend={this.handleSend}
+          handleOpenTemplate={handleOpenTemplate}
+          handleEditCommand={handleEditCommand}
           handleOpenSettings={this.handleOpenSettings}
           handleBlur={this.handleBlur}
           disabled={this.isDisabled}
