@@ -53,7 +53,6 @@ class ModalPrompt extends Modal {
     this.command = command;
     this.customCommandId = customCommandId;
     this.outputTarget = outputTarget;
-    this.handleResponseEnd = this.handleResponseEnd.bind(this);
     emitter.on("modalResponseEnd", this.handleResponseEnd);
   }
 

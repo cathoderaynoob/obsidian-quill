@@ -17,11 +17,10 @@ export default class Features {
     this.apiService = apiService;
     this.settings = settings;
     this.featuresRegistry = FeaturesRegistry(app);
-    this.executeFeature = this.executeFeature.bind(this);
     this.pluginServices = apiService.pluginServices;
   }
 
-  async executeFeature(options: ExecutionOptions) {
+  executeFeature = async (options: ExecutionOptions) => {
     const success = await executeFeature(
       this.featuresRegistry,
       options,
@@ -30,5 +29,5 @@ export default class Features {
       this.pluginServices
     );
     return success;
-  }
+  };
 }

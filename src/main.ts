@@ -53,14 +53,14 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
     this.features = new Features(this.app, this.apiService, this.settings);
     this.pluginServices = {
       app: this.app,
-      activateView: this.activateView.bind(this),
-      getViewElem: this.getViewElem.bind(this),
-      notifyError: this.notifyError.bind(this),
-      saveSettings: this.saveSettings.bind(this),
-      openPluginSettings: this.openPluginSettings.bind(this),
-      loadCommands: this.loadCommands.bind(this),
-      isSupportedModel: this.apiService.isSupportedModel.bind(this),
-      getModelById: this.apiService.getModelById.bind(this),
+      activateView: this.activateView,
+      getViewElem: this.getViewElem,
+      notifyError: this.notifyError,
+      saveSettings: this.saveSettings,
+      openPluginSettings: this.openPluginSettings,
+      loadCommands: this.loadCommands,
+      isSupportedModel: this.apiService.isSupportedModel,
+      getModelById: this.apiService.getModelById,
     };
     const { hasValidDefaultFolder, promptMissingTemplateFolder } =
       DefaultFolderUtils.getInstance(this.pluginServices, this.settings);
@@ -181,7 +181,7 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
   }
 
   // VIEW =====================================================================
-  async activateView(): Promise<void> {
+  activateView = async (): Promise<void> => {
     const { workspace } = this.app;
     let leaf = this.getActiveLeaf();
 
@@ -204,7 +204,7 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
     }
 
     workspace.revealLeaf(leaf);
-  }
+  };
 
   getActiveLeaf(): WorkspaceLeaf | null {
     const leaf = this.app.workspace.getLeavesOfType(QUILL_VIEW_TYPE).first();
@@ -215,11 +215,11 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
     return null;
   }
 
-  getViewElem(): HTMLElement | null {
+  getViewElem = (): HTMLElement | null => {
     const leaf = this.getActiveLeaf();
     if (!leaf) return null;
     return leaf.view.containerEl;
-  }
+  };
 
   onunload(): void {
     this.app.workspace.detachLeavesOfType(QUILL_VIEW_TYPE);
@@ -354,12 +354,12 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
   }
 
   // Saves the current settings to the local storage
-  async saveSettings(): Promise<void> {
+  saveSettings = async (): Promise<void> => {
     await this.saveData(this.settings);
-  }
+  };
 
   // Open Quill settings tab
-  async openPluginSettings(): Promise<void> {
+  openPluginSettings = async (): Promise<void> => {
     const tabId = this.manifest.id;
     try {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -378,14 +378,14 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
       );
       console.log("Not able to open Quill Settings", e);
     }
-  }
+  };
 
   // MISCELLANEOUS
-  notifyError(errorCode: ErrorCode, consoleMsg?: string): void {
+  notifyError = (errorCode: ErrorCode, consoleMsg?: string): void => {
     const errorMessage = ERROR_MESSAGES[errorCode] || ERROR_MESSAGES.unknown;
     new Notice(errorMessage);
     if (consoleMsg) {
       console.error(consoleMsg);
     }
-  }
+  };
 }
