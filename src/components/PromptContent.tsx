@@ -11,6 +11,8 @@ interface PromptContentProps {
   handleBlur: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   handleKeyPress: (e: React.KeyboardEvent) => void;
   handleSend: () => void;
+  handleOpenTemplate?: () => void;
+  handleEditCommand?: () => void;
   handleOpenSettings: () => void;
   newConversation?: (event: React.MouseEvent<HTMLElement>) => void;
   manuallySaveConv?: (event: React.MouseEvent<HTMLElement>) => void;
@@ -27,6 +29,8 @@ const PromptContent: React.FC<PromptContentProps> = ({
   handleBlur,
   handleKeyPress,
   handleSend,
+  handleOpenTemplate,
+  handleEditCommand,
   handleOpenSettings,
   newConversation,
   manuallySaveConv: manuallySaveConv,
@@ -38,6 +42,8 @@ const PromptContent: React.FC<PromptContentProps> = ({
   const sendButtonRef = useRef<HTMLButtonElement>(null);
   const newConversationButtonRef = useRef<HTMLButtonElement>(null);
   const saveConversationButtonRef = useRef<HTMLButtonElement>(null);
+  const openTemplateButtonRef = useRef<HTMLButtonElement>(null);
+  const editCommandButtonRef = useRef<HTMLButtonElement>(null);
   const settingsButtonRef = useRef<HTMLButtonElement>(null);
   const {
     disabled: disabledClass,
@@ -66,6 +72,20 @@ const PromptContent: React.FC<PromptContentProps> = ({
     if (newConversationButtonRef.current) {
       setIcon(newConversationButtonRef.current, APP_PROPS.appIcon);
       setTooltip(newConversationButtonRef.current, "New conversation", {
+        placement: "top",
+      });
+    }
+    // Open Command Template Button
+    if (openTemplateButtonRef.current) {
+      setIcon(openTemplateButtonRef.current, APP_PROPS.fileIcon);
+      setTooltip(openTemplateButtonRef.current, "Open template", {
+        placement: "top",
+      });
+    }
+    // Open Edit Command Button
+    if (editCommandButtonRef.current) {
+      setIcon(editCommandButtonRef.current, APP_PROPS.editIcon);
+      setTooltip(editCommandButtonRef.current, "Edit command", {
         placement: "top",
       });
     }
@@ -138,6 +158,20 @@ const PromptContent: React.FC<PromptContentProps> = ({
             id={saveConversationId}
             onClick={isConversationActive ? manuallySaveConv : undefined}
             disabled={!isConversationActive}
+          />
+        )}
+        {handleOpenTemplate && (
+          <button
+            ref={openTemplateButtonRef}
+            className={clickableIconClass}
+            onClick={handleOpenTemplate}
+          />
+        )}
+        {handleEditCommand && (
+          <button
+            ref={editCommandButtonRef}
+            className={clickableIconClass}
+            onClick={handleEditCommand}
           />
         )}
         <button

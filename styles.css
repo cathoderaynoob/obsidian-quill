@@ -9,8 +9,8 @@
   --oq-transition-color: color 0.2s ease;
   --oq-transition-opacity: opacity 0.2s ease;
 }
-.oq-hidden {
-  opacity: 0 !important;
+.oq-fade-out {
+  opacity: 0.3 !important;
   transition: var(--oq-transition-opacity);
 }
 .oq-warn-button {
@@ -553,6 +553,7 @@ button.oq-prompt-send {
   grid-template-columns: auto 1fr;
   grid-template-rows: repeat(6, 1fr);
   grid-gap: 1em;
+  align-items: center;
   max-width: 100%;
   & > label {
     text-align: right;
@@ -594,11 +595,11 @@ button.oq-prompt-send {
     justify-self: end;
   }
 }
-#oq-newcommand-footer {
-  grid-template-columns: none;
-}
 #oq-saveas-convo-footer {
   grid-template-columns: 1fr min-content;
+}
+#oq-newcommand-footer {
+  grid-template-columns: 1fr max-content;
 }
 #oq-confirm-footer {
   display: grid;
