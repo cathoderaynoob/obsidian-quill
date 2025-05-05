@@ -327,8 +327,8 @@
   cursor: pointer;
   opacity: 0.4;
   transition: opacity 0.5s ease;
-  mask-image: linear-gradient(to top, rgba(0, 0, 0, 0.7), black 2em);
-  -webkit-mask-image: linear-gradient(to top, rgba(0, 0, 0, 0.7), black 2em);
+  mask-image: linear-gradient(to top, transparent, black 100%);
+  -webkit-mask-image: linear-gradient(to top, transparent, black 100%);
   &:hover {
     opacity: 0.8;
   }

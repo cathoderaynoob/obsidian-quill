@@ -2,6 +2,7 @@ import { Editor, Notice, Plugin, WorkspaceLeaf } from "obsidian";
 import {
   ErrorCode,
   APP_PROPS,
+  ELEM_CLASSES_IDS,
   ERROR_MESSAGES,
   QUILL_VIEW_TYPE,
 } from "@/constants";
@@ -202,8 +203,12 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
         this.notifyError("viewError", e);
       }
     }
-
     workspace.revealLeaf(leaf);
+
+    const promptElem = document.querySelector(
+      `.${ELEM_CLASSES_IDS.promptInput}`
+    ) as HTMLElement;
+    promptElem?.focus();
   };
 
   getActiveLeaf(): WorkspaceLeaf | null {
