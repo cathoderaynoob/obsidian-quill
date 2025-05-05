@@ -25,6 +25,7 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature }) => {
   const [messages, setMessages] = useState<ConvoMessageType[]>([]);
   const [showSaveConvoBtn, setShowSaveConvoBtn] = useState(false);
   const [, setCurrentIndex] = useState(0);
+  const containerElemRef = useRef<HTMLDivElement | null>(null);
   const latestMessageRef = useRef<ConvoMessageType | null>(null);
   const prevContentLengthRef = useRef<number>(0);
   const prevScrollTop = useRef<number>(0);
@@ -52,10 +53,6 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature }) => {
     settings,
     vaultUtils
   );
-
-  const getContainerElem = (): HTMLElement | null => {
-    return document.getElementById(messagesElemId);
-  };
 
   const getLoaderElem = (): HTMLElement | null => {
     return document.querySelector(`.${msgLoader}`) as HTMLElement;
@@ -177,7 +174,7 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature }) => {
   // Adds a new message container to the conversation.
   // Content added in `updateResponseMessage`.
   useEffect(() => {
-    const containerElem = getContainerElem();
+    const containerElem = containerElemRef.current;
     if (!containerElem) return;
 
     const handleNewConvoMessage = async (
@@ -244,7 +241,7 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature }) => {
       // Scroll after a sufficient number of chars have been added
       const contentLength = latestMsg.content.length;
       if (contentLength >= prevContentLengthRef.current + SCROLL_CHARS_LIMIT) {
-        await scrollToMessage(latestMsg.msgIndex);
+        await scrollToMessage(latestMsg.msgIndex - 1);
         prevContentLengthRef.current = contentLength;
       }
     };
@@ -273,7 +270,7 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature }) => {
       }
       setIsResponding(false);
       clearHighlights(msgStreaming);
-      scrollToMessage(messages.length - 1);
+      await scrollToMessage(messages.length - 1);
       // Don't save now if saving convos manually
       if (!settings.autoSaveConvos) return;
       // Autosave
@@ -296,11 +293,12 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature }) => {
 
   // SCROLL HANDLING ==========================================================
   useEffect(() => {
-    const containerElem = getContainerElem();
-    if (stopScrolling.current || !containerElem) return;
+    if (stopScrolling.current) return;
+    const containerElem = containerElemRef.current;
+    if (!containerElem) return;
 
     const handleScroll = () => {
-      // Stop scrolling if the user scrolls up
+      // Disable auto-scrolling if the user scrolls up during the response
       const isScrollingUp = containerElem.scrollTop < prevScrollTop.current;
       if (isScrollingUp) {
         stopScrolling.current = true;
@@ -333,7 +331,7 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature }) => {
           newIndex = messages.length - 1;
           break;
       }
-      scrollToMessage(newIndex, true);
+      (async () => await scrollToMessage(newIndex, true))();
       clearHighlights(msgHighlight);
       highlightMessage(newIndex);
       return newIndex;
@@ -403,7 +401,7 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature }) => {
   ): Promise<void> => {
     if (!isMsgNav && stopScrolling.current) return;
 
-    const containerElem = getContainerElem();
+    const containerElem = containerElemRef.current;
     const message = getMessageElem(index);
     if (!containerElem || !message) return;
 
@@ -427,22 +425,22 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature }) => {
   };
 
   const scrollToBottom = () => {
-    const containerElem = getContainerElem();
+    const containerElem = containerElemRef.current;
     containerElem?.scrollTo({
       top: containerElem.scrollHeight,
       behavior: "smooth",
     });
   };
 
-  const handleCollapseSelectedText = (index: number) => {
-    const containerElem = getContainerElem();
+  const handleCollapseSelectedText = async (index: number) => {
+    const containerElem = containerElemRef.current;
     const message = getMessageElem(index);
     if (!(message && containerElem)) return;
     if (
       message.offsetHeight > containerElem.offsetHeight ||
       containerElem.scrollTop > message.offsetTop
     ) {
-      scrollToMessage(index, true);
+      await scrollToMessage(index, true);
     }
   };
 
@@ -477,7 +475,7 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature }) => {
 
   return (
     <>
-      <div id={messagesElemId} tabIndex={0}>
+      <div id={messagesElemId} tabIndex={0} ref={containerElemRef}>
         {messages.map((message, index) => (
           <Message
             key={message.msgId}
