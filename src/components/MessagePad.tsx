@@ -6,16 +6,20 @@ import PromptContent from "@/components/PromptContent";
 
 interface MessagePadProps {
   executeFeature: (options: ExecutionOptions) => Promise<boolean>;
-  newConversation: (event: React.MouseEvent<HTMLElement>) => void;
-  manuallySaveConv?: (event: React.MouseEvent<HTMLElement>) => void;
-  isConversationActive: boolean;
+  startNewConvo: (event: React.MouseEvent<HTMLElement>) => void;
+  manuallySaveConvo?: (event: React.MouseEvent<HTMLElement>) => void;
+  handleOpenConvoNote?: () => void;
+  isConvoActive: boolean;
+  isConvoSaved: boolean;
 }
 
 const MessagePad: React.FC<MessagePadProps> = ({
   executeFeature,
-  newConversation,
-  manuallySaveConv: manuallySaveConv,
-  isConversationActive: isConversationActive,
+  startNewConvo,
+  manuallySaveConvo,
+  handleOpenConvoNote,
+  isConvoActive,
+  isConvoSaved,
 }) => {
   const { isResponding, pluginServices, settings } = usePluginContext();
   const [promptValue, setPromptValue] = useState<string>("");
@@ -102,9 +106,11 @@ const MessagePad: React.FC<MessagePadProps> = ({
         handleKeyPress={handleKeyPress}
         handleSend={handleSend}
         handleOpenSettings={handleOpenSettings}
-        newConversation={newConversation}
-        manuallySaveConv={manuallySaveConv}
-        isConversationActive={isConversationActive}
+        handleOpenConvoNote={handleOpenConvoNote}
+        startNewConvo={startNewConvo}
+        manuallySaveConvo={manuallySaveConvo}
+        isConvoActive={isConvoActive}
+        isConvoSaved={isConvoSaved}
         disabled={isResponding}
       />
     </div>

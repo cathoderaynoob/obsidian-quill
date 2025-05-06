@@ -5,7 +5,7 @@
 [id="oq-newcommand-form"] {
   --oq-app-bright-color: var(--text-accent);
   --oq-app-muted-color: var(--text-muted);
-  --oq-app-faint-color: var(--color-base-40);
+  --oq-app-faint-color: var(--color-base-60);
   --oq-transition-color: color 0.2s ease;
   --oq-transition-opacity: opacity 0.2s ease;
 }
@@ -124,29 +124,6 @@
   grid-gap: 0;
   grid-template-rows: 1fr auto;
   padding: 0;
-}
-#oq-btn-new-conv,
-#oq-btn-save-conv {
-  cursor: pointer;
-  line-height: 0.66;
-  white-space: nowrap;
-  width: fit-content;
-  &:hover::after {
-    color: var(--oq-app-bright-color);
-    transition: var(--oq-transition-color);
-  }
-}
-#oq-btn-save-conv {
-  color: var(--oq-app-muted-color);
-  transition: var(--oq-transition-color);
-  &:hover {
-    color: var(--oq-app-bright-color);
-    transition: var(--oq-transition-color);
-  }
-}
-#oq-btn-save-conv.oq-disabled:hover {
-  color: var(--oq-app-muted-color);
-  cursor: auto;
 }
 
 /* Messages ================================================================ */
@@ -456,7 +433,7 @@ button.oq-prompt-send {
 }
 #oq-prompt-footer {
   display: grid;
-  grid-template-columns: auto 1fr max-content auto;
+  grid-template-columns: auto 1fr max-content auto auto;
   align-items: center;
   justify-items: start;
   font-size: x-small;
@@ -473,6 +450,15 @@ button.oq-prompt-send {
   }
   & button + span {
     margin-left: 0.5em;
+  }
+}
+#oq-prompt-footer {
+  & button.oq-disabled,
+  button.oq-disabled:hover,
+  button.oq-disabled:focus {
+    color: var(--oq-app-faint-color);
+    transition: var(--oq-transition-color);
+    cursor: not-allowed;
   }
 }
 

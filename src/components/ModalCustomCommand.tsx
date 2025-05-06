@@ -186,7 +186,7 @@ class ModalCustomCommand extends Modal {
     updateFolderCompState();
     // Add a placeholder option
     selectFolderComp.selectEl.createEl("option", {
-      text: "Save message to this folder instead of default...",
+      text: `...instead of your default, "${this.settings.pathConversations}"`,
       value: "",
     });
     const vaultFolderPaths = vaultUtils.getAllFolderPaths();

@@ -65,7 +65,7 @@ class MessageUtils {
   };
 
   appendLatestMessageToConvFile = async (
-    conversationId: string,
+    convoId: string,
     latestMessage: ConvoMessageType,
     folderPath: string
   ): Promise<string | null> => {
@@ -78,7 +78,7 @@ class MessageUtils {
     } = this.vaultUtils;
     try {
       // Find the conversation file, or create it
-      const filename = validateFilename(conversationId);
+      const filename = validateFilename(convoId);
       const filePath = getNormalizedFilepath(folderPath, filename);
       let file = getFileByPath(filePath, true);
       if (!file) file = await createFile(filePath, "");
