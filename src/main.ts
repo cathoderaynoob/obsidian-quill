@@ -90,6 +90,18 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
       },
     });
 
+    // Start new Conversation
+    this.addCommand({
+      id: "new-convo",
+      name: "New Conversation",
+      callback: async () => {
+        this.activateView();
+        if (QuillView.instance?.messagesApi) {
+          await QuillView.instance.messagesApi.startNewConvo();
+        }
+      },
+    });
+
     // Open modal to get prompt
     this.addCommand({
       id: "new-prompt",

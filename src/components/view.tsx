@@ -5,7 +5,7 @@ import { APP_PROPS, ELEM_CLASSES_IDS, QUILL_VIEW_TYPE } from "@/constants";
 import { QuillPluginSettings } from "@/settings";
 import ApiService from "@/ApiService";
 import Features from "@/Features";
-import Messages from "@/components/Messages";
+import Messages, { MessagesApi } from "@/components/Messages";
 import PluginContextProvider from "@/components/PluginContext";
 import QuillPlugin from "@/main";
 
@@ -16,6 +16,7 @@ export default class QuillView extends ItemView {
   pluginServices: IPluginServices;
   vault: Vault;
   features: Features;
+  messagesApi: MessagesApi;
 
   static instance: QuillView;
 
@@ -61,7 +62,12 @@ export default class QuillView extends ItemView {
         apiService={this.apiService}
         vault={this.vault}
       >
-        <Messages executeFeature={this.features.executeFeature} />
+        <Messages
+          executeFeature={this.features.executeFeature}
+          messagesApi={(api) => {
+            this.messagesApi = api;
+          }}
+        />
       </PluginContextProvider>
     );
 

@@ -15,11 +15,16 @@ import emitter from "@/customEmitter";
 import PayloadUtils from "@/PayloadMessages";
 import MessagePad from "@/components/MessagePad";
 
-interface MessagesProps {
-  executeFeature: (options: ExecutionOptions) => Promise<boolean>;
+export interface MessagesApi {
+  startNewConvo: () => Promise<void>;
 }
 
-const Messages: React.FC<MessagesProps> = ({ executeFeature }) => {
+interface MessagesProps {
+  executeFeature: (options: ExecutionOptions) => Promise<boolean>;
+  messagesApi?: (api: MessagesApi) => void;
+}
+
+const Messages: React.FC<MessagesProps> = ({ executeFeature, messagesApi }) => {
   const { settings, apiService, pluginServices, vaultUtils, setIsResponding } =
     usePluginContext();
   const [messages, setMessages] = useState<ConvoMessageType[]>([]);
@@ -43,18 +48,23 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature }) => {
     promptInput,
     textEl: textElClass,
   } = ELEM_CLASSES_IDS;
-
   const { getDefaultFolderPath } = DefaultFolderUtils.getInstance(
     pluginServices,
     settings
   );
-
   const { appendLatestMessageToConvFile } = MessageUtils.getInstance(
     pluginServices,
     settings,
     vaultUtils
   );
-
+  // Expose to other classes and components
+  useEffect(() => {
+    if (messagesApi) {
+      messagesApi({
+        startNewConvo,
+      });
+    }
+  }, [messagesApi]);
   const getLoaderElem = (): HTMLElement | null => {
     return document.querySelector(`.${msgLoader}`) as HTMLElement;
   };
