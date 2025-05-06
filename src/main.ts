@@ -1,4 +1,4 @@
-import { Editor, Notice, Plugin, WorkspaceLeaf } from "obsidian";
+import { Editor, Modal, Notice, Plugin, WorkspaceLeaf } from "obsidian";
 import {
   ErrorCode,
   APP_PROPS,
@@ -39,7 +39,7 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
   apiService: ApiService;
   features: Features;
   pluginServices: IPluginServices;
-  openModals: ModalPrompt[] = [];
+  openModals: Modal[] = [];
   isSupportedModel(modelId: string, suppressNotify?: boolean): boolean {
     return this.apiService.isSupportedModel(modelId, suppressNotify);
   }
@@ -141,6 +141,7 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
               await this.loadCommands();
             }
           );
+          this.openModals.push(modal);
           modal.open();
         } else {
           promptMissingTemplateFolder();
