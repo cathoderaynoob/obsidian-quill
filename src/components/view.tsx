@@ -70,7 +70,7 @@ export default class QuillView extends ItemView {
       this.focusMessagePad(chatViewContainer);
       // Add the New Chat icon
       const newChatButton = document.getElementById(
-        ELEM_CLASSES_IDS.newConversation
+        ELEM_CLASSES_IDS.startNewConvo
       ) as HTMLElement;
       if (newChatButton) setIcon(newChatButton, APP_PROPS.appIcon);
     }, 0);

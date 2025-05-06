@@ -25,6 +25,7 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature }) => {
   const [messages, setMessages] = useState<ConvoMessageType[]>([]);
   const [showSaveConvoBtn, setShowSaveConvoBtn] = useState(false);
   const [, setCurrentIndex] = useState(0);
+  const [isConvoSaved, setIsConvoSaved] = useState<boolean>(false);
   const containerElemRef = useRef<HTMLDivElement | null>(null);
   const latestMessageRef = useRef<ConvoMessageType | null>(null);
   const prevContentLengthRef = useRef<number>(0);
@@ -57,11 +58,9 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature }) => {
   const getLoaderElem = (): HTMLElement | null => {
     return document.querySelector(`.${msgLoader}`) as HTMLElement;
   };
-
   const getMessageElem = (index: number): HTMLElement | null => {
     return document.querySelector(`[data-msg-idx="${index}"]`);
   };
-
   const focusPrompt = (): void => {
     const promptElem = document.querySelector(`.${promptInput}`) as HTMLElement;
     promptElem.focus();
@@ -69,7 +68,7 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature }) => {
   const clearMessages = (): void => {
     setMessages([]);
     payloadMessages.clearAll();
-    if (latestMessageRef.current) latestMessageRef.current.conversationId = "";
+    if (latestMessageRef.current) latestMessageRef.current.convoId = "";
   };
 
   // Unique ID used for each conversation and message
@@ -78,16 +77,29 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature }) => {
   };
 
   // NEW CONVERSATION =========================================================
-  const newConversation = async (event?: React.MouseEvent<HTMLElement>) => {
+  const startNewConvo = async (event?: React.MouseEvent<HTMLElement>) => {
     apiService.cancelStream(); // When new convo started during a response
     clearMessages();
+    setIsConvoSaved(false);
     focusPrompt();
   };
 
-  const getConversationId = (): string => {
-    const conversationId =
-      latestMessageRef.current?.conversationId || vaultUtils.getDateTime();
-    return conversationId;
+  const getConvoId = (): string => {
+    const convoId =
+      latestMessageRef.current?.convoId || vaultUtils.getDateTime();
+    return convoId;
+  };
+
+  const handleOpenConvoNote = async () => {
+    try {
+      const filename = getConvoId() + ".md";
+      const folderPath = await getDefaultFolderPath("conversations");
+      const filePath = vaultUtils.getNormalizedFilepath(folderPath, filename);
+      vaultUtils.openFile(filePath, true);
+    } catch (e) {
+      new Notice("Unable to open conversation file.");
+      console.log(e);
+    }
   };
 
   const removeLastMessage = async (): Promise<void> => {
@@ -108,9 +120,9 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature }) => {
     });
   }, [settings.autoSaveConvos, messages.length]);
 
-  const saveConversationManually = async (): Promise<boolean> => {
+  const saveConvoManually = async (): Promise<boolean> => {
     // Filename is based on conversation ID
-    const convoId = getConversationId();
+    const convoId = getConvoId();
     const filename = vaultUtils.validateFilename(convoId);
     // Get the conversations folder path
     const folderPath = await getDefaultFolderPath("conversations", true);
@@ -130,17 +142,17 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature }) => {
     // Now save messages to file
     for (const message of messages) {
       // if return is false, stop saving messages and show error
-      const saved = await saveMessageToConversation(message, folderPath);
+      const saved = await saveMessageToConvo(message, folderPath);
       if (!saved) {
         new Notice(ERROR_MESSAGES.saveError);
         return false;
       }
     }
-    new Notice(`${convoId}\n\n  saved to folder\n\n${folderPath}`, 5000);
+    new Notice(`"${convoId}"\n  saved to folder\n"${folderPath}"`, 5000);
     return true;
   };
 
-  const saveMessageToConversation = async (
+  const saveMessageToConvo = async (
     updatedMessage: ConvoMessageType,
     folderPath: string
   ): Promise<boolean> => {
@@ -150,13 +162,15 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature }) => {
         setTimeout(
           async () => {
             const filename = await appendLatestMessageToConvFile(
-              getConversationId(),
+              getConvoId(),
               updatedMessage,
               folderPath
             );
             if (!filename) {
+              setIsConvoSaved(false);
               resolve(false);
             } else {
+              setIsConvoSaved(true);
               resolve(true);
             }
           },
@@ -195,7 +209,7 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature }) => {
           : inputText || "";
       const newMsgIndex = messages.length + 1;
       const newMessage: ConvoMessageType = {
-        conversationId: getConversationId(),
+        convoId: getConvoId(),
         msgIndex: newMsgIndex,
         msgId: generateUniqueId(),
         role,
@@ -278,7 +292,7 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature }) => {
       if (folderPath === "") return;
       // Get the last two messages (i.e. user and assistant) and save them
       for (const message of messages.slice(-2)) {
-        const saved = await saveMessageToConversation(message, folderPath);
+        const saved = await saveMessageToConvo(message, folderPath);
         if (!saved) {
           new Notice(ERROR_MESSAGES.saveError);
           return;
@@ -488,11 +502,11 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature }) => {
       </div>
       <MessagePad
         executeFeature={executeFeature}
-        newConversation={newConversation}
-        manuallySaveConv={
-          showSaveConvoBtn ? saveConversationManually : undefined
-        }
-        isConversationActive={messages.length > 0}
+        startNewConvo={startNewConvo}
+        manuallySaveConvo={showSaveConvoBtn ? saveConvoManually : undefined}
+        handleOpenConvoNote={handleOpenConvoNote}
+        isConvoActive={messages.length > 0}
+        isConvoSaved={isConvoSaved}
       />
     </>
   );

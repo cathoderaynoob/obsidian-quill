@@ -7,7 +7,7 @@ import { usePluginContext } from "@/components/PluginContext";
 import MessageUtils from "@/MessageUtils";
 
 export interface ConvoMessageType {
-  conversationId: string;
+  convoId: string;
   msgIndex: number;
   msgId: string;
   role: Role;

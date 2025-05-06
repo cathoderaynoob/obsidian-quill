@@ -11,12 +11,14 @@ interface PromptContentProps {
   handleBlur: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   handleKeyPress: (e: React.KeyboardEvent) => void;
   handleSend: () => void;
+  handleOpenSettings: () => void;
+  handleOpenConvoNote?: () => void;
   handleOpenTemplate?: () => void;
   handleEditCommand?: () => void;
-  handleOpenSettings: () => void;
-  newConversation?: (event: React.MouseEvent<HTMLElement>) => void;
-  manuallySaveConv?: (event: React.MouseEvent<HTMLElement>) => void;
-  isConversationActive?: boolean;
+  startNewConvo?: (event: React.MouseEvent<HTMLElement>) => void;
+  manuallySaveConvo?: (event: React.MouseEvent<HTMLElement>) => void;
+  isConvoActive?: boolean;
+  isConvoSaved?: boolean;
   disabled: boolean;
 }
 
@@ -29,29 +31,31 @@ const PromptContent: React.FC<PromptContentProps> = ({
   handleBlur,
   handleKeyPress,
   handleSend,
+  handleOpenSettings,
+  handleOpenConvoNote,
   handleOpenTemplate,
   handleEditCommand,
-  handleOpenSettings,
-  newConversation,
-  manuallySaveConv: manuallySaveConv,
-  isConversationActive: isConversationActive,
+  startNewConvo,
+  manuallySaveConvo,
+  isConvoActive,
+  isConvoSaved,
   disabled = false,
 }) => {
-  const promptContentRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const sendButtonRef = useRef<HTMLButtonElement>(null);
-  const newConversationButtonRef = useRef<HTMLButtonElement>(null);
-  const saveConversationButtonRef = useRef<HTMLButtonElement>(null);
+  const startNewConvoButtonRef = useRef<HTMLButtonElement>(null);
+  const saveConvoButtonRef = useRef<HTMLButtonElement>(null);
   const openTemplateButtonRef = useRef<HTMLButtonElement>(null);
   const editCommandButtonRef = useRef<HTMLButtonElement>(null);
-  const settingsButtonRef = useRef<HTMLButtonElement>(null);
+  const openConvoButtonRef = useRef<HTMLButtonElement>(null);
+  const openSettingsButtonRef = useRef<HTMLButtonElement>(null);
   const {
     disabled: disabledClass,
     promptSend: sendButtonClass,
     promptInput: textareaClass,
     clickableIcon: clickableIconClass,
-    saveConversation: saveConversationId,
-    newConversation: newConversationId,
+    saveConvo: saveConvoId,
+    startNewConvo: startNewConvoId,
     promptFooter,
   } = ELEM_CLASSES_IDS;
 
@@ -69,9 +73,9 @@ const PromptContent: React.FC<PromptContentProps> = ({
       setIcon(sendButtonRef.current, APP_PROPS.sendIcon);
 
     // New Conversation Button
-    if (newConversationButtonRef.current) {
-      setIcon(newConversationButtonRef.current, APP_PROPS.appIcon);
-      setTooltip(newConversationButtonRef.current, "New conversation", {
+    if (startNewConvoButtonRef.current) {
+      setIcon(startNewConvoButtonRef.current, APP_PROPS.appIcon);
+      setTooltip(startNewConvoButtonRef.current, "New conversation", {
         placement: "top",
       });
     }
@@ -90,9 +94,9 @@ const PromptContent: React.FC<PromptContentProps> = ({
       });
     }
     // Open Quill Settings Button
-    if (settingsButtonRef.current) {
-      setIcon(settingsButtonRef.current, APP_PROPS.openSettingsIcon);
-      setTooltip(settingsButtonRef.current, "Open Quill Settings", {
+    if (openSettingsButtonRef.current) {
+      setIcon(openSettingsButtonRef.current, APP_PROPS.openSettingsIcon);
+      setTooltip(openSettingsButtonRef.current, "Open Quill Settings", {
         placement: "top",
       });
     }
@@ -100,29 +104,47 @@ const PromptContent: React.FC<PromptContentProps> = ({
 
   useEffect(() => {
     // Save Conversation Manually Button
-    if (manuallySaveConv) {
-      const saveConvElem = saveConversationButtonRef.current;
-      if (saveConvElem) {
-        saveConvElem.className = clickableIconClass;
+    if (manuallySaveConvo) {
+      const saveConvoElem = saveConvoButtonRef.current;
+      if (saveConvoElem) {
+        saveConvoElem.className = clickableIconClass;
         setIcon(
-          saveConvElem,
-          isConversationActive
-            ? APP_PROPS.saveConversationIcon
-            : APP_PROPS.noConvToSaveIcon
+          saveConvoElem,
+          isConvoActive
+            ? APP_PROPS.saveConvoIcon
+            : APP_PROPS.saveConvoDisabledIcon
         );
-        saveConvElem.toggleClass(disabledClass, !isConversationActive);
-        const tooltipText = isConversationActive
+        const tooltipText = isConvoActive
           ? "Save conversation"
-          : "No conversation to save";
-        setTooltip(saveConvElem, tooltipText, {
+          : "Save conversation\n(no active conversation to save)";
+        setTooltip(saveConvoElem, tooltipText, {
           placement: "top",
         });
+        saveConvoElem.toggleClass(disabledClass, !isConvoActive);
       }
     }
-  }, [manuallySaveConv]);
+  }, [manuallySaveConvo]);
+
+  useEffect(() => {
+    // Open Saved Conversation Button
+    const openConvoElem = openConvoButtonRef.current;
+    if (openConvoElem) {
+      setIcon(
+        openConvoElem,
+        isConvoSaved ? APP_PROPS.openConvoIcon : APP_PROPS.openConvoDisabledIcon
+      );
+      const tooltipText = isConvoSaved
+        ? "Open saved conversation"
+        : "Open saved conversation\n(not yet saved)";
+      setTooltip(openConvoElem, tooltipText, {
+        placement: "top",
+      });
+      openConvoElem.toggleClass(disabledClass, !isConvoActive);
+    }
+  }, [isConvoSaved]);
 
   return (
-    <div id="oq-prompt-container" ref={promptContentRef}>
+    <div id="oq-prompt-container">
       <textarea
         ref={textareaRef}
         className={textareaClass}
@@ -140,24 +162,32 @@ const PromptContent: React.FC<PromptContentProps> = ({
         disabled={disabled}
       />
       <div id={promptFooter}>
-        {newConversation && (
+        {startNewConvo && (
           <button
-            ref={newConversationButtonRef}
-            id={newConversationId}
+            ref={startNewConvoButtonRef}
+            id={startNewConvoId}
             className={clickableIconClass}
-            onClick={newConversation}
+            onClick={startNewConvo}
           />
         )}
         <span>
           {modelDesc}
           {targetName && ` » ${targetName}`}
         </span>
-        {manuallySaveConv && (
+        {manuallySaveConvo && (
           <button
-            ref={saveConversationButtonRef}
-            id={saveConversationId}
-            onClick={isConversationActive ? manuallySaveConv : undefined}
-            disabled={!isConversationActive}
+            ref={saveConvoButtonRef}
+            id={saveConvoId}
+            onClick={isConvoActive ? manuallySaveConvo : undefined}
+            disabled={!isConvoActive}
+          />
+        )}
+        {handleOpenConvoNote && (
+          <button
+            ref={openConvoButtonRef}
+            className={clickableIconClass}
+            onClick={handleOpenConvoNote}
+            disabled={!isConvoSaved}
           />
         )}
         {handleOpenTemplate && (
@@ -175,7 +205,7 @@ const PromptContent: React.FC<PromptContentProps> = ({
           />
         )}
         <button
-          ref={settingsButtonRef}
+          ref={openSettingsButtonRef}
           className={clickableIconClass}
           onClick={handleOpenSettings}
         />
