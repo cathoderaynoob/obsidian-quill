@@ -78,7 +78,7 @@ class ModalSaveConversation extends Modal {
 
     // Save Button
     const saveButton = footer.createEl("button", {
-      text: "Save",
+      text: "Save conversation",
       attr: {
         type: "submit",
       },

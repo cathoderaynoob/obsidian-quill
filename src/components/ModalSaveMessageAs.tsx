@@ -38,10 +38,6 @@ class ModalSaveMessageAs extends Modal {
   }
 
   onOpen() {
-    const { contentEl } = this;
-    const saveAsForm = contentEl.createEl("form", {
-      attr: { id: "oq-saveas-form" },
-    });
     const vaultUtils = VaultUtils.getInstance(
       this.pluginServices,
       this.settings
@@ -49,15 +45,28 @@ class ModalSaveMessageAs extends Modal {
     const { addDefaultFolderDropdown, DEFAULT_FOLDERS } =
       DefaultFolderUtils.getInstance(this.pluginServices, this.settings);
 
+    const { contentEl } = this;
+
+    const saveAsForm = contentEl.createEl("form", {
+      attr: { id: "oq-saveas-form" },
+    });
+    const formBody = saveAsForm.createDiv({
+      attr: {
+        id: "oq-saveas-body",
+      },
+    });
+
     this.setTitle("Save to a new note");
 
     // FILENAME ---------------------------------------------------------------
-    const filenameEl = saveAsForm.createEl("input", {
+    formBody.createEl("label", {
+      text: "Note name",
+    });
+    const filenameEl = formBody.createEl("input", {
       attr: {
         type: "text",
         id: "oq-saveas-filename",
-        placeholder:
-          "Enter a note name, or leave blank to use the date and time",
+        placeholder: "(Leave blank to use the date and time)",
         value: vaultUtils.createFilenameFromTitle(this.content),
       },
     });
@@ -71,8 +80,12 @@ class ModalSaveMessageAs extends Modal {
       return selectFolderComp.selectEl.value === DEFAULT_FOLDERS.pathMessages;
     };
 
+    formBody.createEl("label", {
+      text: "Save to folder",
+    });
+
     // Add select menu
-    const selectFieldContainer = saveAsForm.createEl("div", {
+    const selectFieldContainer = formBody.createEl("div", {
       cls: "oq-select-field",
     });
     const selectFolderComp = new DropdownComponent(selectFieldContainer);

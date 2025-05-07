@@ -69,7 +69,7 @@ class ModalCustomCommand extends Modal {
 
     // NEW COMMAND NAME -------------------------------------------------------
     formBody.createEl("label", {
-      text: "Command Name",
+      text: "Command name",
       attr: {
         for: "oq-newcommand-name",
       },
@@ -78,7 +78,7 @@ class ModalCustomCommand extends Modal {
       attr: {
         type: "text",
         id: "oq-newcommand-name",
-        placeholder: "... as it will appear in the Command Palette",
+        placeholder: "... as it should appear in the Command Palette",
         value: commandToEdit?.name || "",
         maxlength: 75,
       },
@@ -88,7 +88,7 @@ class ModalCustomCommand extends Modal {
     // SELECT TEMPLATE MENU ---------------------------------------------------
     // Select command template from templates folder defined by user in Settings
     formBody.createEl("label", {
-      text: "Template Note",
+      text: "Template",
     });
 
     const selectTemplateComp = new DropdownComponent(formBody);
@@ -103,7 +103,7 @@ class ModalCustomCommand extends Modal {
       );
       // Add a placeholder option
       selectTemplateComp.selectEl.createEl("option", {
-        text: `... in folder "${templatesFolder}"`,
+        text: `... from folder "${templatesFolder}"`,
         attr: {
           value: "",
           disabled: "disabled",
@@ -180,13 +180,13 @@ class ModalCustomCommand extends Modal {
 
     // SAVE MESSAGE TO FOLDER -------------------------------------------------
     const selectFolderLabel = formBody.createEl("label", {
-      text: "Save to Folder",
+      text: "Save to folder",
     });
     const selectFolderComp = new DropdownComponent(formBody);
     updateFolderCompState();
     // Add a placeholder option
     selectFolderComp.selectEl.createEl("option", {
-      text: `...instead of your default, "${this.settings.pathConversations}"`,
+      text: `...instead of your default, "${this.settings.pathMessages}"`,
       value: "",
     });
     const vaultFolderPaths = vaultUtils.getAllFolderPaths();
@@ -201,7 +201,7 @@ class ModalCustomCommand extends Modal {
 
     // DISPLAY PROMPT OPTION --------------------------------------------------
     formBody.createEl("label", {
-      text: "Show Prompt",
+      text: "Show prompt",
     });
     const openPromptDiv = formBody.createDiv();
     const displayPromptEl = openPromptDiv.createEl("input", {
@@ -222,7 +222,7 @@ class ModalCustomCommand extends Modal {
     // SEND SELECTED TEXT -----------------------------------------------------
     // Option to send the selected text in the active note
     formBody.createEl("label", {
-      text: "Send Selected Text",
+      text: "Send selected text",
     });
     const sendTextDiv = formBody.createDiv();
     const sendTextEl = sendTextDiv.createEl("input", {
@@ -233,7 +233,7 @@ class ModalCustomCommand extends Modal {
     });
     sendTextEl.checked = commandToEdit ? commandToEdit.sendSelectedText : false;
     sendTextDiv.createEl("span").createEl("label", {
-      text: "From the active note, include any text that’s selected",
+      text: "From the active note, include any text that's selected",
       attr: {
         for: "oq-newcommand-sendtext",
       },
@@ -252,7 +252,7 @@ class ModalCustomCommand extends Modal {
     )?.name;
     selectModelComp.addOption(
       "",
-      `Default model (currently ${
+      `Always use my default model (currently ${
         defaultModelName || this.settings.openaiModelId
       })`
     );
@@ -274,7 +274,7 @@ class ModalCustomCommand extends Modal {
 
     // SAVE BUTTON ------------------------------------------------------------
     const saveButton = footer.createEl("button", {
-      text: "Save",
+      text: "Save command",
       attr: {
         type: "submit",
         disabled: "disabled",

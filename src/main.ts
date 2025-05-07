@@ -48,7 +48,6 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
   }
 
   async onload(): Promise<void> {
-    console.clear(); // TODO: Remove this before publishing
     await this.loadSettings();
     this.apiService = new ApiService(this, this.settings);
     this.features = new Features(this.app, this.apiService, this.settings);
