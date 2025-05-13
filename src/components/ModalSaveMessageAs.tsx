@@ -46,13 +46,12 @@ class ModalSaveMessageAs extends Modal {
       this.pluginServices,
       this.settings
     );
-    const { addDefaultFolderDropdown } = DefaultFolderUtils.getInstance(
-      this.pluginServices,
-      this.settings
-    );
+    const { addDefaultFolderDropdown, DEFAULT_FOLDERS } =
+      DefaultFolderUtils.getInstance(this.pluginServices, this.settings);
 
     this.setTitle("Save message as a note");
-    // Save message as...
+
+    // FILENAME ---------------------------------------------------------------
     const filenameEl = saveAsForm.createEl("input", {
       attr: {
         type: "text",
@@ -64,30 +63,37 @@ class ModalSaveMessageAs extends Modal {
     });
     filenameEl.select();
 
+    // SAVE TO FOLDER ---------------------------------------------------------
+    const settingsMessagesPath = this.settings.pathMessages;
+    const allFolderPaths = vaultUtils.getAllFolderPaths();
+    const isMissingFolder = !allFolderPaths.includes(settingsMessagesPath);
+    const isDefaultSelected = (): boolean => {
+      return selectFolderComp.selectEl.value === DEFAULT_FOLDERS.pathMessages;
+    };
+
     // Add select menu
-    const selectFieldsContainer = saveAsForm.createEl("div", {
-      cls: "oq-select-fields",
+    const selectFieldContainer = saveAsForm.createEl("div", {
+      cls: "oq-select-field",
     });
-    const selectFolderComp = new DropdownComponent(selectFieldsContainer);
+    const selectFolderComp = new DropdownComponent(selectFieldContainer);
     addDefaultFolderDropdown(selectFolderComp, "messages", () =>
       selectFolderComp.selectEl.removeClass(
         ELEM_CLASSES_IDS.menuPlaceholder,
         ELEM_CLASSES_IDS.menuDefault
       )
     );
+    // Set value — If custom command, select it instead of plugin default
     if (this.commandFolderPath && this.commandFolderPath !== "")
       selectFolderComp.setValue(this.commandFolderPath);
 
-    // To folder...
-    const settingsMessagesPath = this.settings.pathMessages;
-    const allFolderPaths = vaultUtils.getAllFolderPaths();
-    const isMissingFolder = !allFolderPaths.includes(settingsMessagesPath);
-
-    // If the default messages folder is missing, add an option to
-    // save the selected folder as default
+    // SET AS DEFAULT FOLDER --------------------------------------------------
     let isSaveAsDefaultChecked = false;
-    if (isMissingFolder) {
-      const saveAsDefaultDiv = selectFieldsContainer.createDiv({
+    // Specified folder is missing: If the default messages folder is
+    // missing, or if the user has never specified a default, add an option
+    // to save the selected folder as default.
+    if (isMissingFolder && selectFolderComp.selectEl.value !== "") {
+      // Layout accomodation for checkbox + label
+      const saveAsDefaultDiv = selectFieldContainer.createDiv({
         attr: {
           class: "oq-saveas-default-container",
         },
@@ -98,6 +104,7 @@ class ModalSaveMessageAs extends Modal {
           type: "checkbox",
         },
       });
+
       // Add event to update the value of isSaveAsDefaultChecked
       saveAsDefault.onchange = () => {
         isSaveAsDefaultChecked = saveAsDefault.checked;
@@ -108,16 +115,27 @@ class ModalSaveMessageAs extends Modal {
           for: "oq-saveas-default",
         },
       });
+
+      selectFolderComp.selectEl.onchange = () => {
+        handleFolderChange();
+      };
+      const handleFolderChange = (): void => {
+        const isDefault = isDefaultSelected();
+        saveAsDefault.disabled = isDefault;
+        saveAsDefaultDiv.toggleClass("oq-disabled", isDefault);
+        if (isDefault) saveAsDefault.checked = true;
+      };
+      handleFolderChange();
     }
 
-    // Modal Footer
+    // MODAL FOOTER ===========================================================
     const footer = saveAsForm.createDiv({
       attr: {
         id: "oq-saveas-message-footer",
       },
     });
 
-    // Open file after saving
+    // OPEN FILE AFTER SAVING -------------------------------------------------
     const openFile = footer.createEl("input", {
       attr: {
         id: "oq-saveas-openfile",
@@ -132,7 +150,7 @@ class ModalSaveMessageAs extends Modal {
       },
     });
 
-    // Save Button
+    // SAVE BUTTON ------------------------------------------------------------
     const saveButton = footer.createEl("button", {
       text: "Save",
       attr: {
@@ -150,7 +168,7 @@ class ModalSaveMessageAs extends Modal {
       );
     };
 
-    // Cancel Button
+    // CANCEL BUTTON ----------------------------------------------------------
     footer.createEl("button", {
       text: "Cancel",
       attr: {

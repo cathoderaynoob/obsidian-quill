@@ -59,7 +59,7 @@ class ModalSaveConversation extends Modal {
 
     // Add select menu
     const selectFieldContainer = saveAsForm.createEl("div", {
-      cls: "oq-select-fields",
+      cls: "oq-select-field",
     });
     const selectFolderComp = new DropdownComponent(selectFieldContainer);
     addDefaultFolderDropdown(selectFolderComp, "conversations", () =>

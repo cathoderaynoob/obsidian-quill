@@ -43,7 +43,7 @@ const Message: React.FC<ConvoMessageProps> = ({
   const saveMessageButtonRef = useRef<HTMLButtonElement>(null);
   const clickableIconClass = ELEM_CLASSES_IDS.clickableIcon;
 
-  const saveMessageAs = async () => {
+  const saveMessageAs = async (): Promise<void> => {
     messageUtils.promptSaveMessageAs(content, command?.saveMsgFolder);
   };
 

@@ -55,8 +55,10 @@ export const ERROR_MESSAGES = {
   apiKeyInvalid:
     "Invalid API key. Please enter it at:\n\n" +
     " » Settings > Quill > OpenAI API Key.",
+  fileExistsError: "File with that name already exists.",
   fileNotFound: "Cannot find note at path provided. See console for details.",
   fileReadError: "Error reading note. Please check the console for details.",
+  fileSaveError: "Could not save the note. See console for details.",
   fileUploadError:
     "Error uploading note. Please check the console for details.",
   folderCreateError:
