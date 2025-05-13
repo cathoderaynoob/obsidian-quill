@@ -529,8 +529,11 @@ button.oq-prompt-send {
   grid-template-columns: min-content max-content;
   align-items: center;
   padding-left: 0.66em;
+  &.oq-disabled {
+    opacity: 0.4;
+  }
 }
-.oq-select-fields {
+.oq-select-field {
   display: grid;
   grid-row-gap: 1em;
 }

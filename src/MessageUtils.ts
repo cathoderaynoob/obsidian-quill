@@ -3,6 +3,7 @@ import { IPluginServices } from "@/interfaces";
 import { QuillPluginSettings } from "@/settings";
 import { ConvoMessageType } from "@/components/Message";
 import ModalSaveMessageAs from "@/components/ModalSaveMessageAs";
+import DefaultFolderUtils from "@/DefaultFolderUtils";
 import VaultUtils from "@/VaultUtils";
 
 class MessageUtils {
@@ -102,32 +103,63 @@ class MessageUtils {
     content: string,
     commandFolderPath?: string
   ): Promise<{ filename: string; path: string } | null> => {
-    const { getNormalizedFilepath, createFile, openFile } = this.vaultUtils;
-    const fileText = content;
+    const {
+      createFolder,
+      getFolderByPath,
+      getNormalizedFilepath,
+      createFile,
+      openFile,
+    } = this.vaultUtils;
+    const { getDefaultFolderPath } = DefaultFolderUtils.getInstance(
+      this.pluginServices,
+      this.settings
+    );
+    const defaultPath = await getDefaultFolderPath("messages");
 
+    // Open a modal to name the file and select where to save it
     return new Promise((resolve) => {
       const modal = new ModalSaveMessageAs(
         this.pluginServices.app,
         this.settings,
         content,
         async (filename, folderPath, openFileAfterSave, saveAsNewDefault) => {
-          filename = this.vaultUtils.validateFilename(filename);
-          const filePath = getNormalizedFilepath(folderPath, filename);
           try {
-            await createFile(filePath, fileText);
-            new Notice(`${filename}\n\n  saved to\n\n${folderPath}`);
-            modal.close();
-            this.settings.openAfterSave = openFileAfterSave;
-            if (openFileAfterSave) await openFile(filePath, true);
+            // Create folder (if necessary)
+
             // If default was missing, user wants to set a new one
-            if (saveAsNewDefault) {
+            // If the plugin default is selected, set as default even if
+            // box is unchecked
+            if (saveAsNewDefault || folderPath === defaultPath) {
+              if (getFolderByPath(folderPath, true) === null) {
+                await createFolder(folderPath);
+              }
               this.settings.pathMessages = folderPath;
               await this.pluginServices.saveSettings();
             }
-            resolve({ filename, path: folderPath });
+            const validatedFilename =
+              this.vaultUtils.validateFilename(filename);
+            const filePath = getNormalizedFilepath(
+              folderPath,
+              validatedFilename
+            );
+            // Create file
+            try {
+              await createFile(filePath, content);
+              new Notice(
+                `"${validatedFilename}"\n saved to folder\n"${folderPath}"`
+              );
+              this.settings.openAfterSave = openFileAfterSave;
+              if (openFileAfterSave) await openFile(filePath, true);
+              resolve({ filename: validatedFilename, path: folderPath });
+              modal.close();
+            } catch (e) {
+              this.pluginServices.notifyError("fileExistsError", e);
+              resolve(null);
+            }
           } catch (e) {
-            new Notice(e);
-            console.log(e);
+            this.pluginServices.notifyError("folderCreateError", e);
+            resolve(null);
+            modal.close();
           }
         },
         commandFolderPath

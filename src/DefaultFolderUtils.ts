@@ -20,12 +20,6 @@ import VaultUtils from "@/VaultUtils";
 
 type FolderButtonAction = "open" | "create" | "warn";
 
-const DEFAULT_FOLDERS = {
-  pathConversations: `${APP_PROPS.appName}/Conversations`,
-  pathMessages: `${APP_PROPS.appName}/Messages`,
-  pathTemplates: `${APP_PROPS.appName}/Templates`,
-};
-
 class DefaultFolderUtils {
   private static instance: DefaultFolderUtils;
   private pluginServices: IPluginServices;
@@ -37,6 +31,12 @@ class DefaultFolderUtils {
     this.settings = settings;
     this.vaultUtils = VaultUtils.getInstance(pluginServices, settings);
   }
+
+  readonly DEFAULT_FOLDERS = {
+    pathConversations: `${APP_PROPS.appName}/Conversations`,
+    pathMessages: `${APP_PROPS.appName}/Messages`,
+    pathTemplates: `${APP_PROPS.appName}/Templates`,
+  };
 
   public static getInstance(
     pluginServices: IPluginServices,
@@ -143,17 +143,17 @@ class DefaultFolderUtils {
       }
     > = {
       conversations: {
-        pluginDefaultPath: DEFAULT_FOLDERS.pathConversations,
+        pluginDefaultPath: this.DEFAULT_FOLDERS.pathConversations,
         userDefaultPath: this.settings.pathConversations,
         settingName: "pathConversations",
       },
       messages: {
-        pluginDefaultPath: DEFAULT_FOLDERS.pathMessages,
+        pluginDefaultPath: this.DEFAULT_FOLDERS.pathMessages,
         userDefaultPath: this.settings.pathMessages,
         settingName: "pathMessages",
       },
       templates: {
-        pluginDefaultPath: DEFAULT_FOLDERS.pathTemplates,
+        pluginDefaultPath: this.DEFAULT_FOLDERS.pathTemplates,
         userDefaultPath: this.settings.pathTemplates,
         settingName: "pathTemplates",
       },
@@ -287,9 +287,10 @@ class DefaultFolderUtils {
       this.pluginServices.notifyError("fileReadError", e);
       return null;
     }
-    return null;
   };
 
+  // Get the default folder path for the type provided, and
+  // optionally create it if it's missing
   getDefaultFolderPath = async (
     folder: DefaultSaveFolder,
     createFolderIfMissing?: boolean
@@ -306,7 +307,8 @@ class DefaultFolderUtils {
         }
         break;
       case "messages":
-        folderPath = this.settings.pathMessages;
+        folderPath =
+          this.settings.pathMessages || this.DEFAULT_FOLDERS.pathMessages;
         break;
       case "templates":
         folderPath = this.settings.pathTemplates;
