@@ -35,7 +35,7 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature, messagesApi }) => {
   const latestMessageRef = useRef<ConvoMessageType | null>(null);
   const prevContentLengthRef = useRef<number>(0);
   const prevScrollTop = useRef<number>(0);
-  const stopScrolling = useRef<boolean>(false);
+  const [stopScrolling, setStopScrolling] = useState(false);
   const payloadMessages = PayloadUtils.getViewInstance();
   const {
     iconEl: iconElClass,
@@ -230,7 +230,7 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature, messagesApi }) => {
       };
       latestMessageRef.current = newMessage;
       prevContentLengthRef.current = 0;
-      stopScrolling.current = false;
+      setStopScrolling(false);
 
       setMessages((prevMessages) => {
         return [...prevMessages, newMessage];
@@ -317,7 +317,6 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature, messagesApi }) => {
 
   // SCROLL HANDLING ==========================================================
   useEffect(() => {
-    if (stopScrolling.current) return;
     const containerElem = containerElemRef.current;
     if (!containerElem) return;
 
@@ -325,7 +324,7 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature, messagesApi }) => {
       // Disable auto-scrolling if the user scrolls up during the response
       const isScrollingUp = containerElem.scrollTop < prevScrollTop.current;
       if (isScrollingUp) {
-        stopScrolling.current = true;
+        setStopScrolling(true);
         return;
       }
       prevScrollTop.current = containerElem.scrollTop;
@@ -335,7 +334,7 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature, messagesApi }) => {
     return () => {
       containerElem.removeEventListener("scroll", handleScroll);
     };
-  }, []);
+  }, [stopScrolling]);
 
   // Control the message navigation
   const goToMessage = (nav: "next" | "prev" | "first" | "last") => {
@@ -423,7 +422,7 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature, messagesApi }) => {
     index: number,
     isMsgNav?: boolean
   ): Promise<void> => {
-    if (!isMsgNav && stopScrolling.current) return;
+    if (!isMsgNav && stopScrolling) return;
 
     const containerElem = containerElemRef.current;
     const message = getMessageElem(index);
@@ -438,6 +437,7 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature, messagesApi }) => {
         top: scrollToPosition,
         behavior: "smooth",
       });
+      setStopScrolling(true);
     }
     // Otherwise, scroll the message into view, centered
     else {
