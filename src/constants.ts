@@ -81,7 +81,7 @@ export const ERROR_MESSAGES = {
 } as const;
 export type ErrorCode = keyof typeof ERROR_MESSAGES;
 export const QUILL_VIEW_TYPE = "quill-chat-view";
-export const SCROLL_CHARS_LIMIT = 400;
+export const SCROLL_CHARS_LIMIT = 300;
 export const STREAM_BUFFER_LIMIT = 300;
 export const EXTERNAL_LINKS = {
   linkOpenAIMyAPIKeys: "https://platform.openai.com/api-keys",
