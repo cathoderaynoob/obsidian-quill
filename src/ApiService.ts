@@ -248,7 +248,10 @@ export default class ApiService {
     errorMsg = errorMsg.toLowerCase();
     switch (true) {
       case errorMsg.includes("401") || errorMsg.includes("auth"):
-        msgToUser = "An issue with your API key was encountered.";
+        msgToUser = ERROR_MESSAGES.apiKeyAuthFailed;
+        break;
+      case errorMsg.includes("429") || errorMsg.includes("billing"):
+        msgToUser = ERROR_MESSAGES.noCreditsLeft;
         break;
       case errorMsg.includes("connection"):
         msgToUser = ERROR_MESSAGES.networkConnectionError;

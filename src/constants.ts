@@ -49,11 +49,12 @@ export const ELEM_CLASSES_IDS = {
   validationEmpty: "oq-validation-empty",
 };
 export const ERROR_MESSAGES = {
-  apiKeyMissing:
-    "Missing API key. Please enter it at:\n\n" +
-    " » Settings > Quill > OpenAI API Key.",
+  apiKeyAuthFailed: "An issue with your API key was encountered.",
   apiKeyInvalid:
     "Invalid API key. Please enter it at:\n\n" +
+    " » Settings > Quill > OpenAI API Key.",
+  apiKeyMissing:
+    "Missing API key. Please enter it at:\n\n" +
     " » Settings > Quill > OpenAI API Key.",
   fileExistsError: "File with that name already exists.",
   fileNotFound: "Cannot find note at path provided. See console for details.",
@@ -68,10 +69,13 @@ export const ERROR_MESSAGES = {
   networkConnectionError:
     "A network connection issue was encountered. " +
     "Are you connected to the internet?",
+  networkError: "A network error occurred. See console for details.",
   networkTimeout:
     "Your request has timed out. Please check your connection " +
     "and try again.",
-  networkError: "A network error occurred. See console for details.",
+  noCreditsLeft:
+    "Out of OpenAI API credits. Go to Settings → Quill and use the Billing " +
+    "link to buy more credits.",
   noFeature: "Feature not found",
   saveError: "Unable to save to a note. Please check the console for details.",
   unknown: "An error occurred. Please check the console for details.",
@@ -86,6 +90,8 @@ export const STREAM_BUFFER_LIMIT = 300;
 export const EXTERNAL_LINKS = {
   linkOpenAIMyAPIKeys: "https://platform.openai.com/api-keys",
   linkOpenAIAboutModels: "https://platform.openai.com/docs/models",
+  linkOpenAIBilling:
+    "https://platform.openai.com/settings/organization/billing/overview",
 };
 export const OPENAI_MODELS: OpenAIModels = {
   models: [

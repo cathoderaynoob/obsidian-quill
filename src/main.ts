@@ -93,7 +93,7 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
     // Start new Conversation
     this.addCommand({
       id: "new-convo",
-      name: "New Conversation",
+      name: "New conversation",
       callback: async () => {
         this.activateView();
         if (QuillView.instance?.messagesApi) {
@@ -139,7 +139,7 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
     // "New Command" command
     this.addCommand({
       id: "new-command",
-      name: "Create New Command",
+      name: "Create new command",
       callback: async () => {
         let isTemplateFolderSet = false;
         isTemplateFolderSet = await hasValidDefaultFolder("templates");

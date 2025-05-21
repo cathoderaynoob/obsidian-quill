@@ -20,6 +20,11 @@ export type folderSettingNames =
   | "pathMessages"
   | "pathTemplates";
 
+export interface Hyperlink {
+  url: string;
+  title?: string;
+}
+
 export interface IPluginServices {
   app: App;
   activateView(): Promise<void>;
