@@ -1,6 +1,8 @@
 import { normalizePath, Notice, TFile, TFolder, Vault } from "obsidian";
+import * as os from "os";
 import { join } from "path";
 import { format } from "date-fns";
+import { FILENAME_CHAR_REPLACEMENTS } from "@/constants";
 import { IPluginServices } from "@/interfaces";
 import { QuillPluginSettings } from "@/settings";
 
@@ -61,14 +63,6 @@ class VaultUtils {
       `File not found at \`${filePath}\`.`
     );
     return null;
-  };
-
-  validateFilename = (filename?: string) => {
-    filename = filename?.length ? filename : this.createFilenameAsDatetime();
-    const sanitizedFilename = this.sanitizeFilename(
-      filename.endsWith(".md") ? filename : filename + ".md"
-    );
-    return sanitizedFilename;
   };
 
   // Returns normalized path to file
@@ -149,30 +143,60 @@ class VaultUtils {
     }
   };
 
-  getDateTime() {
+  getDateTime = () => {
     return format(Date.now(), "yyyy-MM-dd HH.mm.ss");
-  }
+  };
 
-  createFilenameAsDatetime(fileExt?: string) {
+  createFilenameAsDatetime = (fileExt?: string) => {
     fileExt = fileExt || "md"; // Default file type
     const now = this.getDateTime();
     return `${now}.${fileExt}`;
-  }
+  };
 
   // Returns the filename from the first heading in a markdown file
-  createFilenameFromTitle(content: string) {
+  createFilenameFromTitle = (content: string) => {
     const headingRegex = /^(#+)\s+(.*)$/m;
     const match = content.match(headingRegex);
     return match ? match[2] : "";
-  }
+  };
 
-  sanitizeFilename(filename: string) {
-    const sanitized = normalizePath(filename)
-      .replace(/[/\\]/g, "_") // Replace slashes with underscores
-      .replace(/[^\w\s.-]/g, ""); // Remove disallowed characters
-    return sanitized;
-  }
+  // Returns a map of bad → good filename chars based on OS
+  getMapFilenameCharReplacements = (): Record<string, string> => {
+    let platform: string;
+    try {
+      platform = os.platform();
+    } catch {
+      platform = "win32"; // Default to Windows if platform detection fails
+    }
+    const replacements = FILENAME_CHAR_REPLACEMENTS;
+    return (
+      replacements[platform as keyof typeof replacements] || replacements.win32
+    );
+  };
 
+  // Returns filename with all valid chars for the OS used
+  sanitizeFilename = (filename: string): string => {
+    const replacements = this.getMapFilenameCharReplacements();
+    // Replace forbidden characters using the mapping
+    const sanitized = filename
+      .split("")
+      .map((char) =>
+        replacements[char] !== undefined ? replacements[char] : char
+      )
+      .join("");
+    return sanitized.trim();
+  };
+
+  // Returns a sanitized filename, whether provided by user, or generated
+  getValidFilename = (filename?: string) => {
+    filename = filename?.length ? filename : this.createFilenameAsDatetime();
+    const sanitizedFilename = this.sanitizeFilename(
+      filename.endsWith(".md") ? filename : filename + ".md"
+    );
+    return sanitizedFilename;
+  };
+
+  // Remove all content from the file provided. Returns success
   emptyFileContent = async (file: TFile): Promise<boolean> => {
     await this.vault.modify(file, "");
     if ((await this.vault.read(file)) === "") {

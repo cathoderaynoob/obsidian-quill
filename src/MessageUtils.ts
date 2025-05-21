@@ -75,11 +75,11 @@ class MessageUtils {
       getFileByPath,
       createFile,
       appendToFile,
-      validateFilename,
+      getValidFilename,
     } = this.vaultUtils;
     try {
       // Find the conversation file, or create it
-      const filename = validateFilename(convoId);
+      const filename = getValidFilename(convoId);
       const filePath = getNormalizedFilepath(folderPath, filename);
       let file = getFileByPath(filePath, true);
       if (!file) file = await createFile(filePath, "");
@@ -137,7 +137,7 @@ class MessageUtils {
               await this.pluginServices.saveSettings();
             }
             const validatedFilename =
-              this.vaultUtils.validateFilename(filename);
+              this.vaultUtils.getValidFilename(filename);
             const filePath = getNormalizedFilepath(
               folderPath,
               validatedFilename

@@ -110,7 +110,7 @@ class ModalPrompt extends Modal {
         this.settings.commands[id] = command;
         await this.pluginServices.saveSettings();
         await this.pluginServices.loadCommands();
-        new Notice(`Updated command:\n${command.name}`);
+        new Notice(`Updated command:\n$"{command.name}"`);
       },
       this.customCommandId
     ).open();
