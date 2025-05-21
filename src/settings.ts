@@ -127,6 +127,10 @@ export class QuillSettingsTab extends PluginSettingTab {
 
     new Setting(containerEl).setName("OpenAI").setHeading();
 
+    const hideApiKey = (elem: HTMLInputElement, hide: boolean) => {
+      elem.type = hide ? "password" : "text";
+    };
+
     // OpenAI API Key
     const apiKeySetting = new Setting(containerEl)
       .setName("API key")
@@ -138,11 +142,14 @@ export class QuillSettingsTab extends PluginSettingTab {
             settings.openaiApiKey = value;
             await this.highlightIfEmpty(apiKeySetting, settings.openaiApiKey);
           });
+        hideApiKey(text.inputEl, true);
         text.inputEl.onfocus = async () => {
           await this.highlightIfEmpty(apiKeySetting, settings.openaiApiKey);
+          hideApiKey(text.inputEl, false);
         };
         text.inputEl.onblur = async () => {
           await saveSettings();
+          hideApiKey(text.inputEl, true);
         };
       });
 
