@@ -133,7 +133,7 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature, messagesApi }) => {
   const saveConvoManually = async (): Promise<boolean> => {
     // Filename is based on conversation ID
     const convoId = getConvoId();
-    const filename = vaultUtils.validateFilename(convoId);
+    const filename = vaultUtils.getValidFilename(convoId);
     // Get the conversations folder path
     const folderPath = await getDefaultFolderPath("conversations", true);
     if (folderPath === "") return false;

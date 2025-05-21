@@ -11,8 +11,8 @@ export const APP_PROPS = {
   folderAddIcon: "folder-plus",
   folderMissingIcon: "folder-x",
   folderOpenIcon: "folder-open",
-  openConvoIcon: "file-text",
-  openConvoDisabledIcon: "file",
+  openConvoIcon: "scroll-text",
+  openConvoDisabledIcon: "scroll",
   openSettingsIcon: "settings",
   newFileIcon: "file-plus",
   saveConvoDisabledIcon: "download",
@@ -84,6 +84,30 @@ export const ERROR_MESSAGES = {
     "console for any errors.",
 } as const;
 export type ErrorCode = keyof typeof ERROR_MESSAGES;
+export const FILENAME_CHAR_REPLACEMENTS: Record<
+  "win32" | "darwin" | "linux",
+  Record<string, string>
+> = {
+  win32: {
+    "\\": "_",
+    "/": " - ",
+    ":": " — ",
+    "*": " ",
+    "?": "",
+    '"': "'",
+    "<": "(",
+    ">": ")",
+    "|": "-",
+  },
+  darwin: {
+    ":": " — ",
+    "/": "-",
+    "\\": "-",
+  },
+  linux: {
+    "/": "-",
+  },
+};
 export const QUILL_VIEW_TYPE = "quill-chat-view";
 export const SCROLL_CHARS_LIMIT = 300;
 export const STREAM_BUFFER_LIMIT = 300;
