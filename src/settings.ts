@@ -16,6 +16,7 @@ import {
   Command,
   Commands,
   folderSettingNames,
+  Hyperlink,
   IPluginServices,
   OpenAIModelsSupported,
 } from "@/interfaces";
@@ -86,18 +87,27 @@ export class QuillSettingsTab extends PluginSettingTab {
     settingEl.controlEl.toggleClass(validationEmpty, !value);
   };
 
-  private createDescWithLink = (
+  // Lists one or more links under the setting description
+  private createDescWithLinks = (
     desc: string,
-    linkText: string,
-    linkHref: string
+    links: Hyperlink[],
+    linkDesc?: string
   ): DocumentFragment => {
     return createFragment((descEl) => {
-      const link = descEl.createEl("a", {
-        text: linkText,
-        href: linkHref,
-      });
       descEl.appendText(desc);
-      descEl.append(link);
+      descEl.createEl("br");
+      const linkDiv = descEl.createDiv({
+        text: linkDesc || "",
+      });
+      links.forEach((link, idx) => {
+        if (links.length > 1 && idx > 0) {
+          linkDiv.appendText(" | ");
+        }
+        linkDiv.createEl("a", {
+          text: link.title,
+          href: link.url,
+        });
+      });
     });
   };
 
@@ -137,10 +147,19 @@ export class QuillSettingsTab extends PluginSettingTab {
       });
 
     apiKeySetting.setDesc(
-      this.createDescWithLink(
-        "Sign up for an OpenAI Platform account to obtain an API key.",
-        "OpenAI Platform: API Keys",
-        EXTERNAL_LINKS.linkOpenAIMyAPIKeys
+      this.createDescWithLinks(
+        "Sign up for an OpenAI Platform account to obtain an API key. ",
+        [
+          {
+            url: EXTERNAL_LINKS.linkOpenAIMyAPIKeys,
+            title: "API Keys",
+          },
+          {
+            url: EXTERNAL_LINKS.linkOpenAIBilling,
+            title: "Billing",
+          },
+        ],
+        "OpenAI Platform: "
       )
     );
 
@@ -163,11 +182,16 @@ export class QuillSettingsTab extends PluginSettingTab {
       });
 
     modelSetting.setDesc(
-      this.createDescWithLink(
+      this.createDescWithLinks(
         "Choose the default model for generating responses. " +
           "You can override this setting for your individual custom commands.",
-        "OpenAI Platform: Models",
-        EXTERNAL_LINKS.linkOpenAIAboutModels
+        [
+          {
+            url: EXTERNAL_LINKS.linkOpenAIAboutModels,
+            title: "Models",
+          },
+        ],
+        "OpenAI Platform: "
       )
     );
 
@@ -403,7 +427,7 @@ export class QuillSettingsTab extends PluginSettingTab {
                   await saveSettings();
                   await loadCommands();
                   this.display();
-                  new Notice(`Updated command:\n${command.name}`);
+                  new Notice(`Updated command:\n"${command.name}"`);
                 },
                 command.id
               ).open();

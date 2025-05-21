@@ -54,10 +54,12 @@
     grid-gap: 0.5em;
     grid-template-columns: 1fr 40%;
   }
-  & .setting-item-description > a {
-    display: block;
-    margin-top: 0.33em;
-    width: max-content;
+  & .setting-item-description > div {
+    padding-top: 0.5em;
+    & a {
+      display: inline-block;
+      margin: 0.25em 0.17em auto;
+    }
   }
   & input,
   & select {
