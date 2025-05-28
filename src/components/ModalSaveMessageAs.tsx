@@ -49,7 +49,7 @@ class ModalSaveMessageAs extends Modal {
     const { addDefaultFolderDropdown, DEFAULT_FOLDERS } =
       DefaultFolderUtils.getInstance(this.pluginServices, this.settings);
 
-    this.setTitle("Save message as a note");
+    this.setTitle("Save to a new note");
 
     // FILENAME ---------------------------------------------------------------
     const filenameEl = saveAsForm.createEl("input", {

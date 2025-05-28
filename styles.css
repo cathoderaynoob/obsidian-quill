@@ -6,6 +6,7 @@
   --oq-app-bright-color: var(--text-accent);
   --oq-app-muted-color: var(--text-muted);
   --oq-app-faint-color: var(--color-base-60);
+  --oq-code-background: var(--pre-code, var(--code-background));
   --oq-transition-color: color 0.2s ease;
   --oq-transition-opacity: opacity 0.2s ease;
 }
@@ -155,18 +156,54 @@
   user-select: text;
   -webkit-user-select: text;
   transition: border-color 1.5s ease;
+  & .oq-message-content {
+    padding-right: 1.5em;
+    overflow-x: scroll; /* Important: Allows pre scroll in grid */
+  }
   & p {
     white-space: pre-wrap; /* Respect line breaks */
   }
-  & pre {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 0.5em;
-    white-space: pre-wrap;
-    background: var(--background-secondary);
+  /* INLINE CODE, e.g. `hello` */
+  & p > code {
+    padding: 0.15em 0.3em 0em;
   }
-  & code[class*="language-"] {
-    white-space: pre;
-    font-size: smaller;
+  & pre {
+    white-space: pre-wrap;
+    /* CODE BLOCK, e.g. ```hello``` */
+    & > code {
+      display: block;
+      white-space: pre;
+      overflow-x: scroll;
+      border: 1px solid transparent;
+      border-radius: 0.5em;
+      padding: 1em 1.33em;
+      background-color: var(--oq-code-background);
+      &[class*="language-"] {
+        font-size: smaller;
+      }
+    }
+  }
+}
+.oq-message-codeblock {
+  position: relative;
+  & > button {
+    position: absolute;
+    top: 0.5em;
+    right: 0.5em;
+    opacity: 0;
+    transition: var(--oq-transition-opacity);
+  }
+  & > button + button {
+    right: 2.5em;
+  }
+}
+.oq-message-codeblock:hover > button {
+  opacity: 1;
+  background: var(--oq-code-background);
+  box-shadow: 0 0 9px var(--oq-code-background);
+  &:hover {
+    opacity: 1;
+    color: var(--oq-app-bright-color);
   }
 }
 .oq-message-highlight {
@@ -177,21 +214,9 @@
   grid-template-columns: 1em 1fr;
   column-gap: 0.25em;
   padding-left: 1.5em;
-  & pre {
-    border: 1px solid var(--background-modifier-border-hover);
-    border-radius: 0.5em;
-    background: var(--code-background);
-  }
-  & code[class*="language-"] {
-    position: relative;
-    display: block;
+  & pre > code {
     max-height: 12em;
-    --max-lines: 5;
     overflow: scroll;
-    mask-image: linear-gradient(to top, transparent, black 2em);
-    -webkit-mask-image: linear-gradient(to top, transparent, black 2em);
-    opacity: 0.8;
-    transition: opacity 0.15s ease;
   }
 }
 .oq-message-user-icon::before {
@@ -201,10 +226,6 @@
   font-weight: bold;
   text-align: left;
   color: var(--oq-app-bright-color);
-}
-.oq-message-content {
-  padding-right: 1em;
-  overflow-x: scroll; /* Important: Allows pre scroll in grid */
 }
 .oq-message-footer {
   display: grid;

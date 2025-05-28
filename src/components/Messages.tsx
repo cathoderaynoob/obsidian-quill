@@ -25,8 +25,14 @@ interface MessagesProps {
 }
 
 const Messages: React.FC<MessagesProps> = ({ executeFeature, messagesApi }) => {
-  const { settings, apiService, pluginServices, vaultUtils, setIsResponding } =
-    usePluginContext();
+  const {
+    settings,
+    apiService,
+    pluginServices,
+    vaultUtils,
+    setIsResponding,
+    isResponding,
+  } = usePluginContext();
   const [messages, setMessages] = useState<ConvoMessageType[]>([]);
   const [showSaveConvoBtn, setShowSaveConvoBtn] = useState(false);
   const [, setCurrentIndex] = useState(0);
@@ -231,13 +237,12 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature, messagesApi }) => {
       latestMessageRef.current = newMessage;
       prevContentLengthRef.current = 0;
       setStopScrolling(false);
-
+      if (role === "assistant") setIsResponding(true);
       setMessages((prevMessages) => {
         return [...prevMessages, newMessage];
       });
       prevScrollTop.current = containerElem.scrollTop;
       scrollToBottom();
-      if (role === "assistant") setIsResponding(true);
     };
 
     emitter.on("newConvoMessage", handleNewConvoMessage);
@@ -258,6 +263,7 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature, messagesApi }) => {
         const updatedMessages = [...prevMessages];
         updatedMessages[updatedMessages.length - 1] = {
           ...(latestMsg as ConvoMessageType),
+          isStreaming: true,
         };
         return updatedMessages;
       });
@@ -506,6 +512,7 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature, messagesApi }) => {
             {...message}
             msgIndex={index}
             handleOnCollapse={handleCollapseSelectedText}
+            isStreaming={isResponding}
           />
         ))}
         {msgLoaderJsx}
