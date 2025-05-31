@@ -3,6 +3,7 @@ import React, { useEffect, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import * as os from "os";
 import MessageUtils from "@/MessageUtils";
+import ModalCustomCommand from "@/components/ModalCustomCommand";
 import { APP_PROPS, ELEM_CLASSES_IDS } from "@/constants";
 import { Command, Role } from "@/interfaces";
 import { usePluginContext } from "@/components/PluginContext";
@@ -196,6 +197,25 @@ const Message: React.FC<ConvoMessageProps> = ({
       new Notice("Failed to copy to clipboard");
     }
   };
+  // If a response to a custom command, a link to the command is
+  // added to the message footer. Open the command editor when clicked.
+  const commandId = Object.keys(settings.commands).find(
+    (id) => settings.commands[id].name === command?.name
+  );
+
+  const editCustomCommand = async () => {
+    console.log(commandId);
+    new ModalCustomCommand(
+      pluginServices,
+      settings,
+      async (id: string, command: Command) => {
+        settings.commands[id] = command;
+        await pluginServices.saveSettings();
+        new Notice(`Updated command:\n"${command.name}"`);
+      },
+      commandId
+    ).open();
+  };
 
   return (
     <>
@@ -280,6 +300,14 @@ const Message: React.FC<ConvoMessageProps> = ({
                     />
                   )}
                 </div>
+                {command && !isStreaming && (
+                  <button
+                    className="clickable-icon oq-message-command"
+                    onClick={editCustomCommand}
+                  >
+                    {command.name}
+                  </button>
+                )}
                 <div className="oq-message-model">{modelDisplay}</div>
               </div>
             )}
