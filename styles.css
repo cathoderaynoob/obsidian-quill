@@ -229,14 +229,15 @@
 }
 .oq-message-footer {
   display: grid;
-  grid-template-columns: min-content 1fr;
+  grid-template-columns: min-content 1fr max-content;
+  column-gap: 1em;
   align-items: center;
+  padding-bottom: 0.33em;
 }
 .oq-message-actions {
   display: grid;
   grid-template-columns: auto auto;
   margin-left: calc(-1 * var(--size-2-2));
-  padding-bottom: 0.33em;
   & button {
     color: var(--oq-app-faint-color);
     transition: var(--oq-transition-color);
@@ -245,6 +246,14 @@
       color: var(--oq-app-bright-color);
       transition: var(--oq-transition-color);
     }
+  }
+}
+.oq-message-command {
+  font-style: italic;
+  width: fit-content;
+  white-space: normal;
+  &:hover {
+    color: var(--oq-app-bright-color);
   }
 }
 .oq-message:hover {
@@ -640,10 +649,6 @@ button.oq-prompt-send {
 #oq-output-modal {
   padding: 0.5em;
   user-select: text;
-}
-.oq-file-button {
-  box-shadow: none;
-  padding: 0;
 }
 
 /* Animation */
