@@ -542,9 +542,21 @@ button.oq-prompt-send {
       transition: background-color 0.2s ease;
     }
   }
-  & span.oq-warn {
-    font-size: small;
-    padding-left: 0.66em;
+}
+#oq-saveas-body,
+#oq-newcommand-body {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-gap: 1em;
+  align-items: center;
+  max-width: 100%;
+  & > label {
+    text-align: right;
+    align-self: center;
+  }
+  & > input,
+  > select {
+    width: 100%;
   }
 }
 #oq-newcommand-body > div {
@@ -568,22 +580,6 @@ button.oq-prompt-send {
 .oq-select-field {
   display: grid;
   grid-row-gap: 1em;
-}
-#oq-newcommand-body {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  grid-template-rows: repeat(6, 1fr);
-  grid-gap: 1em;
-  align-items: center;
-  max-width: 100%;
-  & > label {
-    text-align: right;
-    align-self: center;
-  }
-  & > input,
-  > select {
-    width: 100%;
-  }
 }
 #oq-newcommand-name {
   color: var(--oq-app-bright-color);

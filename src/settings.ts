@@ -278,20 +278,10 @@ export class QuillSettingsTab extends PluginSettingTab {
       });
 
     // Section: My Custom Commands ============================================
-    new Setting(containerEl)
-      .setName("My Custom Commands")
-      .setHeading()
-      .setDesc(
-        "Each custom command is a combination of a template note and a " +
-          "command definition."
-      );
+    new Setting(containerEl).setName("My Custom Commands").setHeading();
     new Setting(containerEl)
       .setName("Store command templates in...")
-      .setDesc(
-        "Store all your command templates in this folder. " +
-          "To add a new command, first create a note template here, " +
-          "then create a command definition."
-      )
+      .setDesc("Store all your command templates in this folder.")
       // Command Templates Folder ---------------------------------------------
       .addDropdown((dropdown) => {
         addDefaultFolderDropdown(
