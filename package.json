@@ -1,5 +1,5 @@
 {
-  "name": "obsidian-quill",
+  "name": "quill",
   "version": "1.0.0",
   "description": "Quill is your AI assistant and custom command creator.",
   "main": "main.js",
