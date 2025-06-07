@@ -82,8 +82,8 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 
     // Show Quill view command
     this.addCommand({
-      id: "show-quill",
-      name: "Show Quill",
+      id: "show",
+      name: "Show",
       callback: () => {
         this.activateView();
       },
