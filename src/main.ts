@@ -137,7 +137,7 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
     // CUSTOM COMMANDS ========================================================
     // "New Command" command
     this.addCommand({
-      id: "new-command",
+      id: "new-custom",
       name: "Create new command",
       callback: async () => {
         let isTemplateFolderSet = false;
@@ -253,8 +253,8 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
     );
     const commands: Commands = this.settings.commands;
 
-    for (const commandId in commands) {
-      const command = commands[commandId];
+    for (const cmdId in commands) {
+      const command = commands[cmdId];
       let callback: (() => void) | undefined = undefined;
       let cmdEditorCheckCallback:
         | ((checking: boolean, editor: Editor) => boolean | void)
@@ -280,7 +280,7 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
           this.openModalPrompt({
             featureId,
             command,
-            customCommandId: commandId,
+            customCommandId: cmdId,
             outputTarget,
             editor,
             selectedText,
@@ -351,7 +351,7 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
       }
 
       this.addCommand({
-        id: commandId,
+        id: cmdId,
         name: command.name,
         editorCheckCallback: cmdEditorCheckCallback,
         callback: callback,
