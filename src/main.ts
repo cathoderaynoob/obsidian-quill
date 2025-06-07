@@ -239,7 +239,6 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
   };
 
   onunload(): void {
-    this.app.workspace.detachLeavesOfType(QUILL_VIEW_TYPE);
     this.openModals.forEach((modal) => modal.close());
     this.openModals = [];
   }
