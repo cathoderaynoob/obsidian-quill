@@ -389,10 +389,10 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
       new Notice(
         "There was a problem opening settings.\n" +
           "To update your preferences, go to:\n\n" +
-          "    Settings > Quill",
+          "    Settings → Quill",
         10000
       );
-      console.log("Not able to open Quill Settings", e);
+      console.error("Not able to open Quill Settings", e);
     }
   };
 

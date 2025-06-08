@@ -93,7 +93,7 @@ class MessageUtils {
       }
       return filename;
     } catch (e) {
-      console.log(e);
+      console.error(e);
       return null;
     }
   };

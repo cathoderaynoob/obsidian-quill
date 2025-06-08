@@ -158,7 +158,7 @@ const Message: React.FC<ConvoMessageProps> = ({
       navigator.clipboard.writeText(content);
       new Notice("Message copied to clipboard");
     } catch (e) {
-      console.log(e);
+      console.error(e);
       new Notice("Failed to copy message to clipboard");
     }
   };
@@ -193,7 +193,7 @@ const Message: React.FC<ConvoMessageProps> = ({
       navigator.clipboard.writeText(blockString);
       new Notice("Copied to clipboard");
     } catch (e) {
-      console.log(e);
+      console.error(e);
       new Notice("Failed to copy to clipboard");
     }
   };
@@ -204,7 +204,6 @@ const Message: React.FC<ConvoMessageProps> = ({
   );
 
   const editCustomCommand = async () => {
-    console.log(commandId);
     new ModalCustomCommand(
       pluginServices,
       settings,

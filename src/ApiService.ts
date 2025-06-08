@@ -41,7 +41,7 @@ export default class ApiService {
       const models = await this.openai.models.list();
       return models || undefined;
     } catch (e) {
-      console.log(e.message);
+      console.error(e.message);
       return false;
     }
   }
@@ -112,7 +112,7 @@ export default class ApiService {
         }
       ).open();
     } catch (e) {
-      console.log(e.message);
+      console.error(e.message);
       this.pluginServices.notifyError(notify);
     }
   }
@@ -236,7 +236,7 @@ export default class ApiService {
         });
       }
     } catch (e) {
-      console.log(e.message);
+      console.error(e.message);
       if (e.status && e.status === 401) {
         await this.validateApiKey();
       }
@@ -282,7 +282,7 @@ export default class ApiService {
       const fileInfo = await this.openai.files.retrieve(file_id);
       return fileInfo;
     } catch (e) {
-      console.log(e.message);
+      console.error(e.message);
       if (e.status && e.status === 401) {
         await this.validateApiKey();
       }
@@ -314,7 +314,7 @@ export default class ApiService {
         });
         return uploadResponse.id;
       } catch (e) {
-        console.log("Error uploading file:", e);
+        console.error("Error uploading file:", e);
         if (e.status && e.status === 401) {
           await this.validateApiKey();
         }
