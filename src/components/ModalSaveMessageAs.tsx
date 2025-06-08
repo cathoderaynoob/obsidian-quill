@@ -76,9 +76,6 @@ class ModalSaveMessageAs extends Modal {
     const settingsMessagesPath = this.settings.pathMessages;
     const allFolderPaths = vaultUtils.getAllFolderPaths();
     const isMissingFolder = !allFolderPaths.includes(settingsMessagesPath);
-    const isDefaultSelected = (): boolean => {
-      return selectFolderComp.selectEl.value === DEFAULT_FOLDERS.pathMessages;
-    };
 
     formBody.createEl("label", {
       text: "Save to folder",
@@ -104,14 +101,14 @@ class ModalSaveMessageAs extends Modal {
     // Specified folder is missing: If the default messages folder is
     // missing, or if the user has never specified a default, add an option
     // to save the selected folder as default.
-    if (isMissingFolder && selectFolderComp.selectEl.value !== "") {
+    if (isMissingFolder || selectFolderComp.selectEl.value === "") {
       // Layout accomodation for checkbox + label
       const saveAsDefaultDiv = selectFieldContainer.createDiv({
         attr: {
           class: "oq-saveas-default-container",
         },
       });
-      const saveAsDefault = saveAsDefaultDiv.createEl("input", {
+      const saveAsDefaultCheckbox = saveAsDefaultDiv.createEl("input", {
         attr: {
           id: "oq-saveas-default",
           type: "checkbox",
@@ -119,8 +116,8 @@ class ModalSaveMessageAs extends Modal {
       });
 
       // Add event to update the value of isSaveAsDefaultChecked
-      saveAsDefault.onchange = () => {
-        isSaveAsDefaultChecked = saveAsDefault.checked;
+      saveAsDefaultCheckbox.onchange = () => {
+        isSaveAsDefaultChecked = saveAsDefaultCheckbox.checked;
       };
       saveAsDefaultDiv.createEl("label", {
         text: "Set as my default messages folder",
@@ -129,14 +126,18 @@ class ModalSaveMessageAs extends Modal {
         },
       });
 
-      selectFolderComp.selectEl.onchange = () => {
-        handleFolderChange();
-      };
+      selectFolderComp.selectEl.onchange = () => handleFolderChange();
+
       const handleFolderChange = (): void => {
-        const isDefault = isDefaultSelected();
-        saveAsDefault.disabled = isDefault;
-        saveAsDefaultDiv.toggleClass("oq-disabled", isDefault);
-        if (isDefault) saveAsDefault.checked = true;
+        const isDefaultSelected =
+          selectFolderComp.selectEl.value === DEFAULT_FOLDERS.pathMessages;
+        const isNothingSelected = selectFolderComp.selectEl.value === "";
+        saveAsDefaultCheckbox.disabled = isDefaultSelected;
+        selectFolderComp.selectEl.toggleClass(
+          ELEM_CLASSES_IDS.disabled,
+          isDefaultSelected || isNothingSelected
+        );
+        if (isDefaultSelected) saveAsDefaultCheckbox.checked = true;
       };
       handleFolderChange();
     }
