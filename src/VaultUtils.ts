@@ -138,7 +138,7 @@ class VaultUtils {
       }
     } catch (e) {
       new Notice(`Error opening file: ${e.message}`);
-      console.log(e);
+      console.error(e);
       return false; // Return false if an error occurs
     }
   };
@@ -202,7 +202,6 @@ class VaultUtils {
     if ((await this.vault.read(file)) === "") {
       return true;
     }
-    console.log(`Unable to clear note content from ${file.path}`);
     return false;
   };
 }

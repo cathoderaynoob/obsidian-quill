@@ -114,7 +114,7 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature, messagesApi }) => {
       vaultUtils.openFile(filePath, true);
     } catch (e) {
       new Notice("Unable to open conversation file.");
-      console.log(e);
+      console.error(e);
     }
   };
 
