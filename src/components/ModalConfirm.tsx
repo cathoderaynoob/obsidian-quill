@@ -2,7 +2,7 @@ import { App, Modal } from "obsidian";
 
 class ModalConfirm extends Modal {
   private title: string;
-  private message: string;
+  private message: Node | string;
   private submitButtonText: string;
   private submitButtonRed: boolean;
   private onSubmit: () => void;
@@ -11,6 +11,7 @@ class ModalConfirm extends Modal {
     app: App,
     title: string | "Quill Confirmation",
     message:
+      | Node
       | string
       | "Are you sure you want to do this? This action cannot be undone.",
     submitButtonText: string | "Yes, I'm sure",
@@ -33,7 +34,11 @@ class ModalConfirm extends Modal {
 
     this.setTitle(this.title);
 
-    confirmForm.innerHTML = this.message;
+    if (typeof this.message === "string") {
+      confirmForm.appendText(this.message);
+    } else if (this.message instanceof Node) {
+      confirmForm.appendChild(this.message);
+    }
 
     // Modal Footer
     const footer = confirmForm.createDiv({

@@ -381,6 +381,19 @@ export class QuillSettingsTab extends PluginSettingTab {
         ? " | Send selected text"
         : "";
 
+      const msgConfirmDelete = (commandName: string): DocumentFragment => {
+        return createFragment((descEl) => {
+          descEl.appendText(
+            "Are you sure you want to permanently delete this command?"
+          );
+          descEl.createEl("span", {
+            cls: "oq-confirm-cmdname",
+            text: commandName,
+          });
+          descEl.appendText("The template note will remain in your vault.");
+        });
+      };
+
       const customCommand = new Setting(containerEl)
         .setName(command.name)
         .setDesc(
@@ -451,9 +464,7 @@ export class QuillSettingsTab extends PluginSettingTab {
               new ModalConfirm(
                 this.app,
                 `Delete Custom Command`,
-                `Are you sure you want to permanently delete this command?` +
-                  `<span class="oq-confirm-cmdname">${command.name}</span>` +
-                  `The template note will remain in your vault.`,
+                msgConfirmDelete(command.name),
                 "Delete",
                 true,
                 async () => {

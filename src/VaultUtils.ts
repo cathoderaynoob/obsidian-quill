@@ -72,8 +72,8 @@ class VaultUtils {
 
   // Returns the file object given its path
   getFileByPath = (filePath: string, suppressError?: boolean): TFile | null => {
-    const file = this.vault.getAbstractFileByPath(filePath) as TFile;
-    if (file) return file;
+    const file = this.vault.getAbstractFileByPath(filePath);
+    if (file instanceof TFile) return file;
     if (!suppressError)
       this.pluginServices.notifyError(
         "fileNotFound",
@@ -109,7 +109,7 @@ class VaultUtils {
   getAllFolderPaths = (): string[] => {
     const folders = this.vault
       .getAllLoadedFiles()
-      .filter((file) => file instanceof TFolder) as TFolder[];
+      .filter((file): file is TFolder => file instanceof TFolder);
     return this.sortFolderPaths(folders);
   };
 
@@ -128,9 +128,9 @@ class VaultUtils {
   openFile = async (filepath: string, newLeaf?: boolean): Promise<boolean> => {
     try {
       const leaf = this.pluginServices.app.workspace.getLeaf(newLeaf || false);
-      const file = this.vault.getAbstractFileByPath(filepath) as TFile;
-      if (file) {
-        await leaf?.openFile(file); // Await the promise to ensure it completes
+      const file = this.vault.getAbstractFileByPath(filepath);
+      if (leaf && file instanceof TFile) {
+        await leaf.openFile(file); // Await the promise to ensure it completes
         return true; // Return true if the file is successfully opened
       } else {
         new Notice(`File not found: ${filepath}`);
@@ -138,7 +138,7 @@ class VaultUtils {
       }
     } catch (e) {
       new Notice(`Error opening file: ${e.message}`);
-      console.log(e);
+      console.error(e);
       return false; // Return false if an error occurs
     }
   };
@@ -202,7 +202,6 @@ class VaultUtils {
     if ((await this.vault.read(file)) === "") {
       return true;
     }
-    console.log(`Unable to clear note content from ${file.path}`);
     return false;
   };
 }

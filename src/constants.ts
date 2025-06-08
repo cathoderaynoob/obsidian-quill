@@ -58,12 +58,10 @@ export const ERROR_MESSAGES = {
     " » Settings > Quill > OpenAI API Key.",
   fileExistsError: "File with that name already exists.",
   fileNotFound: "Cannot find note at path provided. See console for details.",
-  fileReadError: "Error reading note. Please check the console for details.",
+  fileReadError: "Error reading note.",
   fileSaveError: "Could not save the note. See console for details.",
-  fileUploadError:
-    "Error uploading note. Please check the console for details.",
-  folderCreateError:
-    "Error creating folder. Please check the console for details.",
+  fileUploadError: "Error uploading note.",
+  folderCreateError: "Error creating folder.",
   folderNotFound:
     "Cannot find folder at path provided. See console for details.",
   networkConnectionError:
@@ -77,8 +75,8 @@ export const ERROR_MESSAGES = {
     "Out of OpenAI API credits. Go to Settings → Quill and use the Billing " +
     "link to buy more credits.",
   noFeature: "Feature not found",
-  saveError: "Unable to save to a note. Please check the console for details.",
-  unknown: "An error occurred. Please check the console for details.",
+  saveError: "Unable to save to a note.",
+  unknown: "An error occurred.",
   viewError:
     "Unable to open Quill. Please try again, or check the " +
     "console for any errors.",

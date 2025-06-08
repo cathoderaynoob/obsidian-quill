@@ -29,32 +29,8 @@ const MessagePad: React.FC<MessagePadProps> = ({
     pluginServices.getModelById(settings.openaiModelId)?.name ||
     settings.openaiModelId;
 
-  // Setting dynamic height for textarea as number of rows change
-  const setTextareaSize = () => {
-    setTimeout(() => {
-      const textarea = document.querySelector(
-        `.${ELEM_CLASSES_IDS.promptInput}`
-      ) as HTMLElement;
-      textarea.style.height = "auto";
-      if (textarea.textContent) {
-        const { borderTopWidth, borderBottomWidth, lineHeight } =
-          window.getComputedStyle(textarea);
-        const borderWidth =
-          parseFloat(borderTopWidth) + parseFloat(borderBottomWidth);
-        const rowHeight = parseInt(lineHeight) + borderWidth;
-        const maxHeight = rowHeight * 6;
-        const newHeight = Math.min(
-          textarea.scrollHeight + borderWidth,
-          maxHeight
-        );
-        textarea.style.height = `${newHeight}px`;
-      }
-    }, 0);
-  };
-
   const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setPromptValue(e.target.value);
-    setTextareaSize();
   };
 
   const handleBlur = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -62,7 +38,6 @@ const MessagePad: React.FC<MessagePadProps> = ({
       const trimmedValue = promptValue.trim();
       setPromptValue(trimmedValue);
     }
-    setTextareaSize();
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -79,7 +54,6 @@ const MessagePad: React.FC<MessagePadProps> = ({
     const trimmedValue = promptValue.trim();
     // Clear the prompt field...
     setPromptValue("");
-    setTextareaSize();
     const success = await executeFeature({
       featureId: "openPrompt",
       inputText: trimmedValue,
@@ -87,7 +61,6 @@ const MessagePad: React.FC<MessagePadProps> = ({
     if (!success) {
       // ...but restore it if the response fails
       setPromptValue(trimmedValue);
-      setTextareaSize();
     }
   };
 

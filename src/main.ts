@@ -82,8 +82,8 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
 
     // Show Quill view command
     this.addCommand({
-      id: "show-quill",
-      name: "Show Quill",
+      id: "show",
+      name: "Show",
       callback: () => {
         this.activateView();
       },
@@ -137,7 +137,7 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
     // CUSTOM COMMANDS ========================================================
     // "New Command" command
     this.addCommand({
-      id: "new-command",
+      id: "new-custom",
       name: "Create new command",
       callback: async () => {
         let isTemplateFolderSet = false;
@@ -239,7 +239,6 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
   };
 
   onunload(): void {
-    this.app.workspace.detachLeavesOfType(QUILL_VIEW_TYPE);
     this.openModals.forEach((modal) => modal.close());
     this.openModals = [];
   }
@@ -253,8 +252,8 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
     );
     const commands: Commands = this.settings.commands;
 
-    for (const commandId in commands) {
-      const command = commands[commandId];
+    for (const cmdId in commands) {
+      const command = commands[cmdId];
       let callback: (() => void) | undefined = undefined;
       let cmdEditorCheckCallback:
         | ((checking: boolean, editor: Editor) => boolean | void)
@@ -280,7 +279,7 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
           this.openModalPrompt({
             featureId,
             command,
-            customCommandId: commandId,
+            customCommandId: cmdId,
             outputTarget,
             editor,
             selectedText,
@@ -351,7 +350,7 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
       }
 
       this.addCommand({
-        id: commandId,
+        id: cmdId,
         name: command.name,
         editorCheckCallback: cmdEditorCheckCallback,
         callback: callback,
@@ -390,10 +389,10 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
       new Notice(
         "There was a problem opening settings.\n" +
           "To update your preferences, go to:\n\n" +
-          "    Settings > Quill",
+          "    Settings → Quill",
         10000
       );
-      console.log("Not able to open Quill Settings", e);
+      console.error("Not able to open Quill Settings", e);
     }
   };
 

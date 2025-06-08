@@ -400,6 +400,8 @@
   }
 }
 .oq-prompt-input {
+  field-sizing: content;
+  max-height: calc(1.5em * 6);
   border-color: transparent;
   border-radius: 0.5em;
   padding: 0.75em 1em;
@@ -504,15 +506,16 @@ button.oq-prompt-send {
   padding-right: 1.25em;
   & .oq-filepath {
     padding-left: 1em;
+    color: var(--text-accent);
   }
   & .oq-modal-title {
     white-space: break-spaces;
   }
   & :focus {
-    border-color: var(--oq-app-bright-color);
+    border-color: var(--text-accent);
   }
   & select:focus {
-    box-shadow: 0 0 0px 1px var(--oq-app-bright-color);
+    box-shadow: 0 0 0px 1px var(--text-accent);
   }
   & select.oq-disabled {
     color: var(--text-muted);
@@ -548,11 +551,10 @@ button.oq-prompt-send {
   display: grid;
   grid-template-columns: auto 1fr;
   grid-gap: 1em;
-  align-items: center;
+  align-items: baseline;
   max-width: 100%;
   & > label {
     text-align: right;
-    align-self: center;
   }
   & > input,
   > select {
@@ -580,6 +582,9 @@ button.oq-prompt-send {
 .oq-select-field {
   display: grid;
   grid-row-gap: 1em;
+  & select {
+    width: 100%;
+  }
 }
 #oq-newcommand-name {
   color: var(--oq-app-bright-color);
@@ -640,6 +645,9 @@ button.oq-prompt-send {
     & span {
       color: var(--oq-app-bright-color);
     }
+  }
+  & .oq-prompt-input {
+    height: calc(1.5em * 6);
   }
 }
 #oq-output-modal {
