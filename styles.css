@@ -506,15 +506,16 @@ button.oq-prompt-send {
   padding-right: 1.25em;
   & .oq-filepath {
     padding-left: 1em;
+    color: var(--text-accent);
   }
   & .oq-modal-title {
     white-space: break-spaces;
   }
   & :focus {
-    border-color: var(--oq-app-bright-color);
+    border-color: var(--text-accent);
   }
   & select:focus {
-    box-shadow: 0 0 0px 1px var(--oq-app-bright-color);
+    box-shadow: 0 0 0px 1px var(--text-accent);
   }
   & select.oq-disabled {
     color: var(--text-muted);

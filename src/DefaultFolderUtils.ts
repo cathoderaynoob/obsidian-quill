@@ -335,14 +335,25 @@ class DefaultFolderUtils {
     ).open();
   };
 
+  private msgTemplateMissing = (filename: string): DocumentFragment => {
+    return createFragment((descEl) => {
+      descEl.appendText("Your command template note can't be found:");
+      descEl.createEl("span", {
+        cls: ELEM_CLASSES_IDS.filePath,
+        text: filename,
+      });
+      descEl.appendText(
+        "You can select a different note in Settings, " +
+          "or restore the original and try again."
+      );
+    });
+  };
+
   promptMissingTemplateFile = (filename: string): void => {
     new ModalConfirm(
       this.pluginServices.app,
       "Quill: Command Template Missing",
-      `Your command template note can't be found: ` +
-        `<span class="${ELEM_CLASSES_IDS.filePath}">${filename}</span>` +
-        `You can select a different note in Settings, ` +
-        `or restore the original and try again.`,
+      this.msgTemplateMissing(filename),
       "Open Settings",
       false,
       async () => {
