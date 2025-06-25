@@ -1,4 +1,5 @@
 import { Editor, Modal, Notice, Plugin, WorkspaceLeaf } from "obsidian";
+import { AppSetting } from "obsidian-typings";
 import {
   ErrorCode,
   APP_PROPS,
@@ -377,10 +378,9 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
   // Open Quill settings tab
   openPluginSettings = async (): Promise<void> => {
     const tabId = this.manifest.id;
+
     try {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore: 'setting' does not exist on type 'App'.
-      const settingsPanel = this.app.setting;
+      const settingsPanel: AppSetting = this.app.setting;
       settingsPanel.open();
       if (settingsPanel.lastTabId !== tabId) {
         settingsPanel.openTabById(tabId);

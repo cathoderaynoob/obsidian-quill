@@ -62,7 +62,7 @@ export const DEFAULT_SETTINGS: QuillPluginSettings = {
 };
 
 export class QuillSettingsTab extends PluginSettingTab {
-  private plugin: QuillPlugin;
+  plugin: QuillPlugin;
   private pluginServices: IPluginServices;
 
   constructor(app: App, plugin: QuillPlugin, pluginServices: IPluginServices) {
