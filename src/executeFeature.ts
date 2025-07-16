@@ -3,6 +3,7 @@ import {
   GptRequestPayload,
   PayloadMessagesType,
   OutputTarget,
+  Role,
 } from "@/interfaces";
 import { buildPromptPayload, buildSystemPrompt } from "@/promptBuilder";
 import { FeatureProperties } from "@/featuresRegistry";
@@ -26,6 +27,15 @@ export interface ExecutionOptions {
   outputTarget?: OutputTarget;
   editor?: Editor;
 }
+
+export type EmitEventArgs = {
+  event: string;
+  role: Role;
+  modelId?: string;
+  prompt?: string;
+  selectedText?: string;
+  command?: Command;
+};
 
 export const executeFeature = async (
   featureRegistry: Record<string, FeatureProperties>,
@@ -59,6 +69,7 @@ export const executeFeature = async (
     return false;
   }
 
+  // Specific model to use? command, feature, or plugin default
   const modelId = command?.modelId || feature.modelId || settings.openaiModelId;
   if (command?.modelId && !apiService.isSupportedModel(command.modelId))
     return false;
@@ -107,25 +118,21 @@ export const executeFeature = async (
 
   // If output is to view, display message in the conversation
   if (feature.outputTarget === "view") {
-    const emitEvent = ({
+    const emitEvent = async ({
       event,
       role,
       modelId,
       prompt,
       selectedText,
       command,
-    }: {
-      event: string;
-      role: string;
-      modelId?: string;
-      prompt?: string;
-      selectedText?: string;
-      command?: Command;
-    }): Promise<void> => {
-      return new Promise<void>((resolve) => {
-        emitter.emit(event, role, modelId, prompt, selectedText, command);
-        resolve();
-      });
+    }: EmitEventArgs): Promise<void> => {
+      const listeners = emitter.listeners(event);
+      await Promise.all(
+        listeners.map((listener) => {
+          // Provide args in expected order for listeners
+          listener(role, modelId, prompt, selectedText, command);
+        })
+      );
     };
     // DISPLAY USER MESSAGE
     await emitEvent({
