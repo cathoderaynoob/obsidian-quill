@@ -62,7 +62,7 @@ export const DEFAULT_SETTINGS: QuillPluginSettings = {
 };
 
 export class QuillSettingsTab extends PluginSettingTab {
-  private plugin: QuillPlugin;
+  plugin: QuillPlugin;
   private pluginServices: IPluginServices;
 
   constructor(app: App, plugin: QuillPlugin, pluginServices: IPluginServices) {
@@ -215,7 +215,7 @@ export class QuillSettingsTab extends PluginSettingTab {
     };
 
     new Setting(containerEl)
-      .setName("Save Conversations and Messages")
+      .setName("Save conversations and messages")
       .setHeading();
     // Save Conversations Automatically
     new Setting(containerEl)
@@ -278,7 +278,7 @@ export class QuillSettingsTab extends PluginSettingTab {
       });
 
     // Section: My Custom Commands ============================================
-    new Setting(containerEl).setName("My Custom Commands").setHeading();
+    new Setting(containerEl).setName("My custom commands").setHeading();
     new Setting(containerEl)
       .setName("Store command templates in...")
       .setDesc("Store all your command templates in this folder.")

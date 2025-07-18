@@ -7,6 +7,7 @@ import {
   TFile,
   TFolder,
 } from "obsidian";
+import { InternalPlugins } from "obsidian-typings";
 import { APP_PROPS, ELEM_CLASSES_IDS } from "@/constants";
 import {
   DefaultSaveFolder,
@@ -168,15 +169,13 @@ class DefaultFolderUtils {
   }: {
     button: ButtonComponent;
     folderType: DefaultSaveFolder;
-    actions?: FolderButtonAction[];
     folderActionHandler?: (action: FolderButtonAction) => void;
   }): TFolder | false => {
     const app = this.pluginServices.app;
     // If we can use the file-explorer, let's, for a good user experience.
     // Otherwise, don't add the button.
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore: Property 'internalPlugins' does not exist on type 'App'.
-    const fileExpl = app.internalPlugins.getEnabledPluginById("file-explorer");
+    const internalPlugins: InternalPlugins = app.internalPlugins;
+    const fileExpl = internalPlugins.getEnabledPluginById("file-explorer");
     if (!fileExpl) return false;
 
     // Get the default folder info for reference in the method

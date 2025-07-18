@@ -32,37 +32,33 @@ export const buildPromptPayload = ({
   selectedText,
   formattingGuidance,
 }: Prompt): string => {
-  if (templateText) {
-    inputText = inputText ? `**User Prompt:**\n\n${inputText}` : "";
-    templateText = templateText
-      ? `**Instruction for custom command:**\n*The user has selected the following ` +
-        `command template from a note in Obsidian. Follow the instruction in the ` +
-        `user prompt with regard to the following text. If asked to ignore, simply respond ` +
-        `with some kind expression of understanding.*\n\n${templateText}`
-      : "";
+  const payload: string[] = [];
+
+  if (inputText) {
+    payload.push(`**User Prompt:**\n\n${inputText}`);
   }
+
+  if (templateText) {
+    payload.push(
+      `**Instruction for custom command:**\n*For the text provided in the ` +
+        `User Prompt, follow the instruction in the Command Template below. ` +
+        `If asked to ignore in the User Prompt, simply respond with some ` +
+        `expression of understanding.*\n\n**Command Template**\n${templateText}`
+    );
+  }
+
   if (selectedText) {
-    inputText = inputText ? `**User Prompt:**\n\n${inputText}` : "";
-    selectedText = selectedText
-      ? `**Selected Text from Note:**\n*The user has selected the following ` +
+    payload.push(
+      `**Selected Text from Note:**\n*The user has selected the following ` +
         `text from a note in Obsidian. Follow the instruction in the user prompt ` +
         `with regard to the following text. If asked to ignore, simply respond ` +
         `with some kind expression of understanding.*\n\n${selectedText}`
-      : "";
+    );
   }
-  formattingGuidance = formattingGuidance
-    ? `Formatting guidance: ${formattingGuidance}`
-    : "";
-  const prompt = [
-    inputText,
-    templateText,
-    selectedText,
-    formattingGuidance,
-  ].filter(Boolean);
 
-  // I don't know why I have to have the following interim
-  // variable, but it doesn't work without it.
-  const promptStr = prompt.join("\n\n").trim();
+  if (formattingGuidance) {
+    payload.push(`Formatting guidance: ${formattingGuidance}`);
+  }
 
-  return promptStr;
+  return payload.join("\n\n").trim();
 };

@@ -41,7 +41,10 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature, messagesApi }) => {
   const latestMessageRef = useRef<ConvoMessageType | null>(null);
   const prevContentLengthRef = useRef<number>(0);
   const prevScrollTop = useRef<number>(0);
-  const [stopScrolling, setStopScrolling] = useState(false);
+  const autoScrollRef = useRef(false);
+  const autoScrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const stopScrollingRef = useRef<boolean>(false);
+  const scrollToBottomRef = useRef(false);
   const payloadMessages = PayloadUtils.getViewInstance();
   const {
     iconEl: iconElClass,
@@ -223,33 +226,33 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature, messagesApi }) => {
         command && role === "user"
           ? `*${command.name}*\n\n${inputText || ""}`
           : inputText || "";
-      const newMsgIndex = messages.length + 1;
-      const newMessage: ConvoMessageType = {
-        convoId: getConvoId(),
-        msgIndex: newMsgIndex,
-        msgId: generateUniqueId(),
-        role,
-        content,
-        modelId,
-        command,
-        selectedText,
-      };
-      latestMessageRef.current = newMessage;
-      prevContentLengthRef.current = 0;
-      setStopScrolling(false);
-      if (role === "assistant") setIsResponding(true);
       setMessages((prevMessages) => {
+        const newMsgIndex = prevMessages.length + 1;
+        const newMessage: ConvoMessageType = {
+          convoId: getConvoId(),
+          msgIndex: newMsgIndex,
+          msgId: generateUniqueId(),
+          role,
+          content,
+          modelId,
+          command,
+          selectedText,
+        };
+        latestMessageRef.current = newMessage;
+        prevContentLengthRef.current = 0;
         return [...prevMessages, newMessage];
       });
+      if (role === "assistant") setIsResponding(true);
       prevScrollTop.current = containerElem.scrollTop;
-      scrollToBottom();
+      stopScrollingRef.current = false;
+      scrollToBottomRef.current = true;
     };
 
     emitter.on("newConvoMessage", handleNewConvoMessage);
     return () => {
       emitter.off("newConvoMessage", handleNewConvoMessage);
     };
-  }, [messages]);
+  }, []);
 
   // UPDATE MESSAGE ===========================================================
   // Update the most recent message with streaming content from the API.
@@ -257,30 +260,35 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature, messagesApi }) => {
     const handleResponseMessage = async (response: string) => {
       if (!latestMessageRef.current) return;
 
-      const latestMsg = latestMessageRef.current;
-      latestMsg.content += response;
       setMessages((prevMessages) => {
-        const updatedMessages = [...prevMessages];
-        updatedMessages[updatedMessages.length - 1] = {
-          ...(latestMsg as ConvoMessageType),
+        const latestMsg = prevMessages[prevMessages.length - 1];
+        if (!latestMsg) return prevMessages;
+        const updatedMsg = {
+          ...latestMsg,
+          content: latestMsg.content + response,
           isStreaming: true,
         };
+        const updatedMessages = [...prevMessages];
+        updatedMessages[updatedMessages.length - 1] = updatedMsg;
+
+        const contentLength = updatedMsg.content.length;
+        if (
+          contentLength >=
+          prevContentLengthRef.current + SCROLL_CHARS_LIMIT
+        ) {
+          scrollToMessage(updatedMsg.msgIndex - 1);
+          prevContentLengthRef.current = contentLength;
+        }
+
         return updatedMessages;
       });
-
-      // Scroll after a sufficient number of chars have been added
-      const contentLength = latestMsg.content.length;
-      if (contentLength >= prevContentLengthRef.current + SCROLL_CHARS_LIMIT) {
-        await scrollToMessage(latestMsg.msgIndex - 1);
-        prevContentLengthRef.current = contentLength;
-      }
     };
 
     emitter.on("updateResponseMessage", handleResponseMessage);
     return () => {
       emitter.off("updateResponseMessage", handleResponseMessage);
     };
-  }, [messages]);
+  }, []);
 
   // RESPONSE END =============================================================
   useEffect(() => {
@@ -322,25 +330,30 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature, messagesApi }) => {
   }, [messages]);
 
   // SCROLL HANDLING ==========================================================
+  const markAutoScroll = (time?: number | 200) => {
+    autoScrollRef.current = true;
+    if (autoScrollTimeoutRef.current) {
+      clearTimeout(autoScrollTimeoutRef.current);
+    }
+    autoScrollTimeoutRef.current = setTimeout(() => {
+      autoScrollRef.current = false;
+    }, time);
+  };
+
   useEffect(() => {
     const containerElem = containerElemRef.current;
     if (!containerElem) return;
 
     const handleScroll = () => {
-      // Disable auto-scrolling if the user scrolls up during the response
-      const isScrollingUp = containerElem.scrollTop < prevScrollTop.current;
-      if (isScrollingUp) {
-        setStopScrolling(true);
-        return;
-      }
-      prevScrollTop.current = containerElem.scrollTop;
+      if (autoScrollRef.current) return;
+      stopScrollingRef.current = true;
     };
     containerElem.addEventListener("scroll", handleScroll);
 
     return () => {
       containerElem.removeEventListener("scroll", handleScroll);
     };
-  }, [stopScrolling]);
+  }, []);
 
   // Control the message navigation
   const goToMessage = (nav: "next" | "prev" | "first" | "last") => {
@@ -360,7 +373,8 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature, messagesApi }) => {
           newIndex = messages.length - 1;
           break;
       }
-      (async () => await scrollToMessage(newIndex, true))();
+      stopScrollingRef.current = false;
+      (async () => await scrollToMessage(newIndex))();
       clearHighlights(msgHighlight);
       highlightMessage(newIndex);
       return newIndex;
@@ -368,7 +382,7 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature, messagesApi }) => {
   };
 
   // Keyboard navigation for messages
-  const handleMessagesKeypress = (event: KeyboardEvent) => {
+  const handleMessagesKeypress = async (event: KeyboardEvent) => {
     const promptElem = document.querySelector(`.${promptInput}`) as HTMLElement;
     if (document.activeElement !== promptElem) {
       switch (event.key) {
@@ -390,7 +404,7 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature, messagesApi }) => {
           break;
         case "b":
           event.preventDefault();
-          scrollToBottom();
+          await scrollToBottom();
       }
     }
     // Cancel the stream if the user presses the "Escape" key
@@ -424,11 +438,8 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature, messagesApi }) => {
   };
 
   // Scroll to a specific message
-  const scrollToMessage = async (
-    index: number,
-    isMsgNav?: boolean
-  ): Promise<void> => {
-    if (!isMsgNav && stopScrolling) return;
+  const scrollToMessage = async (index: number): Promise<void> => {
+    if (stopScrollingRef.current) return;
 
     const containerElem = containerElemRef.current;
     const message = getMessageElem(index);
@@ -439,14 +450,20 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature, messagesApi }) => {
     if (message.offsetHeight >= containerElem.offsetHeight) {
       const messagePos = getMessagePos(containerElem, message);
       const scrollToPosition = messagePos - 16;
+      const isAtTop = Math.abs(containerElem.scrollTop - scrollToPosition) < 2;
+      if (isAtTop) {
+        stopScrollingRef.current = true;
+        return;
+      }
+      markAutoScroll(500);
       containerElem.scrollTo({
         top: scrollToPosition,
         behavior: "smooth",
       });
-      setStopScrolling(true);
     }
     // Otherwise, scroll the message into view, centered
     else {
+      markAutoScroll(500);
       message.scrollIntoView({
         block: "center",
         behavior: "smooth",
@@ -454,7 +471,16 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature, messagesApi }) => {
     }
   };
 
-  const scrollToBottom = () => {
+  // Needed because the messages are rendered asynchronously
+  useEffect(() => {
+    if (scrollToBottomRef.current) {
+      scrollToBottom();
+      scrollToBottomRef.current = false;
+    }
+  }, [messages]);
+
+  const scrollToBottom = async () => {
+    markAutoScroll(1200); // Can be long due to number of lengthy messages
     const containerElem = containerElemRef.current;
     containerElem?.scrollTo({
       top: containerElem.scrollHeight,
@@ -470,7 +496,7 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature, messagesApi }) => {
       message.offsetHeight > containerElem.offsetHeight ||
       containerElem.scrollTop > message.offsetTop
     ) {
-      await scrollToMessage(index, true);
+      await scrollToMessage(index);
     }
   };
 

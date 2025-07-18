@@ -48,7 +48,6 @@ export default function PluginContextProvider({
       }}
     >
       <StrictMode>{children}</StrictMode>
-      {/* {children} */}
     </PluginContext.Provider>
   );
 }
