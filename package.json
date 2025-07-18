@@ -1,6 +1,6 @@
 {
   "name": "quill",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Quill is your AI assistant and custom command creator.",
   "main": "main.js",
   "scripts": {
