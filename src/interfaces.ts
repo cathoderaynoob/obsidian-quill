@@ -8,7 +8,7 @@ export interface Command {
   prompt: boolean;
   sendSelectedText: boolean;
   templateFilename: string;
-  modelId: OpenAIModelsSupported;
+  modelId: OpenAIModelId;
 }
 export interface Commands {
   [key: string]: Command;
@@ -33,8 +33,8 @@ export interface IPluginServices {
   saveSettings(): Promise<void>;
   openPluginSettings(): Promise<void>;
   loadCommands(): Promise<void>;
-  isSupportedModel(modelId: string, suppressNotify?: boolean): boolean;
-  getModelById(modelId: string): OpenAIModel | undefined;
+  isSupportedModel(modelId: OpenAIModelId, suppressNotify?: boolean): boolean;
+  getModelById(modelId: OpenAIModelId): OpenAIModel | undefined;
 }
 
 export interface GptEngines {
@@ -44,20 +44,15 @@ export interface GptEngines {
 }
 
 export interface GptRequestPayload {
-  modelId: string;
+  modelId: OpenAIModelId;
   messages: PayloadMessagesType[];
-  temperature: number;
 }
 
 export interface OpenAIModel {
   id: string;
   name: string;
 }
-export interface OpenAIModels {
-  models: OpenAIModel[];
-}
-export type OpenAIModelsSupported =
-  (typeof OPENAI_MODELS)["models"][number]["id"];
+export type OpenAIModelId = (typeof OPENAI_MODELS)[number]["id"];
 
 export type OutputTarget = "editor" | "view" | "modal";
 

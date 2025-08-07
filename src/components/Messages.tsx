@@ -1,7 +1,7 @@
 import { Notice, setIcon } from "obsidian";
 import { useEffect, useRef, useState } from "react";
 import { usePluginContext } from "@/components/PluginContext";
-import { Command, Role } from "@/interfaces";
+import { Command, OpenAIModelId, Role } from "@/interfaces";
 import {
   ELEM_CLASSES_IDS,
   ERROR_MESSAGES,
@@ -212,7 +212,7 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature, messagesApi }) => {
 
     const handleNewConvoMessage = async (
       role: Role,
-      modelId: string,
+      modelId: OpenAIModelId,
       inputText: string,
       selectedText: string,
       command?: Command
