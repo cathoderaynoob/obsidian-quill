@@ -8,7 +8,7 @@ import {
 import { buildPromptPayload, buildSystemPrompt } from "@/promptBuilder";
 import { FeatureProperties } from "@/featuresRegistry";
 import { QuillPluginSettings } from "@/settings";
-import { Command, IPluginServices } from "@/interfaces";
+import { Command, IPluginServices, OpenAIModelId } from "@/interfaces";
 import {
   activateEditorKeypress,
   deactivateEditorKeypress,
@@ -31,7 +31,7 @@ export interface ExecutionOptions {
 export type EmitEventArgs = {
   event: string;
   role: Role;
-  modelId?: string;
+  modelId?: OpenAIModelId;
   prompt?: string;
   selectedText?: string;
   command?: Command;
@@ -70,7 +70,8 @@ export const executeFeature = async (
   }
 
   // Specific model to use? command, feature, or plugin default
-  const modelId = command?.modelId || feature.modelId || settings.openaiModelId;
+  const modelId: OpenAIModelId =
+    command?.modelId || feature.modelId || settings.openaiModelId;
   if (command?.modelId && !apiService.isSupportedModel(command.modelId))
     return false;
 
@@ -155,7 +156,6 @@ export const executeFeature = async (
   const payload: GptRequestPayload = {
     modelId: modelId,
     messages: payloadMessagesArray,
-    temperature: feature.temperature || settings.openaiTemperature,
   };
 
   // Non-streaming responses

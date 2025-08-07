@@ -1,6 +1,11 @@
 import { Modal, Notice } from "obsidian";
 import { Root, createRoot } from "react-dom/client";
-import { Command, IPluginServices, OutputTarget } from "@/interfaces";
+import {
+  Command,
+  IPluginServices,
+  OpenAIModelId,
+  OutputTarget,
+} from "@/interfaces";
 import { QuillPluginSettings } from "@/settings";
 import { getFeatureProperties } from "@/featuresRegistry";
 import emitter from "@/customEmitter";
@@ -138,7 +143,7 @@ class ModalPrompt extends Modal {
       ? getFeatureProperties(this.app, this.featureId)
       : null;
     this.featureName = feature?.name;
-    const modelId =
+    const modelId: OpenAIModelId =
       this.command?.modelId || feature?.modelId || this.settings.openaiModelId;
     this.modelDesc = this.pluginServices.getModelById(modelId)?.name || modelId;
     this.modalRoot = createRoot(this.contentEl);

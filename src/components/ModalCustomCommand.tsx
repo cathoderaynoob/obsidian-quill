@@ -1,6 +1,11 @@
 import { DropdownComponent, Modal, setTooltip } from "obsidian";
 import { ELEM_CLASSES_IDS, OPENAI_MODELS } from "@/constants";
-import { Command, IPluginServices, OutputTarget } from "@/interfaces";
+import {
+  Command,
+  IPluginServices,
+  OpenAIModelId,
+  OutputTarget,
+} from "@/interfaces";
 import { DEFAULT_SETTINGS, QuillPluginSettings } from "@/settings";
 import VaultUtils from "@/VaultUtils";
 const { cmdFooter, menuPlaceholder, menuTarget, menuTemplates } =
@@ -256,7 +261,7 @@ class ModalCustomCommand extends Modal {
         defaultModelName || this.settings.openaiModelId
       })`
     );
-    OPENAI_MODELS.models.forEach((model) => {
+    OPENAI_MODELS.forEach((model) => {
       selectModelComp.addOption(model.id, model.name);
     });
     if (
@@ -291,7 +296,7 @@ class ModalCustomCommand extends Modal {
         prompt: displayPromptEl.checked,
         sendSelectedText: sendTextEl.checked,
         templateFilename: selectTemplateComp.getValue(),
-        modelId: selectModelComp.getValue(),
+        modelId: selectModelComp.getValue() as OpenAIModelId,
       });
       this.close();
     };

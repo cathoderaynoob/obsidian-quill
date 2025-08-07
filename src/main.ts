@@ -17,6 +17,7 @@ import {
   Commands,
   IPluginServices,
   OpenAIModel,
+  OpenAIModelId,
   OutputTarget,
 } from "@/interfaces";
 import ApiService from "@/ApiService";
@@ -41,10 +42,10 @@ export default class QuillPlugin extends Plugin implements IPluginServices {
   features: Features;
   pluginServices: IPluginServices;
   openModals: Modal[] = [];
-  isSupportedModel(modelId: string, suppressNotify?: boolean): boolean {
+  isSupportedModel(modelId: OpenAIModelId, suppressNotify?: boolean): boolean {
     return this.apiService.isSupportedModel(modelId, suppressNotify);
   }
-  getModelById(modelId: string): OpenAIModel | undefined {
+  getModelById(modelId: OpenAIModelId): OpenAIModel | undefined {
     return this.apiService.getModelById(modelId);
   }
 

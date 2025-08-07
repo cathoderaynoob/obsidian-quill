@@ -11,6 +11,7 @@ import {
   ELEM_CLASSES_IDS,
   EXTERNAL_LINKS,
   OPENAI_MODELS,
+  DEFAULT_OPENAI_MODEL,
 } from "@/constants";
 import {
   Command,
@@ -18,7 +19,7 @@ import {
   folderSettingNames,
   Hyperlink,
   IPluginServices,
-  OpenAIModelsSupported,
+  OpenAIModelId,
 } from "@/interfaces";
 import QuillPlugin from "@/main";
 import VaultUtils from "@/VaultUtils";
@@ -38,8 +39,7 @@ const {
 // Export the settings interface
 export interface QuillPluginSettings {
   openaiApiKey: string;
-  openaiModelId: OpenAIModelsSupported;
-  openaiTemperature: number;
+  openaiModelId: OpenAIModelId;
   autoSaveConvos: boolean;
   pathConversations: string;
   pathMessages: string;
@@ -51,8 +51,7 @@ export interface QuillPluginSettings {
 // Export the default settings
 export const DEFAULT_SETTINGS: QuillPluginSettings = {
   openaiApiKey: "",
-  openaiModelId: "gpt-4o",
-  openaiTemperature: 0.7,
+  openaiModelId: DEFAULT_OPENAI_MODEL,
   autoSaveConvos: false,
   pathConversations: "",
   pathMessages: "",
@@ -174,14 +173,14 @@ export class QuillSettingsTab extends PluginSettingTab {
     const modelSetting = new Setting(containerEl)
       .setName("Model")
       .addDropdown((dropdown) => {
-        const sortedModels = OPENAI_MODELS.models.sort((a, b) =>
-          a.name.localeCompare(b.name)
+        const sortedModels = [...OPENAI_MODELS].sort((a, b) =>
+          b.name.localeCompare(a.name)
         );
         sortedModels.forEach((model) =>
           dropdown.addOption(model.id, model.name)
         );
         dropdown.setValue(settings.openaiModelId);
-        dropdown.onChange(async (model) => {
+        dropdown.onChange(async (model: OpenAIModelId) => {
           settings.openaiModelId = model;
           await saveSettings();
           this.display();
