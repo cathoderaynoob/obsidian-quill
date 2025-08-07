@@ -374,8 +374,7 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature, messagesApi }) => {
           break;
       }
       stopScrollingRef.current = false;
-      (async () => await scrollToMessage(newIndex))();
-      clearHighlights(msgHighlight);
+      (async () => await scrollToMessage(newIndex, true))();
       highlightMessage(newIndex);
       return newIndex;
     });
@@ -438,8 +437,11 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature, messagesApi }) => {
   };
 
   // Scroll to a specific message
-  const scrollToMessage = async (index: number): Promise<void> => {
-    if (stopScrollingRef.current) return;
+  const scrollToMessage = async (
+    index: number,
+    force = false
+  ): Promise<void> => {
+    if (stopScrollingRef.current && !force) return;
 
     const containerElem = containerElemRef.current;
     const message = getMessageElem(index);
@@ -455,7 +457,7 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature, messagesApi }) => {
         stopScrollingRef.current = true;
         return;
       }
-      markAutoScroll(500);
+      markAutoScroll(1000);
       containerElem.scrollTo({
         top: scrollToPosition,
         behavior: "smooth",
@@ -463,7 +465,7 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature, messagesApi }) => {
     }
     // Otherwise, scroll the message into view, centered
     else {
-      markAutoScroll(500);
+      markAutoScroll(1000);
       message.scrollIntoView({
         block: "center",
         behavior: "smooth",
@@ -501,13 +503,27 @@ const Messages: React.FC<MessagesProps> = ({ executeFeature, messagesApi }) => {
   };
 
   // Utility functions for highlighting messages ==============================
-  const highlightMessage = (index: number) => {
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add(msgHighlight);
+          setTimeout(() => {
+            entry.target.classList.remove(msgHighlight);
+          }, 100);
+          observer.unobserve(entry.target);
+        }
+      });
+    },
+    { threshold: 0.1 }
+  );
+
+  function highlightMessage(index: number) {
     const messageElement = getMessageElem(index);
-    messageElement?.classList.add(msgHighlight);
-    setTimeout(() => {
-      clearHighlights(msgHighlight);
-    }, 100);
-  };
+    if (messageElement) {
+      observer.observe(messageElement);
+    }
+  }
 
   const clearHighlights = (msgClassName: string) => {
     const classSelector = `.${msgClassName}`;
