@@ -17,6 +17,7 @@ interface PromptContentProps {
   handleEditCommand?: () => void;
   startNewConvo?: (event: React.MouseEvent<HTMLElement>) => void;
   manuallySaveConvo?: (event: React.MouseEvent<HTMLElement>) => void;
+  showConvosFolderBtn: boolean;
   isConvoActive?: boolean;
   isConvoSaved?: boolean;
   disabled: boolean;
@@ -37,6 +38,7 @@ const PromptContent: React.FC<PromptContentProps> = ({
   handleEditCommand,
   startNewConvo,
   manuallySaveConvo,
+  showConvosFolderBtn,
   isConvoActive,
   isConvoSaved,
   disabled = false,
@@ -44,6 +46,7 @@ const PromptContent: React.FC<PromptContentProps> = ({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const sendButtonRef = useRef<HTMLButtonElement>(null);
   const startNewConvoButtonRef = useRef<HTMLButtonElement>(null);
+  const openConvoFolderButtonRef = useRef<HTMLButtonElement>(null);
   const saveConvoButtonRef = useRef<HTMLButtonElement>(null);
   const openTemplateButtonRef = useRef<HTMLButtonElement>(null);
   const editCommandButtonRef = useRef<HTMLButtonElement>(null);
@@ -101,6 +104,18 @@ const PromptContent: React.FC<PromptContentProps> = ({
       });
     }
   }, []);
+
+  // In PromptContent
+  useEffect(() => {
+    if (showConvosFolderBtn && openConvoFolderButtonRef.current) {
+      setIcon(openConvoFolderButtonRef.current, APP_PROPS.folderOpenIcon);
+      setTooltip(
+        openConvoFolderButtonRef.current,
+        "Open my conversations folder",
+        { placement: "top" }
+      );
+    }
+  }, [showConvosFolderBtn]); // ✅ add dependency so it runs when the boolean changes
 
   useEffect(() => {
     // Save Conversation Manually Button
@@ -174,6 +189,13 @@ const PromptContent: React.FC<PromptContentProps> = ({
           {modelDesc}
           {targetName && ` » ${targetName}`}
         </span>
+        {showConvosFolderBtn && (
+          <button
+            ref={openConvoFolderButtonRef}
+            className={clickableIconClass}
+            onClick={isConvoActive ? manuallySaveConvo : undefined}
+          />
+        )}
         {manuallySaveConvo && (
           <button
             ref={saveConvoButtonRef}

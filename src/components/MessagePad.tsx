@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ELEM_CLASSES_IDS } from "@/constants";
 import { ExecutionOptions } from "@/executeFeature";
 import { usePluginContext } from "@/components/PluginContext";
+import DefaultFolderUtils from "@/DefaultFolderUtils";
 import PromptContent from "@/components/PromptContent";
 
 interface MessagePadProps {
@@ -22,8 +23,18 @@ const MessagePad: React.FC<MessagePadProps> = ({
   isConvoSaved,
 }) => {
   const { isResponding, pluginServices, settings } = usePluginContext();
+  const [showConvosFolderBtn, setShowConvosFolderBtn] = useState(false);
   const [promptValue, setPromptValue] = useState<string>("");
   const [rows] = useState<number>(1);
+
+  const { hasValidDefaultFolder } = DefaultFolderUtils.getInstance(
+    pluginServices,
+    settings
+  );
+
+  useEffect(() => {
+    hasValidDefaultFolder("conversations").then(setShowConvosFolderBtn);
+  }, []);
 
   const modelDesc =
     pluginServices.getModelById(settings.openaiModelId)?.name ||
@@ -82,6 +93,7 @@ const MessagePad: React.FC<MessagePadProps> = ({
         handleOpenConvoNote={handleOpenConvoNote}
         startNewConvo={startNewConvo}
         manuallySaveConvo={manuallySaveConvo}
+        showConvosFolderBtn={showConvosFolderBtn}
         isConvoActive={isConvoActive}
         isConvoSaved={isConvoSaved}
         disabled={isResponding}
