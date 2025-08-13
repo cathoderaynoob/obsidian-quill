@@ -5,7 +5,7 @@ import * as os from "os";
 import MessageUtils from "@/MessageUtils";
 import ModalCustomCommand from "@/components/ModalCustomCommand";
 import { APP_PROPS, ELEM_CLASSES_IDS } from "@/constants";
-import { Command, Role } from "@/interfaces";
+import { Command, OpenAIModelId, Role } from "@/interfaces";
 import { usePluginContext } from "@/components/PluginContext";
 
 export interface ConvoMessageType {
@@ -14,7 +14,7 @@ export interface ConvoMessageType {
   msgId: string;
   role: Role;
   content: string;
-  modelId: string;
+  modelId: OpenAIModelId;
   command?: Command;
   selectedText?: string;
   error?: string;

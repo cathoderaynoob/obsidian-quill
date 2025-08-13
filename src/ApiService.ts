@@ -4,7 +4,7 @@ import {
   GptRequestPayload,
   IPluginServices,
   OpenAIModel,
-  OpenAIModelsSupported,
+  OpenAIModelId,
   OutputTarget,
 } from "@/interfaces";
 import { QuillPluginSettings } from "@/settings";
@@ -47,21 +47,20 @@ export default class ApiService {
   }
 
   // Returns OpenAIModel object
-  getModelById = (modelId: string): OpenAIModel | undefined => {
-    const model = OPENAI_MODELS.models.find((model) => model.id === modelId);
-    return model;
+  getModelById = (modelId: OpenAIModelId): OpenAIModel | undefined => {
+    return OPENAI_MODELS.find((model) => model.id === modelId);
   };
 
   // Returns array of supported model IDs
-  getSupportedModelIds = (): string[] => {
-    const supportedModelIds: OpenAIModelsSupported[] = OPENAI_MODELS.models.map(
-      (model) => model.id
-    );
-    return supportedModelIds;
+  getSupportedModelIds = (): OpenAIModelId[] => {
+    return OPENAI_MODELS.map((model) => model.id);
   };
 
   // Validate model is supported by plugin, or is using plugin default.
-  isSupportedModel = (modelId: string, suppressNotify?: boolean): boolean => {
+  isSupportedModel = (
+    modelId: "" | OpenAIModelId,
+    suppressNotify?: boolean
+  ): boolean => {
     // Return if using plugin default
     if (modelId === "") return true;
     const supportedModelIds = this.getSupportedModelIds();
@@ -175,7 +174,6 @@ export default class ApiService {
           model: payload.modelId,
           messages: payload.messages,
           stream: true,
-          temperature: payload.temperature,
         },
         { timeout: 12000 }
       );
@@ -227,7 +225,6 @@ export default class ApiService {
       const completion = await this.openai.chat.completions.create({
         model: payload.modelId,
         messages: payload.messages,
-        temperature: payload.temperature,
       });
       if (completion.choices[0]?.message?.content) {
         callback({

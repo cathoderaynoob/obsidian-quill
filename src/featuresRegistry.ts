@@ -1,5 +1,5 @@
 import { App, Editor, EditorPosition } from "obsidian";
-import { OutputTarget } from "@/interfaces";
+import { OpenAIModelId, OutputTarget } from "@/interfaces";
 import { renderToEditor } from "@/editorUtils";
 import emitter from "@/customEmitter";
 
@@ -17,8 +17,7 @@ export interface FeatureProperties {
   prompt: (inputText?: string) => string;
   processResponse: ProcessResponse;
   outputTarget: OutputTarget;
-  modelId?: string;
-  temperature?: number;
+  modelId?: OpenAIModelId;
   stream?: boolean;
 }
 

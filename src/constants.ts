@@ -1,4 +1,4 @@
-import { OpenAIModels } from "@/interfaces";
+import { OpenAIModel, OpenAIModelId } from "@/interfaces";
 
 export const APP_PROPS = {
   appName: "Quill",
@@ -115,30 +115,40 @@ export const EXTERNAL_LINKS = {
   linkOpenAIBilling:
     "https://platform.openai.com/settings/organization/billing/overview",
 };
-export const OPENAI_MODELS: OpenAIModels = {
-  models: [
-    {
-      id: "gpt-4.1",
-      name: "GPT-4.1",
-    },
-    {
-      id: "gpt-4.1-nano",
-      name: "GPT-4.1 nano",
-    },
-    {
-      id: "gpt-4o",
-      name: "GPT-4o",
-    },
-    {
-      id: "gpt-4o-mini",
-      name: "GPT-4o Mini",
-    },
-    {
-      id: "chatgpt-4o-latest",
-      name: "ChatGPT-4o",
-    },
-  ],
-};
+
+export const OPENAI_MODELS = [
+  {
+    id: "gpt-5-chat-latest",
+    name: "GPT-5 Chat",
+  },
+  {
+    id: "gpt-5-nano",
+    name: "GPT-5 Nano",
+  },
+  {
+    id: "gpt-4.1",
+    name: "GPT-4.1",
+  },
+  {
+    id: "gpt-4.1-nano",
+    name: "GPT-4.1 Nano",
+  },
+  {
+    id: "gpt-4o",
+    name: "GPT-4o",
+  },
+  {
+    id: "gpt-4o-mini",
+    name: "GPT-4o Mini",
+  },
+  {
+    id: "chatgpt-4o-latest",
+    name: "ChatGPT-4o",
+  },
+] as const satisfies readonly OpenAIModel[];
+
+export const DEFAULT_OPENAI_MODEL: OpenAIModelId = "gpt-5-chat-latest";
+
 export const PROMPTS = {
   systemInitial: {
     role: "system",

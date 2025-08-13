@@ -1,7 +1,7 @@
 {
   "id": "quill",
   "name": "Quill",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "minAppVersion": "1.8.10",
   "description": "Quill is your AI assistant and custom command creator.",
   "author": "Paul Nauman",
